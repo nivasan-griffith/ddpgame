@@ -1,0 +1,713 @@
+[
+  {
+    "id": "adhirran",
+    "word": "Adhirran",
+    "english": "Sawfish",
+    "category": "Animals 3 - Water Animals",
+    "image": "images/adhirran-sawfish.png",
+    "audio": {
+      "language": "audio/adhirran-sawfish.mp3",
+      "english": "audio/sawfish.mp3"
+    }
+  },
+  {
+    "id": "akul",
+    "word": "Akul",
+    "english": "Long neck turtle",
+    "category": "Animals 4 - Water Animals",
+    "image": "images/akl-long-neck-turtle.png",
+    "audio": {
+      "language": "audio/akul-long-neck-turtle.mp3",
+      "english": "audio/long-neck-turtle.mp3"
+    }
+  },
+  {
+    "id": "albeng",
+    "word": "Albeng",
+    "english": "Barramundi",
+    "category": "Animals 5 - Water Animals",
+    "image": "images/albeng-barramundi.png",
+    "audio": {
+      "language": "audio/albeng-barramundi.mp3",
+      "english": "audio/barramundi.mp3"
+    }
+  },
+  {
+    "id": "alnjul",
+    "word": "Alnjul",
+    "english": "Short neck turtle",
+    "category": "Animals 6 - Water Animals",
+    "image": "images/Alnjul - short neck turtle.png",
+    "audio": {
+      "language": null,
+      "english": "audio/short-neck-turtle.mp3"
+    },
+    "note": "Source document provides audio timestamp 10.13. To confirm whether audio has been extracted or is unavailable"
+  },
+  {
+    "id": "ambirr-ambye",
+    "word": "Ambirr ambye",
+    "english": "Big eel",
+    "category": "Animals 7 - Water Animals",
+    "image": "images/ambirr-ambye-big-eel.png",
+    "audio": {
+      "language": "audio/ambirr-ambye-big-eel.mp3",
+      "english": "audio/big-eel.mp3"
+    }
+  },
+  {
+    "id": "anharr",
+    "word": "Anharr",
+    "english": "Saltwater crocodile",
+    "category": "Animals 8 - Water Animals",
+    "image": "images/anharr-saltwater-crocodile.png",
+    "audio": {
+      "language": "audio/anharr-saltwater-crocodile.mp3",
+      "english": "audio/saltwater-crocodile.mp3"
+    }
+  },
+  {
+    "id": "arrmbil",
+    "word": "Arrmbil",
+    "english": "Catfish",
+    "category": "Animals 9 - Water Animals",
+    "image": "images/arrmbil-catfish.png",
+    "audio": {
+      "language": "audio/arrmbil-catfish.mp3",
+      "english": "audio/catfish.mp3"
+    }
+  },
+  {
+    "id": "athayr",
+    "word": "Athayr",
+    "english": "Little eel",
+    "category": "Animals 10 - Water Animals",
+    "image": "images/athayr-little-eel.png",
+    "audio": {
+      "language": "audio/athayr-little-eel.mp3",
+      "english": "audio/little-eel.mp3"
+    }
+  },
+  {
+    "id": "borakong",
+    "word": "Borakong",
+    "english": "Frog",
+    "category": "Animals 11 - Water Animals",
+    "image": "images/borakong-frog.png",
+    "audio": {
+      "language": "audio/borakong-frog.mp3",
+      "english": "audio/frog.mp3"
+    }
+  },
+  {
+    "id": "dhalawng",
+    "word": "Dhalawng",
+    "english": "Jewfish",
+    "category": "Animals 12 - Water Animals",
+    "image": "images/dhalawng-black-jewfish.png",
+    "audio": {
+      "language": "audio/dhalawng-black-jewfish.mp3",
+      "english": "audio/jewfish.mp3"
+    }
+  },
+  {
+    "id": "njalam",
+    "word": "Njalam",
+    "english": "Long tom",
+    "category": "Animals 13 - Water Animals",
+    "image": "images/njalam-long-tom.png",
+    "audio": {
+      "language": "audio/njalam-long-tom.mp3",
+      "english": "audio/long-tom.mp3"
+    }
+  },
+  {
+    "id": "tikarr",
+    "word": "Tikarr",
+    "english": "Stingray",
+    "category": "Animals 14 - Water Animals",
+    "image": "images/tikarr-stingray.png",
+    "audio": {
+      "language": "audio/tikarr-stingray.mp3",
+      "english": "audio/stingray.mp3"
+    }
+  },
+  {
+    "id": "woy",
+    "word": "Woy",
+    "english": "Freshwater crocodile",
+    "category": "Animals 15 - Water Animals",
+    "image": "images/woy-freshwater-crocodile.png",
+    "audio": {
+      "language": "audio/woy-freshwater-crocodile.mp3",
+      "english": "audio/freshwater-crocodile.mp3"
+    }
+  },
+  {
+    "id": "agenhung",
+    "word": "Agenhung",
+    "english": "Dingo",
+    "category": "Animals 2 - Land Animals",
+    "image": "images/agenhung-dingo.png",
+    "audio": {
+      "language": null,
+      "english": "audio/dingo.mp3"
+    },
+    "note": "Client provided correction: Dingo should be spelled \"ato agenhang\". Audio source available from May 1972 recording at 6.00."
+  },
+  {
+    "id": "akyurrya",
+    "word": "Akyurrya",
+    "english": "Echidna",
+    "category": "Animals 3 - Land Animals",
+    "image": "images/akyurrya-echidna.png",
+    "audio": {
+      "language": null,
+      "english": "audio/echidna.mp3"
+    },
+    "note": "Audio recording is labeled ‘porcipine’."
+  },
+  {
+    "id": "alaya",
+    "word": "Alaya",
+    "english": "Taipan",
+    "category": "Animals 4 - Land Animals",
+    "image": "images/alaya-tapian.png",
+    "audio": {
+      "language": null,
+      "english": "audio/taipan.mp3"
+    }
+  },
+  {
+    "id": "almayrr",
+    "word": "Almayrr",
+    "english": "Wallaby (f)",
+    "category": "Animals 5 - Land Animals",
+    "image": "images/Almayrr - wallaby female.png",
+    "audio": {
+      "language": null,
+      "english": "audio/wallaby.mp3"
+    },
+    "note": "An audio recording of \"almayrr\" exists, but the audio file is named \"male.\""
+  },
+  {
+    "id": "alnoraru",
+    "word": "Alnoraru",
+    "english": "Sugar glider",
+    "category": "Animals 6 - Land Animals",
+    "image": "images/alnoraru-sugar-glider.png",
+    "audio": {
+      "language": null,
+      "english": "audio/sugar-glider.mp3"
+    }
+  },
+  {
+    "id": "alwon",
+    "word": "Alwon",
+    "english": "Possum",
+    "category": "Animals 7 - Land Animals",
+    "image": "images/Alwon - possum.png",
+    "audio": {
+      "language": null,
+      "english": "audio/possum.mp3"
+    }
+  },
+  {
+    "id": "ambe",
+    "word": "Ambe",
+    "english": "Red flying fox",
+    "category": "Animals 8 - Land Animals",
+    "image": "images/ambe-red-flying-fox.png",
+    "audio": {
+      "language": null,
+      "english": "audio/red-flying-fox.mp3"
+    }
+  },
+  {
+    "id": "angongon",
+    "word": "Angongon",
+    "english": "Black flying fox",
+    "category": "Animals 9 - Land Animals",
+    "image": "images/angongon-black-flying-fox-LW.png",
+    "audio": {
+      "language": null,
+      "english": "audio/black-flying-fox.mp3"
+    }
+  },
+  {
+    "id": "arrawi",
+    "word": "Arrawi",
+    "english": "Wallaby (m)",
+    "category": "Animals 10 - Land Animals",
+    "image": "images/arrawi-wallaby-male.png",
+    "audio": {
+      "language": null,
+      "english": "audio/wallaby.mp3"
+    },
+    "note": "Client advised previous wallaby labels may be incorrect. Female wallaby should be arrawi and male wallaby should be arrabi."
+  },
+  {
+    "id": "arriba",
+    "word": "Arriba",
+    "english": "Emu",
+    "category": "Animals 11 - Land Animals",
+    "image": "images/arriba-emu.png",
+    "audio": {
+      "language": "audio/arriba-emu.mp3",
+      "english": "audio/emu.mp3"
+    }
+  },
+  {
+    "id": "arrmbakalam",
+    "word": "Arrmbakalam",
+    "english": "Bandicoot (m)",
+    "category": "Animals 12 - Land Animals",
+    "image": "images/arrmbakalam-bandicoot-male.png",
+    "audio": {
+      "language": null,
+      "english": null
+    }
+  },
+  {
+    "id": "mun",
+    "word": "Mun",
+    "english": "Bandicoot (f)",
+    "category": "Animals 13 - Land Animals",
+    "image": "images/mun-bandicoot-female.png",
+    "audio": {
+      "language": "audio/mun-bandicoot-female.mp3",
+      "english": null
+    }
+  },
+  {
+    "id": "njuleng",
+    "word": "Njuleng",
+    "english": "Frill neck lizard",
+    "category": "Animals 14 - Land Animals",
+    "image": "images/njuleng-frill-neck-lizard.png",
+    "audio": {
+      "language": null,
+      "english": "audio/frill-neck-lizard.mp3"
+    },
+    "note": "Client correction: spelling should be \"anjuleng\"."
+  },
+  {
+    "id": "acilpa",
+    "word": "Acilpa",
+    "english": "jabiru",
+    "category": "New Animals (birds)",
+    "image": "images/acilpa-jabiru.png",
+    "audio": {
+      "language": "audio/acilpa-jabiru.mp3",
+      "english": "audio/jabiru.mp3"
+    }
+  },
+  {
+    "id": "adhayung",
+    "word": "Adhayung",
+    "english": "crow",
+    "category": "New Animals (birds)",
+    "image": "images/adhayung-crow.png",
+    "audio": {
+      "language": "audio/adhayung-crow.mp3",
+      "english": "audio/crow.mp3"
+    }
+  },
+  {
+    "id": "alimba",
+    "word": "Alimba",
+    "english": "galah",
+    "category": "New Animals (birds)",
+    "image": "images/alimba-galah.png",
+    "audio": {
+      "language": "audio/alimba-galah.mp3",
+      "english": "audio/galah.mp3"
+    }
+  },
+  {
+    "id": "alpayrrmba",
+    "word": "Alpayrrmba",
+    "english": "pelican",
+    "category": "New Animals (birds)",
+    "image": "images/alpayrrmba-pelican.png",
+    "audio": {
+      "language": "audio/alpayrrmba-pelican.mp3",
+      "english": "audio/pelican.mp3"
+    }
+  },
+  {
+    "id": "anggewa",
+    "word": "Anggewa",
+    "english": "brolga",
+    "category": "New Animals (birds)",
+    "image": "images/anggewa-brolga.png",
+    "audio": {
+      "language": "audio/anggewa-brolga.mp3",
+      "english": "audio/brolga.mp3"
+    }
+  },
+  {
+    "id": "karrarru",
+    "word": "Karrarru",
+    "english": "water monitor",
+    "category": "New Animals (birds)",
+    "image": null,
+    "audio": {
+      "language": "audio/karrarru-water-monitor.mp3",
+      "english": "audio/water-monitor.mp3"
+    }
+  },
+  {
+    "id": "arrmarrmanja",
+    "word": "Arrmarrmanja",
+    "english": "black cockatoo",
+    "category": "New Animals (birds)",
+    "image": "images/arrmarrmanja-blackcockatoo.png",
+    "audio": {
+      "language": "audio/arrmarrmanja-blackcockatoo.mp3",
+      "english": "audio/black-cockatoo.mp3"
+    }
+  },
+  {
+    "id": "arrolmba",
+    "word": "Arrolmba",
+    "english": "kookaburra",
+    "category": "New Animals (birds)",
+    "image": "images/arrolmba-kookaburra.png",
+    "audio": {
+      "language": "audio/arrolmba-kookaburra.mp3",
+      "english": "audio/kookaburra.mp3"
+    }
+  },
+  {
+    "id": "arromi",
+    "word": "Arromi",
+    "english": "eaglehawk",
+    "category": "New Animals (birds)",
+    "image": "images/arromi-eaglehawk.png",
+    "audio": {
+      "language": "audio/arromi-eaglehawk.mp3",
+      "english": "audio/eagle-hawk.mp3"
+    }
+  },
+  {
+    "id": "kulmbarrga",
+    "word": "Kulmbarrga",
+    "english": "magpie",
+    "category": "New Animals (birds)",
+    "image": "images/kulmbarrga-magpie.png",
+    "audio": {
+      "language": "audio/kulmbarrga-magpie.mp3",
+      "english": "audio/magpie.mp3"
+    }
+  },
+  {
+    "id": "lawn",
+    "word": "Lawn",
+    "english": "bustard (note Bruce calls it plains turkey)",
+    "category": "New Animals (birds)",
+    "image": "images/lawn-bustard.png",
+    "audio": {
+      "language": "audio/lawn-bustard.mp3",
+      "english": "audio/bustard.mp3"
+    }
+  },
+  {
+    "id": "thayrrathe",
+    "word": "Thayrrathe",
+    "english": "willy wagtail",
+    "category": "New Animals (birds)",
+    "image": "images/thayrrathe-willywagtail.png",
+    "audio": {
+      "language": "audio/thayrrathe-willywagtail.mp3",
+      "english": "audio/willy-wag-tail.mp3"
+    }
+  },
+  {
+    "id": "yimal",
+    "word": "Yimal",
+    "english": "curlew",
+    "category": "New Animals (birds)",
+    "image": "images/yimal-curlew.png",
+    "audio": {
+      "language": "audio/yimal-curlew.mp3",
+      "english": "audio/curlew.mp3"
+    }
+  },
+  {
+    "id": "adhaw",
+    "word": "Adhaw",
+    "english": "Steel axe",
+    "category": "Material Culture 2",
+    "image": "images/Adhaw - steel axe.png",
+    "audio": {
+      "language": null,
+      "english": "audio/steele-axe.mp3"
+    }
+  },
+  {
+    "id": "adhaw-anoman",
+    "word": "Adhaw anoman",
+    "english": "Stone axe",
+    "category": "Material Culture 3",
+    "image": "images/Adhaw anoman - stone axe.png",
+    "audio": {
+      "language": null,
+      "english": "audio/stone-axe.mp3"
+    }
+  },
+  {
+    "id": "anhye-akanakan",
+    "word": "Anhye akanakan",
+    "english": "Knife",
+    "category": "Material Culture 4",
+    "image": "images/Anhye akanakan - knife.png",
+    "audio": {
+      "language": null,
+      "english": "audio/knife.mp3"
+    }
+  },
+  {
+    "id": "akaw-nandu",
+    "word": "Akaw nandu",
+    "english": "Nose pin",
+    "category": "Material Culture 5",
+    "image": "images/Akaw nandu - nose pin.png",
+    "audio": {
+      "language": null,
+      "english": "audio/nose-pin.mp3"
+    }
+  },
+  {
+    "id": "alaymbar",
+    "word": "Alaymbar",
+    "english": "Nulla nulla",
+    "category": "Material Culture 6",
+    "image": "images/Alaymbar - nulla nulla.png",
+    "audio": {
+      "language": null,
+      "english": "audio/nulla-nulla.mp3"
+    }
+  },
+  {
+    "id": "alka",
+    "word": "Alka",
+    "english": "Spear",
+    "category": "Material Culture 7",
+    "image": "images/Alka - spear.png",
+    "audio": {
+      "language": null,
+      "english": "audio/spear.mp3"
+    }
+  },
+  {
+    "id": "alno",
+    "word": "Alno",
+    "english": "Dillybag",
+    "category": "Material Culture 8",
+    "image": "images/Alno - string dilly bag.png",
+    "audio": {
+      "language": null,
+      "english": "audio/string-dilly-bag.mp3"
+    },
+    "note": "The audio recording says \"string dillybag\""
+  },
+  {
+    "id": "ambun",
+    "word": "Ambun",
+    "english": "Woomera",
+    "category": "Material Culture 9",
+    "image": "images/Ambun - woomera.png",
+    "audio": {
+      "language": null,
+      "english": "audio/womera.mp3"
+    }
+  },
+  {
+    "id": "anpe",
+    "word": "Anpe",
+    "english": "Bottom grinding stone",
+    "category": "Material Culture 10",
+    "image": "images/Anpe - bottom grinding stone.png",
+    "audio": {
+      "language": null,
+      "english": "audio/bottom-grinding-stone.mp3"
+    }
+  },
+  {
+    "id": "anpe-acemba",
+    "word": "Anpe acemba",
+    "english": "Top grinding stone",
+    "category": "Material Culture 11",
+    "image": "images/Anpe acemba - top grinding stone.png",
+    "audio": {
+      "language": null,
+      "english": "audio/top-grinding-stone.mp3"
+    }
+  },
+  {
+    "id": "atayl",
+    "word": "Atayl",
+    "english": "Hook",
+    "category": "Material Culture 12",
+    "image": "images/Atayl - fishing hook.png",
+    "audio": {
+      "language": null,
+      "english": "audio/hook.mp3"
+    }
+  },
+  {
+    "id": "kombalkum",
+    "word": "Kombalkum",
+    "english": "Billycan",
+    "category": "Material Culture 13",
+    "image": "images/Kombalkum - billy can.png",
+    "audio": {
+      "language": null,
+      "english": "audio/billy-can.mp3"
+    }
+  },
+  {
+    "id": "malkarr",
+    "word": "Malkarr",
+    "english": "Boomerang",
+    "category": "Material Culture 14",
+    "image": "images/Malkarr - boomerang.png",
+    "audio": {
+      "language": "audio/malkarr-boomerang.mp3",
+      "english": "audio/boomarang.mp3"
+    }
+  },
+  {
+    "id": "arrpil",
+    "word": "arrpil",
+    "english": "hair",
+    "category": "Face/Head (from Email)",
+    "image": null,
+    "audio": {
+      "language": null,
+      "english": null
+    },
+    "note": "Only the overall face/head image was provided (no individual images for each facial feature)."
+  },
+  {
+    "id": "amil-arrpil",
+    "word": "amil arrpil",
+    "english": "eyebrow",
+    "category": "Face/Head (from Email)",
+    "image": null,
+    "audio": {
+      "language": null,
+      "english": null
+    },
+    "note": "Only the overall face/head image was provided (no individual images for each facial feature)."
+  },
+  {
+    "id": "amil-akwil",
+    "word": "amil akwil",
+    "english": "browridge",
+    "category": "Face/Head (from Email)",
+    "image": null,
+    "audio": {
+      "language": null,
+      "english": null
+    },
+    "note": "Only the overall face/head image was provided (no individual images for each facial feature)."
+  },
+  {
+    "id": "agu-or-awu",
+    "word": "agu (or awu)",
+    "english": "throat",
+    "category": "Face/Head (from Email)",
+    "image": null,
+    "audio": {
+      "language": null,
+      "english": null
+    },
+    "note": "Only the overall face/head image was provided (no individual images for each facial feature)."
+  },
+  {
+    "id": "pandal",
+    "word": "pandal",
+    "english": "chin",
+    "category": "Face/Head (from Email)",
+    "image": null,
+    "audio": {
+      "language": null,
+      "english": null
+    },
+    "note": "Only the overall face/head image was provided (no individual images for each facial feature)."
+  },
+  {
+    "id": "alkul",
+    "word": "alkul",
+    "english": "head",
+    "category": "Face/Head (from Email)",
+    "image": null,
+    "audio": {
+      "language": null,
+      "english": null
+    },
+    "note": "Only the overall face/head image was provided (no individual images for each facial feature)."
+  },
+  {
+    "id": "ambir",
+    "word": "ambir",
+    "english": "forehead",
+    "category": "Face/Head (from Email)",
+    "image": null,
+    "audio": {
+      "language": null,
+      "english": null
+    },
+    "note": "Only the overall face/head image was provided (no individual images for each facial feature)."
+  },
+  {
+    "id": "amil",
+    "word": "amil",
+    "english": "eye",
+    "category": "Face/Head (from Email)",
+    "image": null,
+    "audio": {
+      "language": null,
+      "english": null
+    },
+    "note": "Only the overall face/head image was provided (no individual images for each facial feature)."
+  },
+  {
+    "id": "akaw-ata",
+    "word": "akaw ata",
+    "english": "nose",
+    "category": "Face/Head (from Email)",
+    "image": null,
+    "audio": {
+      "language": null,
+      "english": null
+    },
+    "note": "Only the overall face/head image was provided (no individual images for each facial feature)."
+  },
+  {
+    "id": "ana-ambor",
+    "word": "ana ambor",
+    "english": "ear",
+    "category": "Face/Head (from Email)",
+    "image": null,
+    "audio": {
+      "language": null,
+      "english": null
+    },
+    "note": "Only the overall face/head image was provided (no individual images for each facial feature)."
+  },
+  {
+    "id": "angu",
+    "word": "angu",
+    "english": "neck",
+    "category": "Face/Head (from Email)",
+    "image": null,
+    "audio": {
+      "language": null,
+      "english": null
+    },
+    "note": "Only the overall face/head image was provided (no individual images for each facial feature)."
+  }
+]
