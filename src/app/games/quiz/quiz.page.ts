@@ -1,17 +1,11 @@
-import { Component, OnInit} from '@angular/core';
-import { CommonModule,NgFor } from '@angular/common';
+import { Component, OnInit } from '@angular/core';
+import { CommonModule, NgFor } from '@angular/common';
 import { RouterLink } from '@angular/router';
-import { FormsModule} from '@angular/forms';
-import { trigger, state, style, transition, animate } from '@angular/animations';
-import { IonPopover,IonRadioGroup,IonRadio,IonList,IonItem,IonCheckbox,IonContent,IonButton,IonIcon } from '@ionic/angular/standalone';
-import { Question } from 'src/app/question';
-import { Quiz } from 'src/app/quiz';
-import { Quizoption } from 'src/app/quizoption';
-import { Card } from 'src/app/card';
-import { SetInfo } from 'src/app/setinfo';
+import { FormsModule } from '@angular/forms';
+import { IonPopover, IonRadioGroup, IonRadio, IonList, IonItem, IonContent, IonButton, IonIcon } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { arrowBack, arrowForward, infinite, server, volumeHighOutline } from 'ionicons/icons';
-import { HttpService } from 'src/app/services/http.service';
+import { arrowBack, arrowForward, volumeHighOutline } from 'ionicons/icons';
+import { LanguageModuleService, ResolvedLanguageWord } from 'src/app/services/language-module.service';
 import { UtilsService } from 'src/app/services/utils.service';
 
 @Component({
@@ -19,161 +13,95 @@ import { UtilsService } from 'src/app/services/utils.service';
   templateUrl: './quiz.page.html',
   styleUrls: ['./quiz.page.scss'],
   standalone: true,
-  imports: [NgFor,FormsModule,IonPopover,IonRadioGroup,IonRadio,IonList,IonItem,IonCheckbox,IonContent, RouterLink, IonIcon, IonButton],
- 
+  imports: [CommonModule, NgFor, FormsModule, IonPopover, IonRadioGroup, IonRadio, IonList, IonItem, IonContent, RouterLink, IonIcon, IonButton]
 })
 export class QuizPage implements OnInit {
-  flip:string='inactive';
-  isword:boolean= false;
-  ftext:string="";
-  btext:string = "";
-  bimage:string = "";
-  fimage:string= "";
-  audiofile:string="";
-  quiz:Quiz[] = [];
-  cards:Card[]=[];
-  setinfo:SetInfo = {"lang":"","location":"","credits":"","words":[]};
-  question:Question = new Question("","","","","",[]);
-  currentquestion:number = 0;
-  prevactive:boolean = true;
-  nextactive:boolean = false;
-  options:Quizoption[] = [];
-  isPopovertrueOpen:boolean = false;
-  isPopoverfalseOpen:boolean = false;
-  radval = "";
-  wordexists = false;
-  constructor(private httpservice: HttpService,private utils: UtilsService) {
+  quiz: ResolvedLanguageWord[] = [];
+  cards: ResolvedLanguageWord[] = [];
+  question: ResolvedLanguageWord | null = null;
+  currentquestion = 0;
+  prevactive = true;
+  nextactive = false;
+  options: ResolvedLanguageWord[] = [];
+  isPopovertrueOpen = false;
+  isPopoverfalseOpen = false;
+  radval = '';
 
-    addIcons({volumeHighOutline,arrowForward,arrowBack,infinite});
-   
-    
-   }
+  constructor(private languageModules: LanguageModuleService, private utils: UtilsService) {
+    addIcons({ volumeHighOutline, arrowForward, arrowBack });
+  }
 
-  ngOnInit() {
-    this.httpservice.getCards().subscribe(res => {
-      
-      this.setinfo = res;
-      this.cards = this.setinfo.words;
-      this.httpservice.getQuiz().subscribe(result => {
-        this.quiz = this.utils.shuffleArray(result);
-        this.configureQuestion();
-      
-      })
+  ngOnInit(): void {
+    this.languageModules.loadSelectedModule().subscribe(module => {
+      this.cards = module.words;
+      this.quiz = this.utils.shuffleArray([...module.words]);
+      this.configureQuestion();
+      this.nextactive = this.quiz.length <= 1;
     });
-    
-  }
-  toggleFlip() {
-   
-    this.flip = (this.flip == 'inactive') ? 'active' : 'inactive';
-  
-  }
-  speak(audiofile:string){
-   
-      let audio = new Audio();
-      if (audiofile != ""){
-        audio.src='../assets/' + audiofile;
-        audio.load();
-        audio.play();
-      }
-     
-    
-    
   }
 
-  next(){
-    this.isPopovertrueOpen = false;
-    this.isPopoverfalseOpen = false;
-    this.currentquestion++;
-    if (this.currentquestion == this.quiz.length-1){
-      this.nextactive = true;  
+  speak(audioUrl: string | null): void {
+    if (!audioUrl) {
+      return;
     }
-    this.configureQuestion();
-    this.prevactive = false;
+    const audio = new Audio(audioUrl);
+    audio.play().catch(() => undefined);
   }
-  previous(){
-    this.isPopovertrueOpen = false;
-    this.isPopoverfalseOpen = false;
-    this.currentquestion--;
-    if (this.currentquestion == 0){
-      this.prevactive = true;
-      //this.flip = (this.flip == 'inactive') ? 'active' : 'inactive';
+
+  next(): void {
+    this.clearpopover();
+    if (this.currentquestion >= this.quiz.length - 1) {
+      return;
     }
-  
+    this.currentquestion++;
     this.configureQuestion();
+    this.prevactive = this.currentquestion === 0;
+    this.nextactive = this.currentquestion >= this.quiz.length - 1;
+  }
+
+  previous(): void {
+    this.clearpopover();
+    if (this.currentquestion <= 0) {
+      return;
+    }
+    this.currentquestion--;
+    this.configureQuestion();
+    this.prevactive = this.currentquestion === 0;
     this.nextactive = false;
   }
- clearpopover(){
+
+  clearpopover(): void {
     this.isPopovertrueOpen = false;
     this.isPopoverfalseOpen = false;
- }
-  itemSelected(event:any){
-  //console.log(event.detail.value, this.question.word)
- 
-    if (event.detail.value == this.question.word){  
-      //console.log("Open Popup correct");   
+  }
+
+  itemSelected(event: { detail: { value: string } }): void {
+    if (event.detail.value === this.question?.word) {
       this.isPopovertrueOpen = true;
-      let audio = new Audio();
-     //get a sound to play for congratulations
-        audio.src='../assets/audio/clapping.mp3';
-        audio.load();
-        audio.play();
-      
-     
-    }else{
-      console.log("Open Popup incorrect");  
+      const audio = new Audio('assets/audio/clapping.mp3');
+      audio.play().catch(() => undefined);
+    } else {
       this.isPopoverfalseOpen = true;
-      
     }
-
-  }
-  configureQuestion(){
-    this.options = [];
-    for(let i=0; i<=this.cards.length-1;i++){
-      //loop to find details for the question word.
-     
-      if (this.cards[i].word == this.quiz[this.currentquestion].word)
-      {
-        let wordcount = 0
-        //find three other random words that do no include the question word
-        while (wordcount < 3){
-          //pick a random number
-          let rnd = Math.floor(Math.random()*this.cards.length);
-          
-          //make sure the new random word is not the same as the question word
-          if (this.cards[rnd].word != this.quiz[this.currentquestion].word){
-            
-           this.wordexists = false;
-            //check for already being in the list
-            for(let i=0;i<this.options.length;i++){
-              if(this.options[i].word == this.cards[rnd].word){
-                //add words to options array.
-                this.wordexists = true;
-                
-              }
-            }
-              if (!this.wordexists){
-                this.options.push({"word":this.cards[rnd].word,"audio":this.cards[rnd].audio });
-                wordcount++;
-              }
-            
-          }
-       }
-       //randomly add in the question word to the array.
-       this.options.splice(Math.floor( Math.random() * this.options.length),0,{"word":this.cards[i].word,"audio":this.cards[i].audio });
-       //create a new question
-       
-        this.question = new Question(this.quiz[this.currentquestion].question,
-            this.quiz[this.currentquestion].word,
-            this.cards[i].worde,
-            this.cards[i].frontimage,
-            this.cards[i].audio,
-            this.options
-        );
-       break;
-      }
-    }
-    
   }
 
- 
+  hideImage(): void {
+    if (this.question) {
+      this.question.imageUrl = null;
+    }
+  }
+
+  private configureQuestion(): void {
+    this.radval = '';
+    this.question = this.quiz[this.currentquestion] ?? null;
+    if (!this.question) {
+      this.options = [];
+      return;
+    }
+
+    const distractors = this.utils.shuffleArray(
+      this.cards.filter(word => word.id !== this.question?.id)
+    ).slice(0, 3);
+    this.options = this.utils.shuffleArray([...distractors, this.question]);
+  }
 }

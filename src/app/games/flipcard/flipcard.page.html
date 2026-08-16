@@ -1,7 +1,7 @@
 <ion-content  >
   <div id="layout">
     <div class="layouttop">
-      <div class="corner"><img src="assets/corneronly-kukuthaypan.png"/></div>
+      <div class="corner"><img src="assets/corneronly.png"/></div>
        <!-- <div class="language">{{setinfo.lang}}</div>  -->
       <div class="dots"><a routerLink="/" ><img src="assets/dots-maroon.png" role="navigation" alt="nav back button" /></a>-home-</div>
     </div>
@@ -13,12 +13,12 @@
       <div class="tp-wrapper">
         <div class="tp-box" [@flipState]="flip">
           <div class="tp-box__side tp-box__front">
-            <img src="assets/{{card.frontimage}}" />
-            <div class="word">{{card.worde}}</div>
+            <img *ngIf="card?.imageUrl" [src]="card?.imageUrl" (error)="hideImage()" alt="" />
+            <div class="word">{{card?.english}}</div>
           </div>
           <div class="tp-box__side tp-box__back">
-            <img src="assets/{{card.backimage}}" />
-            <div class="word">{{card.word}}</div>
+            <img *ngIf="card?.imageUrl" [src]="card?.imageUrl" (error)="hideImage()" alt="" />
+            <div class="word">{{card?.word}}</div>
           </div>
         </div> <!--tp-box-->
           
