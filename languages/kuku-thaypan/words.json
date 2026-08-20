@@ -37,7 +37,7 @@
     "word": "Alnjul",
     "english": "Short neck turtle",
     "category": "Animals 6 - Water Animals",
-    "image": "images/Alnjul - short neck turtle.png",
+    "image": "images/alnjul-short-neck-turtle.png",
     "audio": {
       "language": null,
       "english": "audio/short-neck-turtle.mp3"
@@ -186,7 +186,7 @@
     "image": "images/Almayrr - wallaby female.png",
     "audio": {
       "language": null,
-      "english": "audio/wallaby.mp3"
+      "english": "audio/Wallaby (f).mp3"
     },
     "note": "An audio recording of \"almayrr\" exists, but the audio file is named \"male.\""
   },
@@ -206,7 +206,7 @@
     "word": "Alwon",
     "english": "Possum",
     "category": "Animals 7 - Land Animals",
-    "image": "images/Alwon - possum.png",
+    "image": "images/Alwon-possum.png",
     "audio": {
       "language": null,
       "english": "audio/possum.mp3"
@@ -242,7 +242,7 @@
     "image": "images/arrawi-wallaby-male.png",
     "audio": {
       "language": null,
-      "english": "audio/wallaby.mp3"
+      "english": "audio/wallaby-male.mp3"
     },
     "note": "Client advised previous wallaby labels may be incorrect. Female wallaby should be arrawi and male wallaby should be arrabi."
   },
@@ -265,7 +265,7 @@
     "image": "images/arrmbakalam-bandicoot-male.png",
     "audio": {
       "language": null,
-      "english": null
+      "english": "audio/bandicoot-male.mp3"
     }
   },
   {
@@ -276,7 +276,7 @@
     "image": "images/mun-bandicoot-female.png",
     "audio": {
       "language": "audio/mun-bandicoot-female.mp3",
-      "english": null
+      "english": "audio/bandicoot-female.mp3"
     }
   },
   {
