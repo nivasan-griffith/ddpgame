@@ -29,6 +29,11 @@
                 "glob": "**/*",
                 "input": "src/assets",
                 "output": "assets"
+              },
+              {
+                "glob": "**/*",
+                "input": "languages",
+                "output": "languages"
               }
             ],
             "styles": ["src/global.scss", "src/theme/variables.scss"],
@@ -105,6 +110,11 @@
                 "glob": "**/*",
                 "input": "src/assets",
                 "output": "assets"
+              },
+              {
+                "glob": "**/*",
+                "input": "languages",
+                "output": "languages"
               }
             ],
             "styles": ["src/global.scss", "src/theme/variables.scss"],
@@ -127,7 +137,10 @@
     }
   },
   "cli": {
-    "schematicCollections": ["@ionic/angular-toolkit"]
+    "schematicCollections": [
+      "@ionic/angular-toolkit"
+    ],
+    "analytics": false
   },
   "schematics": {
     "@ionic/angular-toolkit:component": {

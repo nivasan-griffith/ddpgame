@@ -23,7 +23,7 @@
 
   <div id="layout">
     <div class="layouttop">
-      <div class="corner"><img src="assets/corneronly-kukuthaypan.png"/></div>
+      <div class="corner"><img src="assets/corneronly.png"/></div>
        <div class="language"><!--{{setinfo.lang}}--></div> 
       <div class="dots"><a routerLink="/" ><img src="assets/dots-maroon.png" role="navigation" alt="nav back button" /></a>-home-</div>
     </div>
@@ -33,15 +33,15 @@
         <div class="tp-wrapper">
       
           <div class="tp-box" >
-            <img src="assets/{{question.image}}" alt="{{question.word}}/{{question.worde}}"/>
+            <img *ngIf="question?.imageUrl" [src]="question?.imageUrl" (error)="hideImage()" [alt]="question?.word || ''"/>
           </div> 
           <div class="questions">
-            <p>{{question.question}} <strong>{{question.worde}}</strong></p>
+            <p>What is the language name for <strong>{{question?.english}}</strong>?</p>
             <ion-radio-group name="questions" (ionChange) = "itemSelected($event)" [(ngModel)]="radval">
               <ion-list>
-                <ion-item class="question" *ngFor="let option of question.options">
-                <ion-radio labelPlacement="end" justify="start" value="{{option.word}}" >{{option.word}}</ion-radio>
-                <ion-button (click)="speak(option.audio)"><ion-icon slot="start" name="volume-high-Outline" ></ion-icon></ion-button></ion-item>
+                <ion-item class="question" *ngFor="let option of options">
+                <ion-radio labelPlacement="end" justify="start" [value]="option.word" >{{option.word}}</ion-radio>
+                <ion-button (click)="speak(option.languageAudioUrl)" [disabled]="!option.languageAudioUrl"><ion-icon slot="start" name="volume-high-Outline" ></ion-icon></ion-button></ion-item>
               </ion-list>
             </ion-radio-group>
           </div> 

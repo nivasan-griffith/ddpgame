@@ -1,0 +1,12 @@
+{
+  "id": "kuku-thaypan",
+  "name": "Kuku Thaypan",
+  "location": "Laura",
+  "version": "1.0.0",
+  "data": "words.json",
+  "games": [
+    "flipcard",
+    "quiz",
+    "drag-drop"
+  ]
+}

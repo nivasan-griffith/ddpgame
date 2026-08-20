@@ -1,0 +1,12 @@
+{
+  "modules": [
+    {
+      "id": "kuku-thaypan",
+      "manifest": "kuku-thaypan/manifest.json"
+    },
+    {
+      "id": "bininj-kunwok",
+      "manifest": "bininj-kunwok/manifest.json"
+    }
+  ]
+}

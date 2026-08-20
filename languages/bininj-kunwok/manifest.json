@@ -1,0 +1,11 @@
+{
+  "id": "bininj-kunwok",
+  "name": "Bininj Kunwok",
+  "version": "1.0.0",
+  "data": "words.json",
+  "games": [
+    "flipcard",
+    "quiz",
+    "drag-drop"
+  ]
+}
