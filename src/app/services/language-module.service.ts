@@ -2,6 +2,8 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, map, switchMap } from 'rxjs';
 
+export type LanguageEntrySource = 'original' | 'dictionary';
+
 export interface LanguageModuleIndex {
   modules: LanguageModuleIndexEntry[];
 }
@@ -25,6 +27,9 @@ export interface LanguageWord {
   word: string;
   english: string;
   category?: string;
+  entrySource?: LanguageEntrySource;
+  availableInCurrentVersion?: boolean;
+  playable?: boolean;
   image: string | null;
   audio: {
     language: string | null;
@@ -41,6 +46,7 @@ export interface ResolvedLanguageWord extends LanguageWord {
 export interface LoadedLanguageModule {
   manifest: LanguageManifest;
   words: ResolvedLanguageWord[];
+  playableWords: ResolvedLanguageWord[];
 }
 
 @Injectable({ providedIn: 'root' })
@@ -64,10 +70,14 @@ export class LanguageModuleService {
         const moduleBasePath = this.moduleBasePath(selected.manifest);
         return this.http.get<LanguageManifest>(`languages/${selected.manifest}`).pipe(
           switchMap(manifest => this.http.get<LanguageWord[]>(`${moduleBasePath}/${manifest.data}`).pipe(
-            map(words => ({
-              manifest,
-              words: words.map(word => this.resolveWord(moduleBasePath, word))
-            }))
+            map(words => {
+              const resolvedWords = words.map(word => this.resolveWord(moduleBasePath, word));
+              return {
+                manifest,
+                words: resolvedWords,
+                playableWords: resolvedWords.filter(word => word.playable === true)
+              };
+            })
           ))
         );
       })

@@ -8,7 +8,9 @@
     "audio": {
       "language": "audio/adhirran-sawfish.mp3",
       "english": "audio/sawfish.mp3"
-    }
+    },
+    "availableInCurrentVersion": true,
+    "playable": true
   },
   {
     "id": "akul",
@@ -19,7 +21,9 @@
     "audio": {
       "language": "audio/akul-long-neck-turtle.mp3",
       "english": "audio/long-neck-turtle.mp3"
-    }
+    },
+    "availableInCurrentVersion": true,
+    "playable": true
   },
   {
     "id": "albeng",
@@ -30,7 +34,9 @@
     "audio": {
       "language": "audio/albeng-barramundi.mp3",
       "english": "audio/barramundi.mp3"
-    }
+    },
+    "availableInCurrentVersion": true,
+    "playable": true
   },
   {
     "id": "alnjul",
@@ -42,7 +48,9 @@
       "language": null,
       "english": "audio/short-neck-turtle.mp3"
     },
-    "note": "Source document provides audio timestamp 10.13. To confirm whether audio has been extracted or is unavailable"
+    "note": "Source document provides audio timestamp 10.13. To confirm whether audio has been extracted or is unavailable",
+    "availableInCurrentVersion": false,
+    "playable": false
   },
   {
     "id": "ambirr-ambye",
@@ -53,7 +61,9 @@
     "audio": {
       "language": "audio/ambirr-ambye-big-eel.mp3",
       "english": "audio/big-eel.mp3"
-    }
+    },
+    "availableInCurrentVersion": true,
+    "playable": true
   },
   {
     "id": "anharr",
@@ -64,7 +74,9 @@
     "audio": {
       "language": "audio/anharr-saltwater-crocodile.mp3",
       "english": "audio/saltwater-crocodile.mp3"
-    }
+    },
+    "availableInCurrentVersion": true,
+    "playable": true
   },
   {
     "id": "arrmbil",
@@ -75,7 +87,9 @@
     "audio": {
       "language": "audio/arrmbil-catfish.mp3",
       "english": "audio/catfish.mp3"
-    }
+    },
+    "availableInCurrentVersion": true,
+    "playable": true
   },
   {
     "id": "athayr",
@@ -86,7 +100,9 @@
     "audio": {
       "language": "audio/athayr-little-eel.mp3",
       "english": "audio/little-eel.mp3"
-    }
+    },
+    "availableInCurrentVersion": true,
+    "playable": true
   },
   {
     "id": "borakong",
@@ -97,7 +113,9 @@
     "audio": {
       "language": "audio/borakong-frog.mp3",
       "english": "audio/frog.mp3"
-    }
+    },
+    "availableInCurrentVersion": true,
+    "playable": true
   },
   {
     "id": "dhalawng",
@@ -108,7 +126,9 @@
     "audio": {
       "language": "audio/dhalawng-black-jewfish.mp3",
       "english": "audio/jewfish.mp3"
-    }
+    },
+    "availableInCurrentVersion": true,
+    "playable": true
   },
   {
     "id": "njalam",
@@ -119,7 +139,9 @@
     "audio": {
       "language": "audio/njalam-long-tom.mp3",
       "english": "audio/long-tom.mp3"
-    }
+    },
+    "availableInCurrentVersion": true,
+    "playable": true
   },
   {
     "id": "tikarr",
@@ -130,7 +152,9 @@
     "audio": {
       "language": "audio/tikarr-stingray.mp3",
       "english": "audio/stingray.mp3"
-    }
+    },
+    "availableInCurrentVersion": true,
+    "playable": true
   },
   {
     "id": "woy",
@@ -141,7 +165,9 @@
     "audio": {
       "language": "audio/woy-freshwater-crocodile.mp3",
       "english": "audio/freshwater-crocodile.mp3"
-    }
+    },
+    "availableInCurrentVersion": true,
+    "playable": true
   },
   {
     "id": "agenhung",
@@ -153,7 +179,9 @@
       "language": null,
       "english": "audio/dingo.mp3"
     },
-    "note": "Client provided correction: Dingo should be spelled \"ato agenhang\". Audio source available from May 1972 recording at 6.00."
+    "note": "Client provided correction: Dingo should be spelled \"ato agenhang\". Audio source available from May 1972 recording at 6.00.",
+    "availableInCurrentVersion": false,
+    "playable": false
   },
   {
     "id": "akyurrya",
@@ -165,7 +193,9 @@
       "language": null,
       "english": "audio/echidna.mp3"
     },
-    "note": "Audio recording is labeled ‘porcipine’."
+    "note": "Audio recording is labeled ‘porcipine’.",
+    "availableInCurrentVersion": false,
+    "playable": false
   },
   {
     "id": "alaya",
@@ -176,7 +206,9 @@
     "audio": {
       "language": null,
       "english": "audio/taipan.mp3"
-    }
+    },
+    "availableInCurrentVersion": false,
+    "playable": false
   },
   {
     "id": "almayrr",
@@ -188,7 +220,9 @@
       "language": null,
       "english": "audio/Wallaby (f).mp3"
     },
-    "note": "An audio recording of \"almayrr\" exists, but the audio file is named \"male.\""
+    "note": "An audio recording of \"almayrr\" exists, but the audio file is named \"male.\"",
+    "availableInCurrentVersion": false,
+    "playable": false
   },
   {
     "id": "alnoraru",
@@ -199,7 +233,9 @@
     "audio": {
       "language": null,
       "english": "audio/sugar-glider.mp3"
-    }
+    },
+    "availableInCurrentVersion": false,
+    "playable": false
   },
   {
     "id": "alwon",
@@ -210,7 +246,9 @@
     "audio": {
       "language": null,
       "english": "audio/possum.mp3"
-    }
+    },
+    "availableInCurrentVersion": false,
+    "playable": false
   },
   {
     "id": "ambe",
@@ -221,7 +259,9 @@
     "audio": {
       "language": null,
       "english": "audio/red-flying-fox.mp3"
-    }
+    },
+    "availableInCurrentVersion": false,
+    "playable": false
   },
   {
     "id": "angongon",
@@ -232,7 +272,9 @@
     "audio": {
       "language": null,
       "english": "audio/black-flying-fox.mp3"
-    }
+    },
+    "availableInCurrentVersion": false,
+    "playable": false
   },
   {
     "id": "arrawi",
@@ -244,7 +286,9 @@
       "language": null,
       "english": "audio/wallaby-male.mp3"
     },
-    "note": "Client advised previous wallaby labels may be incorrect. Female wallaby should be arrawi and male wallaby should be arrabi."
+    "note": "Client advised previous wallaby labels may be incorrect. Female wallaby should be arrawi and male wallaby should be arrabi.",
+    "availableInCurrentVersion": false,
+    "playable": false
   },
   {
     "id": "arriba",
@@ -255,7 +299,9 @@
     "audio": {
       "language": "audio/arriba-emu.mp3",
       "english": "audio/emu.mp3"
-    }
+    },
+    "availableInCurrentVersion": true,
+    "playable": true
   },
   {
     "id": "arrmbakalam",
@@ -266,7 +312,9 @@
     "audio": {
       "language": null,
       "english": "audio/bandicoot-male.mp3"
-    }
+    },
+    "availableInCurrentVersion": false,
+    "playable": false
   },
   {
     "id": "mun",
@@ -277,7 +325,9 @@
     "audio": {
       "language": "audio/mun-bandicoot-female.mp3",
       "english": "audio/bandicoot-female.mp3"
-    }
+    },
+    "availableInCurrentVersion": false,
+    "playable": false
   },
   {
     "id": "njuleng",
@@ -289,7 +339,9 @@
       "language": null,
       "english": "audio/frill-neck-lizard.mp3"
     },
-    "note": "Client correction: spelling should be \"anjuleng\"."
+    "note": "Client correction: spelling should be \"anjuleng\".",
+    "availableInCurrentVersion": false,
+    "playable": false
   },
   {
     "id": "acilpa",
@@ -300,7 +352,9 @@
     "audio": {
       "language": "audio/acilpa-jabiru.mp3",
       "english": "audio/jabiru.mp3"
-    }
+    },
+    "availableInCurrentVersion": true,
+    "playable": true
   },
   {
     "id": "adhayung",
@@ -311,7 +365,9 @@
     "audio": {
       "language": "audio/adhayung-crow.mp3",
       "english": "audio/crow.mp3"
-    }
+    },
+    "availableInCurrentVersion": true,
+    "playable": true
   },
   {
     "id": "alimba",
@@ -322,7 +378,9 @@
     "audio": {
       "language": "audio/alimba-galah.mp3",
       "english": "audio/galah.mp3"
-    }
+    },
+    "availableInCurrentVersion": true,
+    "playable": true
   },
   {
     "id": "alpayrrmba",
@@ -333,7 +391,9 @@
     "audio": {
       "language": "audio/alpayrrmba-pelican.mp3",
       "english": "audio/pelican.mp3"
-    }
+    },
+    "availableInCurrentVersion": true,
+    "playable": true
   },
   {
     "id": "anggewa",
@@ -344,7 +404,9 @@
     "audio": {
       "language": "audio/anggewa-brolga.mp3",
       "english": "audio/brolga.mp3"
-    }
+    },
+    "availableInCurrentVersion": true,
+    "playable": true
   },
   {
     "id": "karrarru",
@@ -355,7 +417,9 @@
     "audio": {
       "language": "audio/karrarru-water-monitor.mp3",
       "english": "audio/water-monitor.mp3"
-    }
+    },
+    "availableInCurrentVersion": false,
+    "playable": false
   },
   {
     "id": "arrmarrmanja",
@@ -366,7 +430,9 @@
     "audio": {
       "language": "audio/arrmarrmanja-blackcockatoo.mp3",
       "english": "audio/black-cockatoo.mp3"
-    }
+    },
+    "availableInCurrentVersion": true,
+    "playable": true
   },
   {
     "id": "arrolmba",
@@ -377,7 +443,9 @@
     "audio": {
       "language": "audio/arrolmba-kookaburra.mp3",
       "english": "audio/kookaburra.mp3"
-    }
+    },
+    "availableInCurrentVersion": true,
+    "playable": true
   },
   {
     "id": "arromi",
@@ -388,7 +456,9 @@
     "audio": {
       "language": "audio/arromi-eaglehawk.mp3",
       "english": "audio/eagle-hawk.mp3"
-    }
+    },
+    "availableInCurrentVersion": true,
+    "playable": true
   },
   {
     "id": "kulmbarrga",
@@ -399,7 +469,9 @@
     "audio": {
       "language": "audio/kulmbarrga-magpie.mp3",
       "english": "audio/magpie.mp3"
-    }
+    },
+    "availableInCurrentVersion": true,
+    "playable": true
   },
   {
     "id": "lawn",
@@ -410,7 +482,9 @@
     "audio": {
       "language": "audio/lawn-bustard.mp3",
       "english": "audio/bustard.mp3"
-    }
+    },
+    "availableInCurrentVersion": true,
+    "playable": true
   },
   {
     "id": "thayrrathe",
@@ -421,7 +495,9 @@
     "audio": {
       "language": "audio/thayrrathe-willywagtail.mp3",
       "english": "audio/willy-wag-tail.mp3"
-    }
+    },
+    "availableInCurrentVersion": true,
+    "playable": true
   },
   {
     "id": "yimal",
@@ -432,7 +508,9 @@
     "audio": {
       "language": "audio/yimal-curlew.mp3",
       "english": "audio/curlew.mp3"
-    }
+    },
+    "availableInCurrentVersion": true,
+    "playable": true
   },
   {
     "id": "adhaw",
@@ -443,7 +521,9 @@
     "audio": {
       "language": null,
       "english": "audio/steele-axe.mp3"
-    }
+    },
+    "availableInCurrentVersion": false,
+    "playable": false
   },
   {
     "id": "adhaw-anoman",
@@ -454,7 +534,9 @@
     "audio": {
       "language": null,
       "english": "audio/stone-axe.mp3"
-    }
+    },
+    "availableInCurrentVersion": false,
+    "playable": false
   },
   {
     "id": "anhye-akanakan",
@@ -465,7 +547,9 @@
     "audio": {
       "language": null,
       "english": "audio/knife.mp3"
-    }
+    },
+    "availableInCurrentVersion": false,
+    "playable": false
   },
   {
     "id": "akaw-nandu",
@@ -476,7 +560,9 @@
     "audio": {
       "language": null,
       "english": "audio/nose-pin.mp3"
-    }
+    },
+    "availableInCurrentVersion": false,
+    "playable": false
   },
   {
     "id": "alaymbar",
@@ -487,7 +573,9 @@
     "audio": {
       "language": null,
       "english": "audio/nulla-nulla.mp3"
-    }
+    },
+    "availableInCurrentVersion": false,
+    "playable": false
   },
   {
     "id": "alka",
@@ -498,7 +586,9 @@
     "audio": {
       "language": null,
       "english": "audio/spear.mp3"
-    }
+    },
+    "availableInCurrentVersion": false,
+    "playable": false
   },
   {
     "id": "alno",
@@ -510,7 +600,9 @@
       "language": null,
       "english": "audio/string-dilly-bag.mp3"
     },
-    "note": "The audio recording says \"string dillybag\""
+    "note": "The audio recording says \"string dillybag\"",
+    "availableInCurrentVersion": false,
+    "playable": false
   },
   {
     "id": "ambun",
@@ -521,7 +613,9 @@
     "audio": {
       "language": null,
       "english": "audio/womera.mp3"
-    }
+    },
+    "availableInCurrentVersion": false,
+    "playable": false
   },
   {
     "id": "anpe",
@@ -532,7 +626,9 @@
     "audio": {
       "language": null,
       "english": "audio/bottom-grinding-stone.mp3"
-    }
+    },
+    "availableInCurrentVersion": false,
+    "playable": false
   },
   {
     "id": "anpe-acemba",
@@ -543,7 +639,9 @@
     "audio": {
       "language": null,
       "english": "audio/top-grinding-stone.mp3"
-    }
+    },
+    "availableInCurrentVersion": false,
+    "playable": false
   },
   {
     "id": "atayl",
@@ -554,7 +652,9 @@
     "audio": {
       "language": null,
       "english": "audio/hook.mp3"
-    }
+    },
+    "availableInCurrentVersion": false,
+    "playable": false
   },
   {
     "id": "kombalkum",
@@ -565,7 +665,9 @@
     "audio": {
       "language": null,
       "english": "audio/billy-can.mp3"
-    }
+    },
+    "availableInCurrentVersion": false,
+    "playable": false
   },
   {
     "id": "malkarr",
@@ -576,7 +678,9 @@
     "audio": {
       "language": "audio/malkarr-boomerang.mp3",
       "english": "audio/boomarang.mp3"
-    }
+    },
+    "availableInCurrentVersion": false,
+    "playable": false
   },
   {
     "id": "arrpil",
@@ -588,7 +692,9 @@
       "language": null,
       "english": null
     },
-    "note": "Only the overall face/head image was provided (no individual images for each facial feature)."
+    "note": "Only the overall face/head image was provided (no individual images for each facial feature).",
+    "availableInCurrentVersion": false,
+    "playable": false
   },
   {
     "id": "amil-arrpil",
@@ -600,7 +706,9 @@
       "language": null,
       "english": null
     },
-    "note": "Only the overall face/head image was provided (no individual images for each facial feature)."
+    "note": "Only the overall face/head image was provided (no individual images for each facial feature).",
+    "availableInCurrentVersion": false,
+    "playable": false
   },
   {
     "id": "amil-akwil",
@@ -612,7 +720,9 @@
       "language": null,
       "english": null
     },
-    "note": "Only the overall face/head image was provided (no individual images for each facial feature)."
+    "note": "Only the overall face/head image was provided (no individual images for each facial feature).",
+    "availableInCurrentVersion": false,
+    "playable": false
   },
   {
     "id": "agu-or-awu",
@@ -624,7 +734,9 @@
       "language": null,
       "english": null
     },
-    "note": "Only the overall face/head image was provided (no individual images for each facial feature)."
+    "note": "Only the overall face/head image was provided (no individual images for each facial feature).",
+    "availableInCurrentVersion": false,
+    "playable": false
   },
   {
     "id": "pandal",
@@ -636,7 +748,9 @@
       "language": null,
       "english": null
     },
-    "note": "Only the overall face/head image was provided (no individual images for each facial feature)."
+    "note": "Only the overall face/head image was provided (no individual images for each facial feature).",
+    "availableInCurrentVersion": false,
+    "playable": false
   },
   {
     "id": "alkul",
@@ -648,7 +762,9 @@
       "language": null,
       "english": null
     },
-    "note": "Only the overall face/head image was provided (no individual images for each facial feature)."
+    "note": "Only the overall face/head image was provided (no individual images for each facial feature).",
+    "availableInCurrentVersion": false,
+    "playable": false
   },
   {
     "id": "ambir",
@@ -660,7 +776,9 @@
       "language": null,
       "english": null
     },
-    "note": "Only the overall face/head image was provided (no individual images for each facial feature)."
+    "note": "Only the overall face/head image was provided (no individual images for each facial feature).",
+    "availableInCurrentVersion": false,
+    "playable": false
   },
   {
     "id": "amil",
@@ -672,7 +790,9 @@
       "language": null,
       "english": null
     },
-    "note": "Only the overall face/head image was provided (no individual images for each facial feature)."
+    "note": "Only the overall face/head image was provided (no individual images for each facial feature).",
+    "availableInCurrentVersion": false,
+    "playable": false
   },
   {
     "id": "akaw-ata",
@@ -684,7 +804,9 @@
       "language": null,
       "english": null
     },
-    "note": "Only the overall face/head image was provided (no individual images for each facial feature)."
+    "note": "Only the overall face/head image was provided (no individual images for each facial feature).",
+    "availableInCurrentVersion": false,
+    "playable": false
   },
   {
     "id": "ana-ambor",
@@ -696,7 +818,9 @@
       "language": null,
       "english": null
     },
-    "note": "Only the overall face/head image was provided (no individual images for each facial feature)."
+    "note": "Only the overall face/head image was provided (no individual images for each facial feature).",
+    "availableInCurrentVersion": false,
+    "playable": false
   },
   {
     "id": "angu",
@@ -708,6 +832,8 @@
       "language": null,
       "english": null
     },
-    "note": "Only the overall face/head image was provided (no individual images for each facial feature)."
+    "note": "Only the overall face/head image was provided (no individual images for each facial feature).",
+    "availableInCurrentVersion": false,
+    "playable": false
   }
 ]
