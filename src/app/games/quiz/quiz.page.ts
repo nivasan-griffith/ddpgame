@@ -33,8 +33,11 @@ export class QuizPage implements OnInit {
 
   ngOnInit(): void {
     this.languageModules.loadSelectedModule().subscribe(module => {
-      this.cards = module.words;
-      this.quiz = this.utils.shuffleArray([...module.words]);
+      const playableCards = module.manifest.id === 'kuku-thaypan'
+        ? module.playableWords.filter(word => word.image !== null)
+        : module.playableWords;
+      this.cards = playableCards;
+      this.quiz = this.utils.shuffleArray([...playableCards]);
       this.configureQuestion();
       this.nextactive = this.quiz.length <= 1;
     });
