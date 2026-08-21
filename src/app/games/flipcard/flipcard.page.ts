@@ -39,7 +39,10 @@ export class FlipcardPage implements OnInit {
 
   ngOnInit(): void {
     this.languageModules.loadSelectedModule().subscribe(module => {
-      this.cards = this.utils.shuffleArray([...module.playableWords]);
+      const playableCards = module.manifest.id === 'kuku-thaypan'
+        ? module.playableWords.filter(word => word.image !== null)
+        : module.playableWords;
+      this.cards = this.utils.shuffleArray([...playableCards]);
       this.cardcount = this.cards.length;
       this.setcurrentitem();
     });

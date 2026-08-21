@@ -21,3 +21,9 @@ test('all Kuku entries are playable while preserving current-version availabilit
   assert.equal(words.filter(word => word.availableInCurrentVersion === true).length, 25);
   for (const word of words) assert.equal(word.playable, true, word.id);
 });
+
+test('Kuku Flip Card and Quiz have 51 playable entries with images', async () => {
+  const words = await readWords('../languages/kuku-thaypan/words.json');
+  assert.equal(words.filter(word => word.playable === true && word.image !== null).length, 51);
+  assert.equal(words.filter(word => word.playable === true && word.image === null).length, 12);
+});

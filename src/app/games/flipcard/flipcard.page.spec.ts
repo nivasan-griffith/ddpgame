@@ -8,9 +8,9 @@ import { FlipcardPage } from './flipcard.page';
 describe('FlipcardPage', () => {
   let component: FlipcardPage;
   let fixture: ComponentFixture<FlipcardPage>;
-  const playableWords = [makeWord('one'), makeWord('two')];
+  const playableWords = [makeWord('one'), makeWord('two'), makeWord('no-image', true, null, null, null)];
   const module: LoadedLanguageModule = {
-    manifest: { id: 'test', name: 'Test', version: '1.0.0', data: 'words.json', games: ['flipcard'] },
+    manifest: { id: 'kuku-thaypan', name: 'Test', version: '1.0.0', data: 'words.json', games: ['flipcard'] },
     words: [...playableWords, makeWord('reference', false)],
     playableWords
   };
@@ -29,7 +29,7 @@ describe('FlipcardPage', () => {
     fixture.detectChanges();
   });
 
-  it('uses only the playable words supplied by the language module', () => {
+  it('uses only playable Kuku words that have an image', () => {
     expect(component.cards.map(word => word.id)).toEqual(['one', 'two']);
   });
 
@@ -55,11 +55,17 @@ describe('FlipcardPage', () => {
   });
 });
 
-function makeWord(id: string, playable = true, languageAudioUrl: string | null = null, englishAudioUrl: string | null = null): ResolvedLanguageWord {
+function makeWord(
+  id: string,
+  playable = true,
+  languageAudioUrl: string | null = null,
+  englishAudioUrl: string | null = null,
+  image: string | null = 'images/test.png'
+): ResolvedLanguageWord {
   return {
     id, word: id, english: id,
     entrySource: playable ? 'original' : 'dictionary', playable,
-    image: null, audio: { language: null, english: null }, imageUrl: null,
+    image, audio: { language: null, english: null }, imageUrl: image,
     languageAudioUrl, englishAudioUrl
   };
 }

@@ -7,9 +7,9 @@ import { QuizPage } from './quiz.page';
 describe('QuizPage', () => {
   let component: QuizPage;
   let fixture: ComponentFixture<QuizPage>;
-  const playableWords = [makeWord('one'), makeWord('two')];
+  const playableWords = [makeWord('one'), makeWord('two'), makeWord('no-image', true, null)];
   const module: LoadedLanguageModule = {
-    manifest: { id: 'test', name: 'Test', version: '1.0.0', data: 'words.json', games: ['quiz'] },
+    manifest: { id: 'kuku-thaypan', name: 'Test', version: '1.0.0', data: 'words.json', games: ['quiz'] },
     words: [...playableWords, makeWord('reference', false)], playableWords
   };
 
@@ -26,17 +26,17 @@ describe('QuizPage', () => {
     fixture.detectChanges();
   });
 
-  it('uses only the playable words supplied by the language module', () => {
+  it('uses only playable Kuku words that have an image', () => {
     expect(component.cards.map(word => word.id)).toEqual(['one', 'two']);
     expect(component.quiz.map(word => word.id)).toEqual(['one', 'two']);
   });
 });
 
-function makeWord(id: string, playable = true): ResolvedLanguageWord {
+function makeWord(id: string, playable = true, image: string | null = 'images/test.png'): ResolvedLanguageWord {
   return {
     id, word: id, english: id,
     entrySource: playable ? 'original' : 'dictionary', playable,
-    image: null, audio: { language: null, english: null }, imageUrl: null,
+    image, audio: { language: null, english: null }, imageUrl: image,
     languageAudioUrl: null, englishAudioUrl: null
   };
 }
