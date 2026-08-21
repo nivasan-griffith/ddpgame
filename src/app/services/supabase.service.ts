@@ -30,4 +30,17 @@ export class SupabaseService {
 
     return data === true;
   }
+
+  async redeemAccessCode(moduleId: string, accessCode: string): Promise<boolean> {
+    const { data, error } = await this.client.rpc('redeem_access_code', {
+      p_module_id: moduleId,
+      p_access_code: accessCode,
+    });
+
+    if (error) {
+      throw error;
+    }
+
+    return data === true;
+  }
 }

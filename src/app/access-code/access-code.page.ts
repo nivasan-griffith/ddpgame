@@ -58,7 +58,7 @@ export class AccessCodePage {
     this.isChecking = true;
 
     try {
-      this.isValid = await this.supabase.validateAccessCode(this.moduleId, code);
+      this.isValid = await this.supabase.redeemAccessCode(this.moduleId, code);
       this.resultMessage = this.isValid
         ? 'Access code accepted. This module is unlocked for this test.'
         : 'That access code is not valid for this module.';

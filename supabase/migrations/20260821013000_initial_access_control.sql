@@ -60,3 +60,35 @@ $$;
 
 grant execute on function public.validate_access_code(text, text)
 to anon, authenticated;
+
+-- Validates and records a code redemption in one atomic database operation.
+create or replace function public.redeem_access_code(
+  p_module_id text,
+  p_access_code text
+)
+returns boolean
+language plpgsql
+security definer
+set search_path = public, extensions
+as $$
+declare
+  was_redeemed boolean;
+begin
+  update public.access_codes
+  set redemption_count = redemption_count + 1
+  where language_module_id = p_module_id
+    and code_hash = encode(digest(p_access_code, 'sha256'), 'hex')
+    and is_active = true
+    and (expires_at is null or expires_at > now())
+    and (
+      max_redemptions is null
+      or redemption_count < max_redemptions
+    )
+  returning true into was_redeemed;
+
+  return coalesce(was_redeemed, false);
+end;
+$$;
+
+grant execute on function public.redeem_access_code(text, text)
+to anon, authenticated;
