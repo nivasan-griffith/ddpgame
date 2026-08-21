@@ -9,7 +9,7 @@ describe('QuizPage', () => {
   let fixture: ComponentFixture<QuizPage>;
   const playableWords = [makeWord('one'), makeWord('two'), makeWord('no-image', true, null)];
   const module: LoadedLanguageModule = {
-    manifest: { id: 'kuku-thaypan', name: 'Test', version: '1.0.0', data: 'words.json', games: ['quiz'] },
+    manifest: { id: 'bininj-kunwok', name: 'Test', version: '1.0.0', data: 'words.json', games: ['quiz'] },
     words: [...playableWords, makeWord('reference', false)], playableWords
   };
 
@@ -26,7 +26,7 @@ describe('QuizPage', () => {
     fixture.detectChanges();
   });
 
-  it('uses only playable Kuku words that have an image', () => {
+  it('uses only playable words that have an image', () => {
     expect(component.cards.map(word => word.id)).toEqual(['one', 'two']);
     expect(component.quiz.map(word => word.id)).toEqual(['one', 'two']);
   });

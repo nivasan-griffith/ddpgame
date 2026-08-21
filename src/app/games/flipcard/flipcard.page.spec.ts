@@ -10,7 +10,7 @@ describe('FlipcardPage', () => {
   let fixture: ComponentFixture<FlipcardPage>;
   const playableWords = [makeWord('one'), makeWord('two'), makeWord('no-image', true, null, null, null)];
   const module: LoadedLanguageModule = {
-    manifest: { id: 'kuku-thaypan', name: 'Test', version: '1.0.0', data: 'words.json', games: ['flipcard'] },
+    manifest: { id: 'bininj-kunwok', name: 'Test', version: '1.0.0', data: 'words.json', games: ['flipcard'] },
     words: [...playableWords, makeWord('reference', false)],
     playableWords
   };
@@ -29,7 +29,7 @@ describe('FlipcardPage', () => {
     fixture.detectChanges();
   });
 
-  it('uses only playable Kuku words that have an image', () => {
+  it('uses only playable words that have an image', () => {
     expect(component.cards.map(word => word.id)).toEqual(['one', 'two']);
   });
 
