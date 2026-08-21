@@ -13,10 +13,11 @@ test('Bininj inventory preserves expected source and playable counts', async () 
   for (const word of words) assert.equal(word.playable, word.entrySource === 'original', word.id);
 });
 
-test('Kuku preserves current-version availability without entrySource', async () => {
+test('all Kuku entries are playable while preserving current-version availability', async () => {
   const words = await readWords('../languages/kuku-thaypan/words.json');
   assert.equal(words.length, 63);
-  assert.equal(words.filter(word => word.playable === true).length, 25);
+  assert.equal(words.filter(word => word.playable === true).length, 63);
   assert.equal(words.filter(word => 'entrySource' in word).length, 0);
-  for (const word of words) assert.equal(word.playable, word.availableInCurrentVersion, word.id);
+  assert.equal(words.filter(word => word.availableInCurrentVersion === true).length, 25);
+  for (const word of words) assert.equal(word.playable, true, word.id);
 });
