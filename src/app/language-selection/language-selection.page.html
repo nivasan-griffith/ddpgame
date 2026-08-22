@@ -1,0 +1,40 @@
+
+<ion-content  >
+  <div id="layout">
+  
+   
+    <div class="layouttop">
+      <div class="corner"><img src="assets/corneronly.png"/></div>
+      <!-- <div class="language">{{setinfo.lang}}</div> -->
+      <div class="dots"></div>
+    </div>
+  
+   
+      <div class="language-select">
+        
+        <img src="/assets/icon/icon-only.png" alt="KukThaypan" class="language-select__logo">
+
+        <h1>Welcome!</h1>
+        <p *ngIf="loading" class="language-select__loading">Loading languages...</p>
+        <p>Choose your language</p>
+
+        <div *ngIf="!loading && languages.length > 0" class="language-select__options">
+          <ion-button *ngFor="let language of languages" expand="block" (click)="selectLanguage(language)">
+            <span>{{ language.name }}</span>
+          </ion-button>
+        </div>
+
+        <p *ngIf="!loading && languages.length === 0" class="language-select__error">
+          No languages are available currently.
+        </p>
+      </div>
+    
+
+     
+  <div class="layoutbottom corner"><img src="assets/corneronly.png"/></div>
+  
+  
+  </div>
+
+  </ion-content>
+  
