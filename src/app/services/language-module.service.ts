@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, map, switchMap } from 'rxjs';
+import { Observable, map, switchMap, forkJoin} from 'rxjs';
 
 export interface LanguageModuleIndex {
   modules: LanguageModuleIndexEntry[];
@@ -43,14 +43,35 @@ export interface LoadedLanguageModule {
   words: ResolvedLanguageWord[];
 }
 
+export interface LanguageOption {
+  id: string;
+  name: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class LanguageModuleService {
-  private selectedLanguageId: string | null = null;
+  private readonly storageKey = 'selected-language-id'; //store language choice
+  private selectedLanguageId = this.readSavedLanguage();
 
   constructor(private http: HttpClient) {}
 
   setSelectedLanguage(languageId: string): void {
-    this.selectedLanguageId = languageId;
+    this.selectedLanguageId = languageId; 
+    this.saveLanguage(languageId);
+  }
+
+  hasSelectedLanguage(): boolean {
+    return this.selectedLanguageId !== null;
+  }
+
+  loadLanguageOptions(): Observable<LanguageOption[]> {
+    return this.http.get<LanguageModuleIndex>('languages/index.json').pipe(
+      switchMap(index => forkJoin(index.modules.map(module =>
+        this.http.get<LanguageManifest>(`languages/${module.manifest}`).pipe(
+          map(manifest => ({ id: module.id, name: manifest.name}))
+        )
+      )))
+    );
   }
 
   loadSelectedModule(): Observable<LoadedLanguageModule> {
@@ -90,5 +111,21 @@ export class LanguageModuleService {
 
   private resolveAsset(moduleBasePath: string, assetPath: string | null | undefined): string | null {
     return assetPath ? `${moduleBasePath}/${assetPath}` : null;
+  }
+
+  private readSavedLanguage(): string | null {
+    try {
+      return localStorage.getItem(this.storageKey);
+    } catch {
+      return null;
+    }
+  }
+
+  private saveLanguage(languageId: string): void {
+    try {
+      localStorage.setItem(this.storageKey, languageId);
+    } catch {
+      // Continue using the current in-memory selection if storage is unavailable.
+    }
   }
 }
