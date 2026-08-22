@@ -6,7 +6,13 @@
     <div class="layouttop">
       <div class="corner"><img src="assets/corneronly.png"/></div>
       <!-- <div class="language">{{setinfo.lang}}</div> -->
-      <div class="dots"></div>
+       <div class="dots">
+        <a routerLink="/language-selection" >
+          <img src="assets/dots-maroon.png" role="navigation" alt="nav language button" />
+        </a>
+        change language
+      </div>
+      
     </div>
   
    
@@ -15,6 +21,7 @@
         <img src="/assets/icon/icon-only.png" alt="KukThaypan">
         <ul>
           <li><a routerLink="/games/flipcard" >Flip Card Game</a></li>
+          <li><a routerLink="/games/flipcard" >Drag & Drop</a></li>
           <li> <a routerLink="/games/quiz" >Quiz</a></li>
           <li><a routerLink="/about" >About</a></li>
         </ul>

@@ -1,6 +1,8 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, map, switchMap } from 'rxjs';
+import { Observable, map, switchMap, forkJoin} from 'rxjs';
+
+export type LanguageEntrySource = 'original' | 'dictionary';
 
 export interface LanguageModuleIndex {
   modules: LanguageModuleIndexEntry[];
@@ -25,6 +27,9 @@ export interface LanguageWord {
   word: string;
   english: string;
   category?: string;
+  entrySource?: LanguageEntrySource;
+  availableInCurrentVersion?: boolean;
+  playable?: boolean;
   image: string | null;
   audio: {
     language: string | null;
@@ -41,16 +46,38 @@ export interface ResolvedLanguageWord extends LanguageWord {
 export interface LoadedLanguageModule {
   manifest: LanguageManifest;
   words: ResolvedLanguageWord[];
+  playableWords: ResolvedLanguageWord[];
+}
+
+export interface LanguageOption {
+  id: string;
+  name: string;
 }
 
 @Injectable({ providedIn: 'root' })
 export class LanguageModuleService {
-  private selectedLanguageId: string | null = null;
+  private readonly storageKey = 'selected-language-id'; //store language choice
+  private selectedLanguageId = this.readSavedLanguage();
 
   constructor(private http: HttpClient) {}
 
   setSelectedLanguage(languageId: string): void {
-    this.selectedLanguageId = languageId;
+    this.selectedLanguageId = languageId; 
+    this.saveLanguage(languageId);
+  }
+
+  hasSelectedLanguage(): boolean {
+    return this.selectedLanguageId !== null;
+  }
+
+  loadLanguageOptions(): Observable<LanguageOption[]> {
+    return this.http.get<LanguageModuleIndex>('languages/index.json').pipe(
+      switchMap(index => forkJoin(index.modules.map(module =>
+        this.http.get<LanguageManifest>(`languages/${module.manifest}`).pipe(
+          map(manifest => ({ id: module.id, name: manifest.name}))
+        )
+      )))
+    );
   }
 
   loadSelectedModule(): Observable<LoadedLanguageModule> {
@@ -64,10 +91,14 @@ export class LanguageModuleService {
         const moduleBasePath = this.moduleBasePath(selected.manifest);
         return this.http.get<LanguageManifest>(`languages/${selected.manifest}`).pipe(
           switchMap(manifest => this.http.get<LanguageWord[]>(`${moduleBasePath}/${manifest.data}`).pipe(
-            map(words => ({
-              manifest,
-              words: words.map(word => this.resolveWord(moduleBasePath, word))
-            }))
+            map(words => {
+              const resolvedWords = words.map(word => this.resolveWord(moduleBasePath, word));
+              return {
+                manifest,
+                words: resolvedWords,
+                playableWords: resolvedWords.filter(word => word.playable === true)
+              };
+            })
           ))
         );
       })
@@ -90,5 +121,21 @@ export class LanguageModuleService {
 
   private resolveAsset(moduleBasePath: string, assetPath: string | null | undefined): string | null {
     return assetPath ? `${moduleBasePath}/${assetPath}` : null;
+  }
+
+  private readSavedLanguage(): string | null {
+    try {
+      return localStorage.getItem(this.storageKey);
+    } catch {
+      return null;
+    }
+  }
+
+  private saveLanguage(languageId: string): void {
+    try {
+      localStorage.setItem(this.storageKey, languageId);
+    } catch {
+      // Continue using the current in-memory selection if storage is unavailable.
+    }
   }
 }
