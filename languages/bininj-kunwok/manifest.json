@@ -2,6 +2,7 @@
   "id": "bininj-kunwok",
   "name": "Bininj Kunwok",
   "version": "1.0.0",
+  "accessType": "restricted",
   "data": "words.json",
   "games": [
     "flipcard",

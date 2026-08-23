@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
 import {
   IonButton,
   IonContent,
@@ -36,19 +37,31 @@ import { SupabaseService } from '../services/supabase.service';
   ],
 })
 export class AccessCodePage {
-  // This is temporary until the app has a language/module selection screen.
-  readonly moduleId = 'bininj-kunwok';
+  readonly moduleId: string;
   accessCode = '';
   isChecking = false;
   resultMessage = '';
   isValid = false;
 
-  constructor(private readonly supabase: SupabaseService) {}
+  constructor(
+    private readonly supabase: SupabaseService,
+    route: ActivatedRoute
+  ) {
+    this.moduleId = route.snapshot.queryParamMap.get('moduleId')?.trim() ?? '';
+    if (!this.moduleId) {
+      this.resultMessage = 'No restricted language module was selected.';
+    }
+  }
 
   async validate(): Promise<void> {
     const code = this.accessCode.trim();
     this.resultMessage = '';
     this.isValid = false;
+
+    if (!this.moduleId) {
+      this.resultMessage = 'No restricted language module was selected.';
+      return;
+    }
 
     if (!code) {
       this.resultMessage = 'Enter an access code first.';
@@ -60,7 +73,7 @@ export class AccessCodePage {
     try {
       this.isValid = await this.supabase.redeemAccessCode(this.moduleId, code);
       this.resultMessage = this.isValid
-        ? 'Access code accepted. This module is unlocked for this test.'
+        ? 'Access code accepted. Download and unlock will be completed in a later step.'
         : 'That access code is not valid for this module.';
     } catch (error) {
       console.error('Access code validation failed.', error);
