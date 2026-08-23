@@ -31,6 +31,13 @@ export class LanguageSelectionPage implements OnInit {
   }
 
   selectLanguage(language: LanguageOption): void {
+    if (language.accessType === 'restricted') {
+      this.router.navigate(['/access-code'], {
+        queryParams: { moduleId: language.id }
+      });
+      return;
+    }
+
     this.languageModules.setSelectedLanguage(language.id);
     this.router.navigateByUrl('/home', { replaceUrl: true });
 

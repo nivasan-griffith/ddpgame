@@ -20,7 +20,12 @@
 
         <div *ngIf="!loading && languages.length > 0" class="language-select__options">
           <ion-button *ngFor="let language of languages" expand="block" (click)="selectLanguage(language)">
-            <span>{{ language.name }}</span>
+            <span class="language-select__option-label">
+              <span class="language-select__option-name">{{ language.name }}</span>
+              <small class="language-select__option-access">
+                {{ language.accessType === 'public' ? 'Public' : 'Restricted — access required' }}
+              </small>
+            </span>
           </ion-button>
         </div>
 

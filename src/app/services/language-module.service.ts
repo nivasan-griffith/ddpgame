@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, map, switchMap, forkJoin} from 'rxjs';
 
 export type LanguageEntrySource = 'original' | 'dictionary';
+export type LanguageAccessType = 'public' | 'restricted';
 
 export interface LanguageModuleIndex {
   modules: LanguageModuleIndexEntry[];
@@ -20,6 +21,7 @@ export interface LanguageManifest {
   version: string;
   data: string;
   games: string[];
+  accessType?: string;
 }
 
 export interface LanguageWord {
@@ -52,6 +54,7 @@ export interface LoadedLanguageModule {
 export interface LanguageOption {
   id: string;
   name: string;
+  accessType: LanguageAccessType;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -74,7 +77,11 @@ export class LanguageModuleService {
     return this.http.get<LanguageModuleIndex>('languages/index.json').pipe(
       switchMap(index => forkJoin(index.modules.map(module =>
         this.http.get<LanguageManifest>(`languages/${module.manifest}`).pipe(
-          map(manifest => ({ id: module.id, name: manifest.name}))
+          map(manifest => ({
+            id: module.id,
+            name: manifest.name,
+            accessType: this.normalizeAccessType(manifest.accessType)
+          }))
         )
       )))
     );
@@ -121,6 +128,16 @@ export class LanguageModuleService {
 
   private resolveAsset(moduleBasePath: string, assetPath: string | null | undefined): string | null {
     return assetPath ? `${moduleBasePath}/${assetPath}` : null;
+  }
+
+  private normalizeAccessType(accessType: unknown): LanguageAccessType {
+    if (accessType === 'public') {
+      return 'public';
+    }
+
+    // Supabase currently calls restricted modules "private". Missing or
+    // unknown values fail closed so they are never treated as public.
+    return 'restricted';
   }
 
   private readSavedLanguage(): string | null {
