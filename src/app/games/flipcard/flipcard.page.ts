@@ -25,7 +25,6 @@ import { UtilsService } from 'src/app/services/utils.service';
 })
 export class FlipcardPage implements OnInit {
   flip = 'inactive';
-  isword = true;
   cards: ResolvedLanguageWord[] = [];
   cardcount = 0;
   currentcard = 0;
@@ -33,15 +32,32 @@ export class FlipcardPage implements OnInit {
   nextactive = false;
   card: ResolvedLanguageWord | null = null;
   audionotplaying = true;
+  private firstEntry = true;
 
   constructor(private languageModules: LanguageModuleService, private utils: UtilsService) {
     addIcons({ volumeHighOutline, arrowForward, arrowBack, infinite });
   }
 
   ngOnInit(): void {
+    this.loadCards();
+  }
+
+  ionViewWillEnter(): void {
+    if (this.firstEntry) {
+      this.firstEntry = false;
+      return;
+    }
+    this.loadCards();
+  }
+
+  private loadCards(): void {
     this.languageModules.loadSelectedModule().subscribe(module => {
-      this.cards = this.utils.shuffleArray([...module.words]);
+      const playableCards = module.playableWords.filter(word => word.image !== null);
+      this.cards = this.utils.shuffleArray([...playableCards]);
       this.cardcount = this.cards.length;
+      this.currentcard = 0;
+      this.prevactive = true;
+      this.nextactive = this.cardcount <= 1;
       this.setcurrentitem();
     });
   }
@@ -50,9 +66,19 @@ export class FlipcardPage implements OnInit {
     this.flip = this.flip === 'inactive' ? 'active' : 'inactive';
   }
 
+  get currentAudioUrl(): string | null {
+    return this.flip === 'inactive'
+      ? this.card?.englishAudioUrl ?? null
+      : this.card?.languageAudioUrl ?? null;
+  }
+
+  get canSpeak(): boolean {
+    return this.currentAudioUrl !== null;
+  }
+
   speak(): void {
-    const audioUrl = this.flip === 'inactive' ? this.card?.englishAudioUrl : this.card?.languageAudioUrl;
-    if (!audioUrl || (!this.audionotplaying && this.flip === 'active')) {
+    const audioUrl = this.currentAudioUrl;
+    if (!audioUrl || !this.audionotplaying) {
       return;
     }
 
@@ -92,6 +118,5 @@ export class FlipcardPage implements OnInit {
   private setcurrentitem(): void {
     this.flip = 'inactive';
     this.card = this.cards[this.currentcard] ?? null;
-    this.isword = !this.card?.languageAudioUrl;
   }
 }

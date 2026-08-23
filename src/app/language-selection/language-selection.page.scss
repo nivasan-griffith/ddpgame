@@ -1,0 +1,181 @@
+:host{
+
+  --header-height:80px;
+}
+ion-content{
+  --background: rgb(0,0,0)  ;
+ }
+
+ .language{
+  // position:relative;
+  // top:-1em;
+  text-align:right;
+  padding-right:2em;
+  font-size:1.5em;
+  font-weight:bold;
+  text-transform: uppercase;
+}
+
+.language-select {
+  box-sizing: border-box;
+  min-height: 100%;
+  max-width: 38rem;
+  margin: 0 auto;
+  padding: 3rem 1.5rem;
+  text-align: center;
+  color: #2c2025;
+}
+
+.language-select__logo {
+  width: min(14rem, 65vw);
+  margin-bottom: 1.5rem;
+}
+
+h1 {
+  margin: 0;
+  font-size: clamp(2rem, 7vw, 3rem);
+}
+
+.language-select__options {
+  display: grid;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.language-select__option {
+  display: grid;
+  gap: 0.35rem;
+  margin-block: 0.8rem;
+
+  > span {
+    font-size: 1.15rem;
+    font-weight: 700;
+  }
+
+  > small {
+    opacity: 0.75;
+  }
+}
+
+.language-select__options ion-button {
+  --background: #6e4e5b;
+  --background-activated: #2c2025;
+  min-height: 4.5rem;
+  font-size: 1.25rem;
+}
+
+.language-select__options span,
+.language-select__options small {
+  display: block;
+}
+
+.language-select__options small {
+  margin-top: 0.2rem;
+  font-size: 0.8rem;
+}
+
+.language-select__loading {
+  margin-top: 3rem;
+}
+
+.language-select__error {
+  margin-top: 2rem;
+}
+
+
+.homemenu{
+ 
+  justify-self:center;
+  // place-self: center;
+    ul{
+      list-style: none;
+
+      & li{
+        padding-block:0.5em;
+        & a:visited, a:link{
+          text-decoration:none;
+          color:#6e4e5b;
+        }
+        & a:hover{
+         
+          color:#2c2025;
+        }
+      }
+      & li:has(:hover):before{
+          filter: drop-shadow(2px 2px 3px #000600);
+       
+        
+      }
+      & li:before{
+        content:url("/assets/dot.png");
+        filter: drop-shadow(4px 4px 5px #0003);
+        padding-right:0.5em;
+        transform:filter 0.3s;
+      }  
+    }
+    & img{
+      max-width:400px;
+      
+    }
+    & img:hover{
+    
+      animation: wiggle 0.5s ease-in-out forwards;
+      
+    }
+  }
+  @keyframes wiggle {
+    0% { transform: rotate(0deg); }
+
+   60% { transform: rotate(10deg); }
+  
+  100% { transform: rotate(0deg); }
+}
+@media only screen and (min-width:200px){
+
+  .corner img{
+   
+    max-height:calc(var(--header-height)*0.5);
+  }
+ 
+  
+}
+
+@media only screen and (min-width:600px){
+
+
+.corner img{
+   
+  max-height:calc(var(--header-height)*0.7);
+}
+
+
+} 
+@media only screen and (max-height:700px){
+.corner img{
+   
+  max-height:calc(var(--header-height)*0.5);
+}
+}
+@media only screen and (min-width:900px){
+
+
+
+.corner img{
+   
+  max-height:var(--header-height);
+}
+
+} 
+@media only screen and (min-width:1440px){
+.tp-box{
+  width:calc(var(--box-width) * 1.1);
+  height:calc(var(--box-height) *1.1);
+}
+.corner img{
+   
+  max-height:calc(var(--header-height)* 1.2);
+}
+} 
+
+  
+    

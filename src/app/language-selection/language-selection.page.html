@@ -1,0 +1,57 @@
+
+<ion-content  >
+  <div id="layout">
+  
+   
+    <div class="layouttop">
+      <div class="corner"><img src="assets/corneronly.png"/></div>
+      <!-- <div class="language">{{setinfo.lang}}</div> -->
+      <div class="dots"></div>
+    </div>
+  
+   
+      <div class="language-select">
+        
+        <img src="/assets/icon/icon-only.png" alt="KukThaypan" class="language-select__logo">
+
+        <h1>Welcome!</h1>
+        <p *ngIf="loading" class="language-select__loading">Loading languages...</p>
+        <p>Download a language to use it online or offline.</p>
+
+        <div *ngIf="!loading && languages.length > 0" class="language-select__options">
+          <div *ngFor="let language of languages" class="language-select__option">
+            <span>{{ language.name }}</span>
+            <small>Version {{ language.version }}</small>
+            <ion-button
+              *ngIf="!language.installed"
+              expand="block"
+              [disabled]="installingLanguageId !== null"
+              (click)="downloadLanguage(language)">
+              {{ installingLanguageId === language.id ? 'Downloading…' : 'Download' }}
+            </ion-button>
+            <ion-button
+              *ngIf="language.installed"
+              expand="block"
+              color="success"
+              (click)="selectLanguage(language)">
+              Use {{ language.name }} · Available offline
+            </ion-button>
+          </div>
+        </div>
+
+        <p *ngIf="errorMessage" class="language-select__error">{{ errorMessage }}</p>
+
+        <p *ngIf="!loading && languages.length === 0" class="language-select__error">
+          No languages are available currently.
+        </p>
+      </div>
+    
+
+     
+  <div class="layoutbottom corner"><img src="assets/corneronly.png"/></div>
+  
+  
+  </div>
+
+  </ion-content>
+  

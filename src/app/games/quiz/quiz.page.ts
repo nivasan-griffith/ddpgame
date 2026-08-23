@@ -26,15 +26,31 @@ export class QuizPage implements OnInit {
   isPopovertrueOpen = false;
   isPopoverfalseOpen = false;
   radval = '';
+  private firstEntry = true;
 
   constructor(private languageModules: LanguageModuleService, private utils: UtilsService) {
     addIcons({ volumeHighOutline, arrowForward, arrowBack });
   }
 
   ngOnInit(): void {
+    this.loadQuestions();
+  }
+
+  ionViewWillEnter(): void {
+    if (this.firstEntry) {
+      this.firstEntry = false;
+      return;
+    }
+    this.loadQuestions();
+  }
+
+  private loadQuestions(): void {
     this.languageModules.loadSelectedModule().subscribe(module => {
-      this.cards = module.words;
-      this.quiz = this.utils.shuffleArray([...module.words]);
+      const playableCards = module.playableWords.filter(word => word.image !== null);
+      this.cards = playableCards;
+      this.quiz = this.utils.shuffleArray([...playableCards]);
+      this.currentquestion = 0;
+      this.prevactive = true;
       this.configureQuestion();
       this.nextactive = this.quiz.length <= 1;
     });
