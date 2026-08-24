@@ -3,7 +3,7 @@ import { of } from 'rxjs';
 import { LanguageModuleService, LanguageWord, LoadedLanguageModule } from './language-module.service';
 
 describe('LanguageModuleService', () => {
-  it('keeps the full inventory but exposes only explicitly playable entries', () => {
+  it('keeps the full inventory but exposes only explicitly playable entries', (done: DoneFn) => {
     const words = [makeWord('original', 'original', true), makeWord('dictionary', 'dictionary', false), makeWord('unknown', undefined, undefined)];
     const http = jasmine.createSpyObj<HttpClient>('HttpClient', ['get']);
     http.get.and.returnValues(
@@ -11,12 +11,14 @@ describe('LanguageModuleService', () => {
       of({ id: 'test', name: 'Test', version: '1.0.0', data: 'words.json', games: [] }),
       of(words)
     );
-    const service = new LanguageModuleService(http);
-    let loadedModule: LoadedLanguageModule | undefined;
-    service.loadSelectedModule().subscribe(module => loadedModule = module);
-
-    expect(loadedModule!.words.length).toBe(3);
-    expect(loadedModule!.playableWords.map(word => word.id)).toEqual(['original']);
+    const supabase = jasmine.createSpyObj('SupabaseService', ['getModuleAccessType']);
+    supabase.getModuleAccessType.and.returnValue(Promise.resolve('public'));
+    const service = new LanguageModuleService(http, supabase);
+    service.loadSelectedModule().subscribe(module => {
+      expect(module.words.length).toBe(3);
+      expect(module.playableWords.map(word => word.id)).toEqual(['original']);
+      done();
+    });
   });
 });
 

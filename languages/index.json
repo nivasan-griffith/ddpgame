@@ -2,11 +2,13 @@
   "modules": [
     {
       "id": "kuku-thaypan",
-      "manifest": "kuku-thaypan/manifest.json"
+      "manifest": "kuku-thaypan/manifest.json",
+      "name": "Kuku Thaypan"
     },
     {
       "id": "bininj-kunwok",
-      "manifest": "bininj-kunwok/manifest.json"
+      "manifest": "bininj-kunwok/manifest.json",
+      "name": "Bininj Kunwok"
     }
   ]
 }
