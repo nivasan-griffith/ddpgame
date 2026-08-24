@@ -4,6 +4,7 @@ import { Observable, from, map, switchMap, forkJoin, of } from 'rxjs';
 import { SupabaseService } from './supabase.service';
 
 export type LanguageEntrySource = 'original' | 'dictionary';
+export type LanguageAccessType = 'public' | 'restricted';
 
 export interface LanguageModuleIndex {
   modules: LanguageModuleIndexEntry[];
@@ -23,6 +24,7 @@ export interface LanguageManifest {
   version: string;
   data: string;
   games: string[];
+  accessType?: string;
 }
 
 export interface LanguageWord {
@@ -55,6 +57,7 @@ export interface LoadedLanguageModule {
 export interface LanguageOption {
   id: string;
   name: string;
+  accessType: LanguageAccessType;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -78,13 +81,22 @@ export class LanguageModuleService {
 
   loadLanguageOptions(): Observable<LanguageOption[]> {
     return this.http.get<LanguageModuleIndex>('languages/index.json').pipe(
-      switchMap(index => forkJoin(index.modules.map(module =>
-        module.name
+      switchMap(index => forkJoin(index.modules.map(module => {
+        const option$ = module.name
           ? of({ id: module.id, name: module.name })
           : this.http.get<LanguageManifest>(`languages/${module.manifest}`).pipe(
             map(manifest => ({ id: module.id, name: manifest.name }))
-          )
-      )))
+          );
+
+        return option$.pipe(
+        switchMap(option => from(this.supabase.getModuleAccessType(option.id)).pipe(
+          map(accessType => ({
+            ...option,
+            accessType: accessType === 'public' ? 'public' : 'restricted' as LanguageAccessType,
+          }))
+        ))
+        );
+      })))
     );
   }
 

@@ -52,7 +52,7 @@ export class AccessCodePage {
     private readonly route: ActivatedRoute,
     private readonly router: Router,
   ) {
-    this.moduleId = this.route.snapshot.queryParamMap.get('moduleId') ?? '';
+    this.moduleId = this.route.snapshot.queryParamMap.get('moduleId')?.trim() ?? '';
     const requestedReturnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
     if (requestedReturnUrl?.startsWith('/') && !requestedReturnUrl.startsWith('//')) {
       this.returnUrl = requestedReturnUrl;

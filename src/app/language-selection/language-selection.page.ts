@@ -36,24 +36,15 @@ export class LanguageSelectionPage implements OnInit {
   }
 
   async selectLanguage(language: LanguageOption): Promise<void> {
-    try {
-      const accessType = await this.supabase.getModuleAccessType(language.id);
-      if (accessType === 'private' && !this.supabase.hasModuleAccessGrant(language.id)) {
-        await this.router.navigate(['/access-code'], {
-          queryParams: { moduleId: language.id, returnUrl: '/home' },
-          replaceUrl: true,
-        });
-        return;
-      }
-
-      this.languageModules.setSelectedLanguage(language.id);
-      await this.router.navigateByUrl('/home', { replaceUrl: true });
-    } catch {
-      // Do not silently open a restricted module if its access status cannot be checked.
+    if (language.accessType === 'restricted' && !this.supabase.hasModuleAccessGrant(language.id)) {
       await this.router.navigate(['/access-code'], {
         queryParams: { moduleId: language.id, returnUrl: '/home' },
         replaceUrl: true,
       });
+      return;
     }
+
+    this.languageModules.setSelectedLanguage(language.id);
+    await this.router.navigateByUrl('/home', { replaceUrl: true });
   }
 }

@@ -18,7 +18,7 @@
       ></ion-input>
     </ion-item>
 
-    <ion-button expand="block" [disabled]="isChecking" (click)="validate()">
+    <ion-button expand="block" [disabled]="isChecking || !moduleId" (click)="validate()">
       <ion-spinner *ngIf="isChecking" name="crescent"></ion-spinner>
       <span *ngIf="!isChecking">Check access code</span>
     </ion-button>
