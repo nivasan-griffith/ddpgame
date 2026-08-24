@@ -3,6 +3,17 @@
   "name": "Bininj Kunwok",
   "version": "1.0.0",
   "accessType": "restricted",
+  "theme": {
+    "tokens": {
+      "primaryBackground": "#eef4ef",
+      "buttonBackground": "#2f5d50",
+      "buttonText": "#ffffff",
+      "primaryText": "#15312d",
+      "linkHover": "#9a4e32",
+      "accent": "#9a4e32",
+      "surface": "#ffffff"
+    }
+  },
   "data": "words.json",
   "games": [
     "flipcard",

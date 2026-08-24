@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { IonContent, IonButton, IonIcon } from '@ionic/angular/standalone';
 import { LanguageModuleService, LanguageOption } from 'src/app/services/language-module.service';
+import { LanguageThemeService } from 'src/app/services/language-theme.service';
 
 
 @Component({
@@ -17,7 +18,11 @@ export class LanguageSelectionPage implements OnInit {
   languages: LanguageOption[] = [];
   loading = true;
 
-  constructor(private languageModules: LanguageModuleService, private router: Router) {}
+  constructor(
+    private languageModules: LanguageModuleService,
+    private languageTheme: LanguageThemeService,
+    private router: Router
+  ) {}
 
   ngOnInit(): void {
     this.languageModules.loadLanguageOptions().subscribe({
@@ -39,7 +44,13 @@ export class LanguageSelectionPage implements OnInit {
     }
 
     this.languageModules.setSelectedLanguage(language.id);
-    this.router.navigateByUrl('/home', { replaceUrl: true });
+    this.languageModules.loadSelectedModule().subscribe({
+      next: module => {
+        this.languageTheme.applyManifestTheme(module.manifest);
+        this.router.navigateByUrl('/home', { replaceUrl: true });
+      },
+      error: () => this.router.navigateByUrl('/home', { replaceUrl: true })
+    });
 
   }
 }

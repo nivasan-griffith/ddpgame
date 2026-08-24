@@ -1,19 +1,27 @@
 import { Router } from '@angular/router';
-import { LanguageModuleService, LanguageOption } from '../services/language-module.service';
+import { of } from 'rxjs';
+import { LanguageModuleService, LanguageOption, LoadedLanguageModule } from '../services/language-module.service';
+import { LanguageThemeService } from '../services/language-theme.service';
 import { LanguageSelectionPage } from './language-selection.page';
 
 describe('LanguageSelectionPage', () => {
   let languageModules: jasmine.SpyObj<LanguageModuleService>;
   let router: jasmine.SpyObj<Router>;
+  let languageTheme: jasmine.SpyObj<LanguageThemeService>;
   let page: LanguageSelectionPage;
 
   beforeEach(() => {
     languageModules = jasmine.createSpyObj<LanguageModuleService>('LanguageModuleService', [
       'loadLanguageOptions',
-      'setSelectedLanguage'
+      'setSelectedLanguage',
+      'loadSelectedModule'
     ]);
+    languageModules.loadSelectedModule.and.returnValue(
+      of({ manifest: { id: 'kuku-thaypan' } } as unknown as LoadedLanguageModule)
+    );
+    languageTheme = jasmine.createSpyObj<LanguageThemeService>('LanguageThemeService', ['applyManifestTheme']);
     router = jasmine.createSpyObj<Router>('Router', ['navigate', 'navigateByUrl']);
-    page = new LanguageSelectionPage(languageModules, router);
+    page = new LanguageSelectionPage(languageModules, languageTheme, router);
   });
 
   it('selects a public module through the existing home flow', () => {

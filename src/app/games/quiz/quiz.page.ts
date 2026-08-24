@@ -7,6 +7,7 @@ import { addIcons } from 'ionicons';
 import { arrowBack, arrowForward, volumeHighOutline } from 'ionicons/icons';
 import { LanguageModuleService, ResolvedLanguageWord } from 'src/app/services/language-module.service';
 import { UtilsService } from 'src/app/services/utils.service';
+import { LanguageThemeService } from 'src/app/services/language-theme.service';
 
 @Component({
   selector: 'app-quiz',
@@ -27,12 +28,17 @@ export class QuizPage implements OnInit {
   isPopoverfalseOpen = false;
   radval = '';
 
-  constructor(private languageModules: LanguageModuleService, private utils: UtilsService) {
+  constructor(
+    private languageModules: LanguageModuleService,
+    private languageTheme: LanguageThemeService,
+    private utils: UtilsService
+  ) {
     addIcons({ volumeHighOutline, arrowForward, arrowBack });
   }
 
   ngOnInit(): void {
     this.languageModules.loadSelectedModule().subscribe(module => {
+      this.languageTheme.applyManifestTheme(module.manifest);
       const playableCards = module.playableWords.filter(word => word.image !== null);
       this.cards = playableCards;
       this.quiz = this.utils.shuffleArray([...playableCards]);

@@ -1,7 +1,9 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
+import { provideRouter } from '@angular/router';
 import { of } from 'rxjs';
 import { LanguageModuleService, LoadedLanguageModule, ResolvedLanguageWord } from 'src/app/services/language-module.service';
+import { LanguageThemeService } from 'src/app/services/language-theme.service';
 import { UtilsService } from 'src/app/services/utils.service';
 import { FlipcardPage } from './flipcard.page';
 
@@ -20,7 +22,9 @@ describe('FlipcardPage', () => {
       imports: [FlipcardPage],
       providers: [
         provideNoopAnimations(),
+        provideRouter([]),
         { provide: LanguageModuleService, useValue: { loadSelectedModule: () => of(module) } },
+        { provide: LanguageThemeService, useValue: { applyManifestTheme: () => undefined } },
         { provide: UtilsService, useValue: { shuffleArray: <T>(items: T[]) => items } }
       ]
     });

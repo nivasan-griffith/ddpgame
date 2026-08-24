@@ -1,7 +1,7 @@
-import { Setinfo } from './setinfo';
+import { SetInfo } from './setinfo';
 
-describe('Setinfo', () => {
+describe('SetInfo', () => {
   it('should create an instance', () => {
-    expect(new Setinfo()).toBeTruthy();
+    expect(new SetInfo('language', 'location', 'credits', [])).toBeTruthy();
   });
 });
