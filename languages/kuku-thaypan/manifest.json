@@ -4,6 +4,17 @@
   "location": "Laura",
   "version": "1.0.0",
   "accessType": "public",
+  "theme": {
+    "tokens": {
+      "primaryBackground": "#f7edd9",
+      "buttonBackground": "#5b6e5b",
+      "buttonText": "#ffffff",
+      "primaryText": "#1d281d",
+      "linkHover": "#8a4b2d",
+      "accent": "#8a4b2d",
+      "surface": "#fff8ed"
+    }
+  },
   "data": "words.json",
   "games": [
     "flipcard",

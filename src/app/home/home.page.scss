@@ -29,11 +29,11 @@ ion-content{
         padding-block:0.5em;
         & a:visited, a:link{
           text-decoration:none;
-          color:#6e4e5b;
+          color:var(--button-bg);
         }
         & a:hover{
          
-          color:#2c2025;
+          color:var(--link-hover);
         }
       }
       & li:has(:hover):before{

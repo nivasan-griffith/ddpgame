@@ -29,7 +29,7 @@ ion-content{
   padding: clamp(1.25rem, 4vh, 2.25rem) 1.5rem;
   overflow-y: visible;
   text-align: center;
-  color: #2c2025;
+  color: var(--primary-text);
 }
 
 .language-select__logo {
@@ -55,8 +55,9 @@ h1 {
 }
 
 .language-select__options ion-button {
-  --background: #6e4e5b;
-  --background-activated: #2c2025;
+  --background: var(--button-bg);
+  --background-activated: var(--link-hover);
+  --color: var(--button-text);
   min-height: 4.5rem;
   font-size: 1.25rem;
 }
