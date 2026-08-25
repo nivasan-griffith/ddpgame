@@ -18,7 +18,7 @@ export class MenuComponent  implements OnInit {
    }
   public appPages = [ { title: 'Home', url: '/home', icon: 'home' },
     { title: 'Flip Card', url: '/games/flipcard', icon: 'images' },
-    { title: 'Quiz', url: '/quiz', icon: 'card' },
+    { title: 'Quiz', url: '/games/quiz', icon: 'card' },
     { title: 'About', url: '/about', icon: 'information-circle' },
    
   ];

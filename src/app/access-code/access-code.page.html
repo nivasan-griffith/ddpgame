@@ -1,0 +1,30 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Private language access</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <main>
+    <h1>Enter access code</h1>
+    <p *ngIf="moduleId">Enter the code supplied for the {{ moduleId }} language module.</p>
+
+    <ion-item>
+      <ion-label position="stacked">Access code</ion-label>
+      <ion-input
+        [(ngModel)]="accessCode"
+        autocomplete="off"
+        placeholder="e.g. BKW-XXXX-XXXX-XXXX"
+      ></ion-input>
+    </ion-item>
+
+    <ion-button expand="block" [disabled]="isChecking || !moduleId" (click)="validate()">
+      <ion-spinner *ngIf="isChecking" name="crescent"></ion-spinner>
+      <span *ngIf="!isChecking">Check access code</span>
+    </ion-button>
+
+    <ion-text *ngIf="resultMessage" [color]="isValid ? 'success' : 'danger'">
+      <p role="status">{{ resultMessage }}</p>
+    </ion-text>
+  </main>
+</ion-content>

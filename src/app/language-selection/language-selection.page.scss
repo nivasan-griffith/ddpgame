@@ -46,15 +46,6 @@ h1 {
   display: grid;
   gap: 0.35rem;
   margin-block: 0.8rem;
-
-  > span {
-    font-size: 1.15rem;
-    font-weight: 700;
-  }
-
-  > small {
-    opacity: 0.75;
-  }
 }
 
 .language-select__options ion-button {
@@ -64,14 +55,27 @@ h1 {
   font-size: 1.25rem;
 }
 
-.language-select__options span,
-.language-select__options small {
-  display: block;
+.language-select__option-label {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1.25;
+  white-space: normal;
 }
 
-.language-select__options small {
-  margin-top: 0.2rem;
+.language-select__option-name {
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.language-select__option-access {
+  margin-top: 0.3rem;
   font-size: 0.8rem;
+  font-weight: 400;
+  opacity: 0.75;
+  overflow-wrap: anywhere;
 }
 
 .language-select__loading {

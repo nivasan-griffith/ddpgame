@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, catchError, firstValueFrom, forkJoin, from, map, of, switchMap } from 'rxjs';
 
 export type LanguageEntrySource = 'original' | 'dictionary';
+export type LanguageAccessType = 'public' | 'restricted';
 
 export interface LanguageModuleIndex {
   modules: LanguageModuleIndexEntry[];
@@ -20,6 +21,7 @@ export interface LanguageManifest {
   version: string;
   data: string;
   games: string[];
+  accessType?: string;
 }
 
 export interface LanguageWord {
@@ -54,6 +56,7 @@ export interface LanguageOption {
   name: string;
   version: string;
   installed: boolean;
+  accessType: LanguageAccessType;
 }
 
 interface StoredLanguageModule {
@@ -103,7 +106,8 @@ export class LanguageModuleService {
             id: stored.id,
             name: stored.manifest.name,
             version: stored.manifest.version,
-            installed: true
+            installed: true,
+            accessType: this.normalizeAccessType(stored.manifest.accessType)
           });
         }
       }
@@ -165,7 +169,8 @@ export class LanguageModuleService {
             id: module.id,
             name: manifest.name,
             version: manifest.version,
-            installed: false
+            installed: false,
+            accessType: this.normalizeAccessType(manifest.accessType)
           }))
         )
       )))
@@ -340,6 +345,10 @@ export class LanguageModuleService {
     });
   }
 
+  private normalizeAccessType(accessType: unknown): LanguageAccessType {
+    return accessType === 'public' ? 'public' : 'restricted';
+  }
+
   private readSavedLanguage(): string | null {
     try {
       return localStorage.getItem(this.selectionStorageKey);
@@ -355,4 +364,5 @@ export class LanguageModuleService {
       // Continue using the in-memory selection if localStorage is unavailable.
     }
   }
+
 }

@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 import { of } from 'rxjs';
 import { LanguageModuleService, LoadedLanguageModule, ResolvedLanguageWord } from 'src/app/services/language-module.service';
 import { UtilsService } from 'src/app/services/utils.service';
@@ -17,6 +18,7 @@ describe('QuizPage', () => {
     TestBed.configureTestingModule({
       imports: [QuizPage],
       providers: [
+        provideRouter([]),
         { provide: LanguageModuleService, useValue: { loadSelectedModule: () => of(module) } },
         { provide: UtilsService, useValue: { shuffleArray: <T>(items: T[]) => items } }
       ]

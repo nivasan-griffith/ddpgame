@@ -87,12 +87,13 @@ async function main() {
   });
 
   await send('Page.navigate', { url: 'http://127.0.0.1:4200/language-selection' });
-  await waitFor(`[...document.querySelectorAll('ion-button')].some(button => button.textContent.includes('Download') || button.textContent.includes('Available offline'))`);
-  const alreadyInstalled = await evaluate(`[...document.querySelectorAll('ion-button')].some(button => button.textContent.includes('Use Kuku Thaypan'))`);
+  const kukuOption = `[...document.querySelectorAll('.language-select__option')].find(option => option.textContent.includes('Kuku Thaypan'))`;
+  await waitFor(`!!${kukuOption}?.querySelector('ion-button')`);
+  const alreadyInstalled = await evaluate(`${kukuOption}?.querySelector('ion-button')?.textContent.includes('Use Kuku Thaypan')`);
   if (!alreadyInstalled) {
-    await evaluate(`[...document.querySelectorAll('ion-button')].find(button => button.textContent.includes('Download')).click()`);
+    await evaluate(`${kukuOption}.querySelector('ion-button').click()`);
   }
-  await waitFor(`[...document.querySelectorAll('ion-button')].some(button => button.textContent.includes('Available offline')) || document.body.innerText.includes("Couldn't download")`, 300000);
+  await waitFor(`${kukuOption}?.querySelector('ion-button')?.textContent.includes('Available offline') || document.body.innerText.includes("Couldn't download")`, 300000);
   const installError = await evaluate(`document.body.innerText.includes("Couldn't download") ? document.body.innerText : null`);
   if (installError) throw new Error(installError);
 
@@ -116,7 +117,7 @@ async function main() {
   })`);
   await screenshot('ind-17-installed-module.png');
 
-  await evaluate(`[...document.querySelectorAll('ion-button')].find(button => button.textContent.includes('Use Kuku Thaypan')).click()`);
+  await evaluate(`${kukuOption}.querySelector('ion-button').click()`);
   await waitFor(`location.pathname === '/home'`);
 
   await send('Page.reload', { ignoreCache: false });
@@ -167,29 +168,19 @@ async function main() {
   });
 
   await send('Page.navigate', { url: 'http://127.0.0.1:4200/language-selection' });
-  await waitFor(`[...document.querySelectorAll('ion-button')].some(button => button.textContent.includes('Use Bininj Kunwok'))`);
-  await evaluate(`[...document.querySelectorAll('ion-button')].find(button => button.textContent.includes('Use Bininj Kunwok')).click()`);
-  await waitFor(`location.pathname === '/home'`);
-  await evaluate(`document.querySelector('a[href="/games/flipcard"]').click()`);
-  await waitFor(`location.pathname === '/games/flipcard' && !!document.querySelector('app-flipcard:not(.ion-page-hidden) .tp-box__back .word')?.textContent.trim()`);
-  const switchedLanguage = await evaluate(`new Promise((resolve, reject) => {
-    const displayedWord = document.querySelector('app-flipcard:not(.ion-page-hidden) .tp-box__back .word').textContent.trim();
-    const request = indexedDB.open('ddpgame-language-modules');
-    request.onerror = () => reject(request.error);
-    request.onsuccess = () => {
-      const get = request.result.transaction('modules').objectStore('modules').get('bininj-kunwok');
-      get.onerror = () => reject(get.error);
-      get.onsuccess = () => resolve({
-        selected: localStorage.getItem('selected-language-id'),
-        displayedWord,
-        belongsToBininj: get.result.words.some(word => word.word === displayedWord)
-      });
-    };
+  const bininjOption = `[...document.querySelectorAll('.language-select__option')].find(option => option.textContent.includes('Bininj Kunwok'))`;
+  await waitFor(`${bininjOption}?.querySelector('ion-button')?.textContent.includes('Enter access code')`);
+  await evaluate(`${bininjOption}.querySelector('ion-button').click()`);
+  await waitFor(`location.pathname === '/access-code' && !!document.querySelector('app-access-code:not(.ion-page-hidden) h1')`);
+  const restrictedAccess = await evaluate(`({
+    pathname: location.pathname,
+    moduleId: new URLSearchParams(location.search).get('moduleId'),
+    heading: document.querySelector('app-access-code:not(.ion-page-hidden) h1')?.textContent.trim()
   })`);
-  await screenshot('ind-18-language-switch.png');
+  await screenshot('ind-20-restricted-access.png');
   socket.close();
 
-  console.log(JSON.stringify({ stored, restoredSelection, flip, quiz, offlineFailures, switchedLanguage }, null, 2));
+  console.log(JSON.stringify({ stored, restoredSelection, flip, quiz, offlineFailures, restrictedAccess }, null, 2));
 }
 
 main().catch(error => {

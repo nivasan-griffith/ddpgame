@@ -22,9 +22,10 @@ describe('AppComponent', () => {
     fixture.detectChanges();
     const app = fixture.nativeElement;
     const menuItems = app.querySelectorAll('ion-label');
-    expect(menuItems.length).toEqual(12);
-    expect(menuItems[0].textContent).toContain('Inbox');
-    expect(menuItems[1].textContent).toContain('Outbox');
+    expect(menuItems.length).toEqual(4);
+    expect(Array.from(menuItems).map((item: any) => item.textContent.trim())).toEqual([
+      'Home', 'Flip Card', 'Quiz', 'About'
+    ]);
   });
 
   it('should have urls', () => {
@@ -32,12 +33,9 @@ describe('AppComponent', () => {
     fixture.detectChanges();
     const app = fixture.nativeElement;
     const menuItems = app.querySelectorAll('ion-item');
-    expect(menuItems.length).toEqual(12);
-    expect(menuItems[0].getAttribute('ng-reflect-router-link')).toEqual(
-      '/folder/inbox'
-    );
-    expect(menuItems[1].getAttribute('ng-reflect-router-link')).toEqual(
-      '/folder/outbox'
-    );
+    expect(menuItems.length).toEqual(4);
+    expect(Array.from(menuItems).map((item: any) => item.getAttribute('ng-reflect-router-link'))).toEqual([
+      '/home', '/games/flipcard', '/games/quiz', '/about'
+    ]);
   });
 });

@@ -3,6 +3,7 @@
   "name": "Kuku Thaypan",
   "location": "Laura",
   "version": "1.0.0",
+  "accessType": "public",
   "data": "words.json",
   "games": [
     "flipcard",
