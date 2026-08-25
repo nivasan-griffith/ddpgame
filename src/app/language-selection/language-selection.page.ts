@@ -16,6 +16,8 @@ import { LanguageModuleService, LanguageOption } from 'src/app/services/language
 export class LanguageSelectionPage implements OnInit {
   languages: LanguageOption[] = [];
   loading = true;
+  installingLanguageId: string | null = null;
+  errorMessage = '';
 
   constructor(private languageModules: LanguageModuleService, private router: Router) {}
 
@@ -30,6 +32,19 @@ export class LanguageSelectionPage implements OnInit {
     });
   }
 
+  async downloadLanguage(language: LanguageOption): Promise<void> {
+    this.installingLanguageId = language.id;
+    this.errorMessage = '';
+    try {
+      await this.languageModules.installLanguage(language.id);
+      language.installed = true;
+    } catch {
+      this.errorMessage = `Couldn't download ${language.name}. Check your connection and try again.`;
+    } finally {
+      this.installingLanguageId = null;
+    }
+  }
+
   selectLanguage(language: LanguageOption): void {
     if (language.accessType === 'restricted') {
       this.router.navigate(['/access-code'], {
@@ -38,8 +53,11 @@ export class LanguageSelectionPage implements OnInit {
       return;
     }
 
+    if (!language.installed) {
+      return;
+    }
+
     this.languageModules.setSelectedLanguage(language.id);
     this.router.navigateByUrl('/home', { replaceUrl: true });
-
   }
 }

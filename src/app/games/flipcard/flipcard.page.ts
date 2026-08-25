@@ -32,16 +32,32 @@ export class FlipcardPage implements OnInit {
   nextactive = false;
   card: ResolvedLanguageWord | null = null;
   audionotplaying = true;
+  private firstEntry = true;
 
   constructor(private languageModules: LanguageModuleService, private utils: UtilsService) {
     addIcons({ volumeHighOutline, arrowForward, arrowBack, infinite });
   }
 
   ngOnInit(): void {
+    this.loadCards();
+  }
+
+  ionViewWillEnter(): void {
+    if (this.firstEntry) {
+      this.firstEntry = false;
+      return;
+    }
+    this.loadCards();
+  }
+
+  private loadCards(): void {
     this.languageModules.loadSelectedModule().subscribe(module => {
       const playableCards = module.playableWords.filter(word => word.image !== null);
       this.cards = this.utils.shuffleArray([...playableCards]);
       this.cardcount = this.cards.length;
+      this.currentcard = 0;
+      this.prevactive = true;
+      this.nextactive = this.cardcount <= 1;
       this.setcurrentitem();
     });
   }

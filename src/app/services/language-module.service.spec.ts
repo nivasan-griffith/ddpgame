@@ -1,9 +1,9 @@
 import { HttpClient } from '@angular/common/http';
-import { of } from 'rxjs';
+import { firstValueFrom, of } from 'rxjs';
 import { LanguageModuleService, LanguageWord, LoadedLanguageModule } from './language-module.service';
 
 describe('LanguageModuleService', () => {
-  it('maps public/private access metadata and fails closed for missing or unknown values', () => {
+  it('maps public/private access metadata and fails closed for missing or unknown values', async () => {
     const http = jasmine.createSpyObj<HttpClient>('HttpClient', ['get']);
     http.get.and.returnValues(
       of({ modules: [
@@ -21,15 +21,15 @@ describe('LanguageModuleService', () => {
     );
     const service = new LanguageModuleService(http);
 
-    service.loadLanguageOptions().subscribe(options => {
-      expect(options.map(option => option.accessType)).toEqual([
-        'public',
-        'restricted',
-        'restricted',
-        'restricted',
-        'restricted'
-      ]);
-    });
+    const options = await firstValueFrom(service.loadLanguageOptions());
+
+    expect(options.map(option => option.accessType)).toEqual([
+      'public',
+      'restricted',
+      'restricted',
+      'restricted',
+      'restricted'
+    ]);
   });
 
   it('keeps the full inventory but exposes only explicitly playable entries', () => {
