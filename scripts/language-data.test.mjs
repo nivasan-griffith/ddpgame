@@ -1,0 +1,36 @@
+import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
+import test from 'node:test';
+
+const readWords = async path => JSON.parse(await readFile(new URL(path, import.meta.url)));
+
+test('Bininj inventory preserves expected source and playable counts', async () => {
+  const words = await readWords('../languages/bininj-kunwok/words.json');
+  assert.equal(words.length, 993);
+  assert.equal(words.filter(word => word.entrySource === 'original').length, 28);
+  assert.equal(words.filter(word => word.entrySource === 'dictionary').length, 965);
+  assert.equal(words.filter(word => word.playable === true).length, 28);
+  for (const word of words) assert.equal(word.playable, word.entrySource === 'original', word.id);
+});
+
+test('Bininj Flip Card and Quiz use only its 27 image-backed entries', async () => {
+  const words = await readWords('../languages/bininj-kunwok/words.json');
+  const playable = words.filter(word => word.playable === true);
+  assert.equal(playable.filter(word => word.image !== null).length, 27);
+  assert.deepEqual(playable.filter(word => word.image === null).map(word => word.id), ['kundjen']);
+});
+
+test('all Kuku entries are playable while preserving current-version availability', async () => {
+  const words = await readWords('../languages/kuku-thaypan/words.json');
+  assert.equal(words.length, 63);
+  assert.equal(words.filter(word => word.playable === true).length, 63);
+  assert.equal(words.filter(word => 'entrySource' in word).length, 0);
+  assert.equal(words.filter(word => word.availableInCurrentVersion === true).length, 25);
+  for (const word of words) assert.equal(word.playable, true, word.id);
+});
+
+test('Kuku Flip Card and Quiz have 51 playable entries with images', async () => {
+  const words = await readWords('../languages/kuku-thaypan/words.json');
+  assert.equal(words.filter(word => word.playable === true && word.image !== null).length, 51);
+  assert.equal(words.filter(word => word.playable === true && word.image === null).length, 12);
+});

@@ -29,7 +29,7 @@
       <div class="prev"> <ion-button (click)="previous()" [disabled]="prevactive"> <ion-icon size="large" name="arrow-back"></ion-icon> </ion-button></div>
       
       <div><ion-button (click)="toggleFlip()" >Flip <ion-icon slot="start" name="infinite"></ion-icon></ion-button></div>
-      <div><ion-button (click)="speak()" [disabled]="isword">Speak <ion-icon slot="start" name="volume-high-Outline"></ion-icon></ion-button></div>
+      <div><ion-button (click)="speak()" [disabled]="!canSpeak">Speak <ion-icon slot="start" name="volume-high-Outline"></ion-icon></ion-button></div>
       <div class="next"><ion-button (click)="next()"  [disabled]="nextactive"> <ion-icon size="large"  name="arrow-forward"></ion-icon> </ion-button></div>
     </div>
 
