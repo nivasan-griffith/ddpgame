@@ -17,6 +17,8 @@ import { SupabaseService } from 'src/app/services/supabase.service';
 export class LanguageSelectionPage implements OnInit {
   languages: LanguageOption[] = [];
   loading = true;
+  installingLanguageId: string | null = null;
+  errorMessage = '';
 
   constructor(
     private languageModules: LanguageModuleService,
@@ -35,12 +37,31 @@ export class LanguageSelectionPage implements OnInit {
     });
   }
 
+  async downloadLanguage(language: LanguageOption): Promise<void> {
+    this.installingLanguageId = language.id;
+    this.errorMessage = '';
+    try {
+      await this.languageModules.installLanguage(language.id);
+      language.installed = true;
+    } catch {
+      this.errorMessage = `Couldn't download ${language.name}. Check your connection and try again.`;
+    } finally {
+      this.installingLanguageId = null;
+    }
+  }
+
   async selectLanguage(language: LanguageOption): Promise<void> {
     if (language.accessType === 'restricted' && !this.supabase.hasModuleAccessGrant(language.id)) {
       await this.router.navigate(['/access-code'], {
         queryParams: { moduleId: language.id, returnUrl: '/home' },
         replaceUrl: true,
       });
+      return;
+    }
+
+    // Public languages follow the new offline-download flow. A previously
+    // unlocked private module may still load securely from Supabase.
+    if (language.accessType === 'public' && !language.installed) {
       return;
     }
 
