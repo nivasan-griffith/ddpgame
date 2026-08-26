@@ -51,16 +51,21 @@ export class LanguageSelectionPage implements OnInit {
   }
 
   async selectLanguage(language: LanguageOption): Promise<void> {
-    if (language.accessType === 'restricted' && !this.supabase.hasModuleAccessGrant(language.id)) {
-      await this.router.navigate(['/access-code'], {
-        queryParams: { moduleId: language.id, returnUrl: '/home' },
-        replaceUrl: true,
-      });
-      return;
+    if (language.accessType === 'restricted' && !language.installed) {
+      if (!this.supabase.hasModuleAccessGrant(language.id)) {
+        await this.router.navigate(['/access-code'], {
+          queryParams: { moduleId: language.id, returnUrl: '/home' },
+          replaceUrl: true,
+        });
+        return;
+      }
+
+      await this.downloadLanguage(language);
+      if (!language.installed) {
+        return;
+      }
     }
 
-    // Public languages follow the new offline-download flow. A previously
-    // unlocked private module may still load securely from Supabase.
     if (language.accessType === 'public' && !language.installed) {
       return;
     }

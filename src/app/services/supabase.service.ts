@@ -71,7 +71,7 @@ export class SupabaseService {
       throw error;
     }
 
-    return data === 'private' ? 'private' : 'public';
+    return data === 'public' ? 'public' : 'private';
   }
 
   async redeemModuleAccessCode(moduleId: string, accessCode: string): Promise<boolean> {

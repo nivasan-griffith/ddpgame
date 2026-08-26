@@ -83,14 +83,21 @@ export class AccessCodePage {
     this.isChecking = true;
 
     try {
-      this.isValid = await this.supabase.redeemModuleAccessCode(this.moduleId, code);
+      this.isValid = this.supabase.hasModuleAccessGrant(this.moduleId)
+        || await this.supabase.redeemModuleAccessCode(this.moduleId, code);
       this.resultMessage = this.isValid
-        ? 'Access code accepted. Opening your unlocked language module…'
+        ? 'Access accepted. Downloading your language module…'
         : 'That access code is not valid for this module.';
 
       if (this.isValid) {
-        this.languageModules.setSelectedLanguage(this.moduleId);
-        await this.router.navigateByUrl(this.returnUrl, { replaceUrl: true });
+        try {
+          await this.languageModules.installLanguage(this.moduleId);
+          this.languageModules.setSelectedLanguage(this.moduleId);
+          await this.router.navigateByUrl(this.returnUrl, { replaceUrl: true });
+        } catch (error) {
+          console.error('Unlocked language module download failed.', error);
+          this.resultMessage = 'Access was granted, but the language module could not be downloaded. Check your connection and try again.';
+        }
       }
     } catch (error) {
       console.error('Access code validation failed.', error);

@@ -30,13 +30,46 @@ describe('LanguageSelectionPage', () => {
   it('routes a restricted module without a grant to access-code', async () => {
     supabase.hasModuleAccessGrant.and.returnValue(false);
 
-    await page.selectLanguage(makeOption('bininj-kunwok', 'restricted'));
+    await page.selectLanguage(makeOption('bininj-kunwok', 'restricted', false));
 
     expect(languageModules.setSelectedLanguage).not.toHaveBeenCalled();
+    expect(languageModules.installLanguage).not.toHaveBeenCalled();
     expect(router.navigate).toHaveBeenCalledOnceWith(['/access-code'], {
       queryParams: { moduleId: 'bininj-kunwok', returnUrl: '/home' },
       replaceUrl: true,
     });
+  });
+
+  it('installs and selects a restricted module that has a valid grant', async () => {
+    supabase.hasModuleAccessGrant.and.returnValue(true);
+    languageModules.installLanguage.and.resolveTo();
+
+    await page.selectLanguage(makeOption('bininj-kunwok', 'restricted', false));
+
+    expect(languageModules.installLanguage).toHaveBeenCalledOnceWith('bininj-kunwok');
+    expect(languageModules.setSelectedLanguage).toHaveBeenCalledOnceWith('bininj-kunwok');
+    expect(router.navigate).not.toHaveBeenCalled();
+    expect(router.navigateByUrl).toHaveBeenCalledOnceWith('/home', { replaceUrl: true });
+  });
+
+  it('does not select or navigate when restricted module installation fails', async () => {
+    supabase.hasModuleAccessGrant.and.returnValue(true);
+    languageModules.installLanguage.and.rejectWith(new Error('download failed'));
+
+    await page.selectLanguage(makeOption('bininj-kunwok', 'restricted', false));
+
+    expect(languageModules.setSelectedLanguage).not.toHaveBeenCalled();
+    expect(router.navigateByUrl).not.toHaveBeenCalled();
+    expect(page.errorMessage).toContain("Couldn't download");
+  });
+
+  it('selects an installed restricted module without checking the grant', async () => {
+    await page.selectLanguage(makeOption('bininj-kunwok', 'restricted', true));
+
+    expect(supabase.hasModuleAccessGrant).not.toHaveBeenCalled();
+    expect(languageModules.installLanguage).not.toHaveBeenCalled();
+    expect(languageModules.setSelectedLanguage).toHaveBeenCalledOnceWith('bininj-kunwok');
+    expect(router.navigateByUrl).toHaveBeenCalledOnceWith('/home', { replaceUrl: true });
   });
 
   it('does not select a module until it has been downloaded', () => {
