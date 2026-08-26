@@ -1,5 +1,4 @@
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
-import { IonicModule } from '@ionic/angular';
 import { provideRouter } from '@angular/router';
 
 import { MenuComponent } from './menu.component';
@@ -10,7 +9,7 @@ describe('MenuComponent', () => {
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
-      imports: [MenuComponent, IonicModule.forRoot()],
+      imports: [MenuComponent],
       providers: [provideRouter([])]
     }).compileComponents();
 

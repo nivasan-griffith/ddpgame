@@ -14,8 +14,17 @@ describe('HomePage', () => {
       imports: [HomePage],
       providers: [
         provideRouter([]),
-        { provide: LanguageModuleService, useValue: { loadSelectedModule: () => of({ manifest: { name: 'Test' } }) } },
-        { provide: LanguageThemeService, useValue: { applyManifestTheme: () => undefined } }
+        {
+          provide: LanguageModuleService,
+          useValue: {
+            loadSelectedModule: () => of({
+              manifest: { id: 'test', name: 'Test', version: '1.0.0', data: 'words.json', games: [] },
+              words: [],
+              playableWords: []
+            })
+          }
+        }
+        , { provide: LanguageThemeService, useValue: { applyManifestTheme: () => undefined } }
       ]
     });
     fixture = TestBed.createComponent(HomePage);

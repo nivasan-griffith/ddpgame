@@ -16,18 +16,41 @@
 
         <h1>Welcome!</h1>
         <p *ngIf="loading" class="language-select__loading">Loading languages...</p>
-        <p>Choose your language</p>
+        <p>Download a language for offline use, then choose it.</p>
 
         <div *ngIf="!loading && languages.length > 0" class="language-select__options">
-          <ion-button *ngFor="let language of languages" expand="block" (click)="selectLanguage(language)">
+          <div *ngFor="let language of languages" class="language-select__option">
             <span class="language-select__option-label">
               <span class="language-select__option-name">{{ language.name }}</span>
               <small class="language-select__option-access">
-                {{ language.accessType === 'public' ? 'Public' : 'Restricted — access required' }}
+                Version {{ language.version }} ·
+                {{ language.accessType === 'public' ? 'Public' : 'Restricted — access code required' }}
               </small>
             </span>
-          </ion-button>
+            <ion-button
+              *ngIf="language.accessType === 'public' && !language.installed"
+              expand="block"
+              [disabled]="installingLanguageId !== null"
+              (click)="downloadLanguage(language)">
+              {{ installingLanguageId === language.id ? 'Downloading…' : 'Download' }}
+            </ion-button>
+            <ion-button
+              *ngIf="language.accessType === 'public' && language.installed"
+              expand="block"
+              color="success"
+              (click)="selectLanguage(language)">
+              Use {{ language.name }} · Available offline
+            </ion-button>
+            <ion-button
+              *ngIf="language.accessType === 'restricted'"
+              expand="block"
+              (click)="selectLanguage(language)">
+              Enter access code for {{ language.name }}
+            </ion-button>
+          </div>
         </div>
+
+        <p *ngIf="errorMessage" class="language-select__error">{{ errorMessage }}</p>
 
         <p *ngIf="!loading && languages.length === 0" class="language-select__error">
           No languages are available currently.

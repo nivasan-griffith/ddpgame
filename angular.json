@@ -33,7 +33,10 @@
               {
                 "glob": "**/*",
                 "input": "languages",
-                "output": "languages"
+                "output": "languages",
+                "ignore": [
+                  "bininj-kunwok/**"
+                ]
               }
             ],
             "styles": ["src/global.scss", "src/theme/variables.scss"],
@@ -42,6 +45,8 @@
           },
           "configurations": {
             "production": {
+              "serviceWorker": true,
+              "ngswConfigPath": "ngsw-config.json",
               "budgets": [
                 {
                   "type": "initial",
@@ -114,7 +119,10 @@
               {
                 "glob": "**/*",
                 "input": "languages",
-                "output": "languages"
+                "output": "languages",
+                "ignore": [
+                  "bininj-kunwok/**"
+                ]
               }
             ],
             "styles": ["src/global.scss", "src/theme/variables.scss"],

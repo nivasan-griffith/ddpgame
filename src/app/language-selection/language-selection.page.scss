@@ -42,6 +42,12 @@ h1 {
   margin-top: 2rem;
 }
 
+.language-select__option {
+  display: grid;
+  gap: 0.35rem;
+  margin-block: 0.8rem;
+}
+
 .language-select__options ion-button {
   --background: var(--button-bg);
   --background-activated: var(--link-hover);
@@ -61,13 +67,15 @@ h1 {
 }
 
 .language-select__option-name {
-  font-weight: 600;
+  font-size: 1.15rem;
+  font-weight: 700;
 }
 
 .language-select__option-access {
   margin-top: 0.3rem;
   font-size: 0.8rem;
   font-weight: 400;
+  opacity: 0.75;
   overflow-wrap: anywhere;
 }
 
