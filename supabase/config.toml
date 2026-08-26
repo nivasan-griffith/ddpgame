@@ -1,0 +1,4 @@
+[functions.private-module-download]
+# The app has no Supabase Auth users yet. The function authenticates each
+# request with an opaque, module-scoped access-grant token instead.
+verify_jwt = false

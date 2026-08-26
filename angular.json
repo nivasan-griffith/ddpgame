@@ -33,7 +33,10 @@
               {
                 "glob": "**/*",
                 "input": "languages",
-                "output": "languages"
+                "output": "languages",
+                "ignore": [
+                  "bininj-kunwok/**"
+                ]
               }
             ],
             "styles": ["src/global.scss", "src/theme/variables.scss"],
@@ -116,7 +119,10 @@
               {
                 "glob": "**/*",
                 "input": "languages",
-                "output": "languages"
+                "output": "languages",
+                "ignore": [
+                  "bininj-kunwok/**"
+                ]
               }
             ],
             "styles": ["src/global.scss", "src/theme/variables.scss"],

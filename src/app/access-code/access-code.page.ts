@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import {
   IonButton,
   IonContent,
@@ -15,6 +15,7 @@ import {
   IonToolbar,
 } from '@ionic/angular/standalone';
 import { SupabaseService } from '../services/supabase.service';
+import { LanguageModuleService } from '../services/language-module.service';
 
 @Component({
   selector: 'app-access-code',
@@ -37,7 +38,9 @@ import { SupabaseService } from '../services/supabase.service';
   ],
 })
 export class AccessCodePage {
-  readonly moduleId: string;
+  moduleId = '';
+  moduleName = 'this language module';
+  private returnUrl = '/home';
   accessCode = '';
   isChecking = false;
   resultMessage = '';
@@ -45,12 +48,21 @@ export class AccessCodePage {
 
   constructor(
     private readonly supabase: SupabaseService,
-    route: ActivatedRoute
+    private readonly languageModules: LanguageModuleService,
+    private readonly route: ActivatedRoute,
+    private readonly router: Router,
   ) {
-    this.moduleId = route.snapshot.queryParamMap.get('moduleId')?.trim() ?? '';
-    if (!this.moduleId) {
-      this.resultMessage = 'No restricted language module was selected.';
+    this.moduleId = this.route.snapshot.queryParamMap.get('moduleId')?.trim() ?? '';
+    const requestedReturnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
+    if (requestedReturnUrl?.startsWith('/') && !requestedReturnUrl.startsWith('//')) {
+      this.returnUrl = requestedReturnUrl;
     }
+
+    this.languageModules.loadLanguageOptions().subscribe({
+      next: options => {
+        this.moduleName = options.find(option => option.id === this.moduleId)?.name ?? this.moduleName;
+      },
+    });
   }
 
   async validate(): Promise<void> {
@@ -59,7 +71,7 @@ export class AccessCodePage {
     this.isValid = false;
 
     if (!this.moduleId) {
-      this.resultMessage = 'No restricted language module was selected.';
+      this.resultMessage = 'Choose a language module before entering an access code.';
       return;
     }
 
@@ -71,10 +83,22 @@ export class AccessCodePage {
     this.isChecking = true;
 
     try {
-      this.isValid = await this.supabase.redeemAccessCode(this.moduleId, code);
+      this.isValid = this.supabase.hasModuleAccessGrant(this.moduleId)
+        || await this.supabase.redeemModuleAccessCode(this.moduleId, code);
       this.resultMessage = this.isValid
-        ? 'Access code accepted. Download and unlock will be completed in a later step.'
+        ? 'Access accepted. Downloading your language module…'
         : 'That access code is not valid for this module.';
+
+      if (this.isValid) {
+        try {
+          await this.languageModules.installLanguage(this.moduleId);
+          this.languageModules.setSelectedLanguage(this.moduleId);
+          await this.router.navigateByUrl(this.returnUrl, { replaceUrl: true });
+        } catch (error) {
+          console.error('Unlocked language module download failed.', error);
+          this.resultMessage = 'Access was granted, but the language module could not be downloaded. Check your connection and try again.';
+        }
+      }
     } catch (error) {
       console.error('Access code validation failed.', error);
       this.resultMessage = 'The code could not be checked. Please try again.';

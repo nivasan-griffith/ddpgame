@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { IonContent, IonButton, IonIcon } from '@ionic/angular/standalone';
 import { LanguageModuleService, LanguageOption } from 'src/app/services/language-module.service';
+import { SupabaseService } from 'src/app/services/supabase.service';
 
 
 @Component({
@@ -19,7 +20,11 @@ export class LanguageSelectionPage implements OnInit {
   installingLanguageId: string | null = null;
   errorMessage = '';
 
-  constructor(private languageModules: LanguageModuleService, private router: Router) {}
+  constructor(
+    private languageModules: LanguageModuleService,
+    private supabase: SupabaseService,
+    private router: Router,
+  ) {}
 
   ngOnInit(): void {
     this.languageModules.loadLanguageOptions().subscribe({
@@ -45,19 +50,27 @@ export class LanguageSelectionPage implements OnInit {
     }
   }
 
-  selectLanguage(language: LanguageOption): void {
-    if (language.accessType === 'restricted') {
-      this.router.navigate(['/access-code'], {
-        queryParams: { moduleId: language.id }
-      });
-      return;
+  async selectLanguage(language: LanguageOption): Promise<void> {
+    if (language.accessType === 'restricted' && !language.installed) {
+      if (!this.supabase.hasModuleAccessGrant(language.id)) {
+        await this.router.navigate(['/access-code'], {
+          queryParams: { moduleId: language.id, returnUrl: '/home' },
+          replaceUrl: true,
+        });
+        return;
+      }
+
+      await this.downloadLanguage(language);
+      if (!language.installed) {
+        return;
+      }
     }
 
-    if (!language.installed) {
+    if (language.accessType === 'public' && !language.installed) {
       return;
     }
 
     this.languageModules.setSelectedLanguage(language.id);
-    this.router.navigateByUrl('/home', { replaceUrl: true });
+    await this.router.navigateByUrl('/home', { replaceUrl: true });
   }
 }

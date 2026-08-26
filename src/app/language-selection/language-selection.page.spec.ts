@@ -1,9 +1,11 @@
 import { Router } from '@angular/router';
 import { LanguageModuleService, LanguageOption } from '../services/language-module.service';
+import { SupabaseService } from '../services/supabase.service';
 import { LanguageSelectionPage } from './language-selection.page';
 
 describe('LanguageSelectionPage', () => {
   let languageModules: jasmine.SpyObj<LanguageModuleService>;
+  let supabase: jasmine.SpyObj<SupabaseService>;
   let router: jasmine.SpyObj<Router>;
   let page: LanguageSelectionPage;
 
@@ -13,26 +15,61 @@ describe('LanguageSelectionPage', () => {
       'installLanguage',
       'setSelectedLanguage'
     ]);
+    supabase = jasmine.createSpyObj<SupabaseService>('SupabaseService', ['hasModuleAccessGrant']);
     router = jasmine.createSpyObj<Router>('Router', ['navigate', 'navigateByUrl']);
-    page = new LanguageSelectionPage(languageModules, router);
+    page = new LanguageSelectionPage(languageModules, supabase, router);
   });
 
-  it('selects a public module through the existing home flow', () => {
-    page.selectLanguage(makeOption('kuku-thaypan', 'public'));
+  it('selects a public module through the existing home flow', async () => {
+    await page.selectLanguage(makeOption('kuku-thaypan', 'public'));
 
     expect(languageModules.setSelectedLanguage).toHaveBeenCalledOnceWith('kuku-thaypan');
     expect(router.navigateByUrl).toHaveBeenCalledOnceWith('/home', { replaceUrl: true });
-    expect(router.navigate).not.toHaveBeenCalled();
   });
 
-  it('routes a restricted module to access-code without selecting it', () => {
-    page.selectLanguage(makeOption('bininj-kunwok', 'restricted', false));
+  it('routes a restricted module without a grant to access-code', async () => {
+    supabase.hasModuleAccessGrant.and.returnValue(false);
+
+    await page.selectLanguage(makeOption('bininj-kunwok', 'restricted', false));
 
     expect(languageModules.setSelectedLanguage).not.toHaveBeenCalled();
+    expect(languageModules.installLanguage).not.toHaveBeenCalled();
     expect(router.navigate).toHaveBeenCalledOnceWith(['/access-code'], {
-      queryParams: { moduleId: 'bininj-kunwok' }
+      queryParams: { moduleId: 'bininj-kunwok', returnUrl: '/home' },
+      replaceUrl: true,
     });
+  });
+
+  it('installs and selects a restricted module that has a valid grant', async () => {
+    supabase.hasModuleAccessGrant.and.returnValue(true);
+    languageModules.installLanguage.and.resolveTo();
+
+    await page.selectLanguage(makeOption('bininj-kunwok', 'restricted', false));
+
+    expect(languageModules.installLanguage).toHaveBeenCalledOnceWith('bininj-kunwok');
+    expect(languageModules.setSelectedLanguage).toHaveBeenCalledOnceWith('bininj-kunwok');
+    expect(router.navigate).not.toHaveBeenCalled();
+    expect(router.navigateByUrl).toHaveBeenCalledOnceWith('/home', { replaceUrl: true });
+  });
+
+  it('does not select or navigate when restricted module installation fails', async () => {
+    supabase.hasModuleAccessGrant.and.returnValue(true);
+    languageModules.installLanguage.and.rejectWith(new Error('download failed'));
+
+    await page.selectLanguage(makeOption('bininj-kunwok', 'restricted', false));
+
+    expect(languageModules.setSelectedLanguage).not.toHaveBeenCalled();
     expect(router.navigateByUrl).not.toHaveBeenCalled();
+    expect(page.errorMessage).toContain("Couldn't download");
+  });
+
+  it('selects an installed restricted module without checking the grant', async () => {
+    await page.selectLanguage(makeOption('bininj-kunwok', 'restricted', true));
+
+    expect(supabase.hasModuleAccessGrant).not.toHaveBeenCalled();
+    expect(languageModules.installLanguage).not.toHaveBeenCalled();
+    expect(languageModules.setSelectedLanguage).toHaveBeenCalledOnceWith('bininj-kunwok');
+    expect(router.navigateByUrl).toHaveBeenCalledOnceWith('/home', { replaceUrl: true });
   });
 
   it('does not select a module until it has been downloaded', () => {

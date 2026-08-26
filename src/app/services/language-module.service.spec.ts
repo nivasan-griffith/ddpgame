@@ -1,38 +1,25 @@
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom, of } from 'rxjs';
-import { LanguageModuleService, LanguageWord, LoadedLanguageModule } from './language-module.service';
+import { LanguageModuleService, LanguageWord } from './language-module.service';
+import { SupabaseService } from './supabase.service';
 
 describe('LanguageModuleService', () => {
-  it('maps public/private access metadata and fails closed for missing or unknown values', async () => {
+  it('maps public and private access from Supabase without loading a private manifest', async () => {
     const http = jasmine.createSpyObj<HttpClient>('HttpClient', ['get']);
-    http.get.and.returnValues(
-      of({ modules: [
-        { id: 'public', manifest: 'public/manifest.json' },
-        { id: 'private', manifest: 'private/manifest.json' },
-        { id: 'restricted', manifest: 'restricted/manifest.json' },
-        { id: 'missing', manifest: 'missing/manifest.json' },
-        { id: 'unknown', manifest: 'unknown/manifest.json' }
-      ] }),
-      of({ id: 'public', name: 'Public', version: '1.0.0', data: 'words.json', games: [], accessType: 'public' }),
-      of({ id: 'private', name: 'Private', version: '1.0.0', data: 'words.json', games: [], accessType: 'private' }),
-      of({ id: 'restricted', name: 'Restricted', version: '1.0.0', data: 'words.json', games: [], accessType: 'restricted' }),
-      of({ id: 'missing', name: 'Missing', version: '1.0.0', data: 'words.json', games: [] }),
-      of({ id: 'unknown', name: 'Unknown', version: '1.0.0', data: 'words.json', games: [], accessType: 'unexpected' })
-    );
-    const service = new LanguageModuleService(http);
+    http.get.and.returnValue(of({ modules: [
+      { id: 'public', manifest: 'public/manifest.json', name: 'Public' },
+      { id: 'private', manifest: 'private/manifest.json', name: 'Private' },
+    ] }));
+    const supabase = jasmine.createSpyObj<SupabaseService>('SupabaseService', ['getModuleAccessType']);
+    supabase.getModuleAccessType.and.callFake((id: string) => Promise.resolve(id === 'public' ? 'public' : 'private'));
+    const service = new LanguageModuleService(http, supabase);
 
     const options = await firstValueFrom(service.loadLanguageOptions());
 
-    expect(options.map(option => option.accessType)).toEqual([
-      'public',
-      'restricted',
-      'restricted',
-      'restricted',
-      'restricted'
-    ]);
+    expect(options.map(option => option.accessType)).toEqual(['public', 'restricted']);
   });
 
-  it('keeps the full inventory but exposes only explicitly playable entries', () => {
+  it('keeps the full inventory but exposes only explicitly playable entries', (done: DoneFn) => {
     const words = [makeWord('original', 'original', true), makeWord('dictionary', 'dictionary', false), makeWord('unknown', undefined, undefined)];
     const http = jasmine.createSpyObj<HttpClient>('HttpClient', ['get']);
     http.get.and.returnValues(
@@ -40,12 +27,15 @@ describe('LanguageModuleService', () => {
       of({ id: 'test', name: 'Test', version: '1.0.0', data: 'words.json', games: [] }),
       of(words)
     );
-    const service = new LanguageModuleService(http);
-    let loadedModule: LoadedLanguageModule | undefined;
-    service.loadSelectedModule().subscribe(module => loadedModule = module);
+    const supabase = jasmine.createSpyObj<SupabaseService>('SupabaseService', ['getModuleAccessType']);
+    supabase.getModuleAccessType.and.returnValue(Promise.resolve('public'));
+    const service = new LanguageModuleService(http, supabase);
 
-    expect(loadedModule!.words.length).toBe(3);
-    expect(loadedModule!.playableWords.map(word => word.id)).toEqual(['original']);
+    service.loadSelectedModule().subscribe(module => {
+      expect(module.words.length).toBe(3);
+      expect(module.playableWords.map(word => word.id)).toEqual(['original']);
+      done();
+    });
   });
 });
 
