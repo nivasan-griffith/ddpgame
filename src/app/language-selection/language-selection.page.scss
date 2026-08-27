@@ -167,6 +167,35 @@ h1 {
   max-height:calc(var(--header-height)*0.5);
 }
 }
+
+// Keep both language choices visible on common laptop/tablet-height screens.
+// Shorter screens still use the existing scrollable content area.
+@media only screen and (max-height:760px){
+  .language-select {
+    padding-block: 1rem;
+  }
+
+  .language-select__logo {
+    width: min(6.5rem, 30vw);
+    margin-bottom: 0.5rem;
+  }
+
+  h1 {
+    font-size: 2rem;
+  }
+
+  .language-select > p:not(.language-select__loading):not(.language-select__download-status):not(.language-select__error) {
+    margin-block: 0.5rem;
+  }
+
+  .language-select__options {
+    margin-top: 0.75rem;
+  }
+
+  .language-select__options ion-button {
+    min-height: 3.75rem;
+  }
+}
 @media only screen and (min-width:900px){
 
 
