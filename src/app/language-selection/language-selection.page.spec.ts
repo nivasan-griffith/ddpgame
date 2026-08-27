@@ -90,6 +90,23 @@ describe('LanguageSelectionPage', () => {
     expect(option.installed).toBeTrue();
     expect(page.errorMessage).toBe('');
   });
+
+  it('prevents a second language action while a download is in progress', async () => {
+    page.installingLanguageId = 'bininj-kunwok';
+
+    await page.downloadLanguage(makeOption('kuku-thaypan', 'public', false));
+    await page.selectLanguage(makeOption('kuku-thaypan', 'public'));
+
+    expect(languageModules.installLanguage).not.toHaveBeenCalled();
+    expect(languageModules.setSelectedLanguage).not.toHaveBeenCalled();
+  });
+
+  it('exposes the downloading language name for the visible progress message', () => {
+    page.languages = [makeOption('bininj-kunwok', 'restricted', false)];
+    page.installingLanguageId = 'bininj-kunwok';
+
+    expect(page.installingLanguageName).toBe('bininj-kunwok');
+  });
 });
 
 function makeOption(

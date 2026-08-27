@@ -118,7 +118,7 @@ export class LanguageModuleService {
         }
       }
 
-      return options;
+      return options.sort((first, second) => first.name.localeCompare(second.name));
     }));
   }
 

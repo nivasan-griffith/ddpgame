@@ -7,8 +7,8 @@ describe('LanguageModuleService', () => {
   it('maps public and private access from Supabase without loading a private manifest', async () => {
     const http = jasmine.createSpyObj<HttpClient>('HttpClient', ['get']);
     http.get.and.returnValue(of({ modules: [
-      { id: 'public', manifest: 'public/manifest.json', name: 'Public' },
-      { id: 'private', manifest: 'private/manifest.json', name: 'Private' },
+      { id: 'public', manifest: 'public/manifest.json', name: 'Kuku Thaypan' },
+      { id: 'private', manifest: 'private/manifest.json', name: 'Bininj Kunwok' },
     ] }));
     const supabase = jasmine.createSpyObj<SupabaseService>('SupabaseService', ['getModuleAccessType']);
     supabase.getModuleAccessType.and.callFake((id: string) => Promise.resolve(id === 'public' ? 'public' : 'private'));
@@ -16,7 +16,8 @@ describe('LanguageModuleService', () => {
 
     const options = await firstValueFrom(service.loadLanguageOptions());
 
-    expect(options.map(option => option.accessType)).toEqual(['public', 'restricted']);
+    expect(options.map(option => option.accessType)).toEqual(['restricted', 'public']);
+    expect(options.map(option => option.name)).toEqual(['Bininj Kunwok', 'Kuku Thaypan']);
   });
 
   it('keeps the full inventory but exposes only explicitly playable entries', (done: DoneFn) => {

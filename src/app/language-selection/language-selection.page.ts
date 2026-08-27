@@ -20,6 +20,10 @@ export class LanguageSelectionPage implements OnInit {
   installingLanguageId: string | null = null;
   errorMessage = '';
 
+  get installingLanguageName(): string {
+    return this.languages.find(language => language.id === this.installingLanguageId)?.name ?? 'language module';
+  }
+
   constructor(
     private languageModules: LanguageModuleService,
     private supabase: SupabaseService,
@@ -38,6 +42,10 @@ export class LanguageSelectionPage implements OnInit {
   }
 
   async downloadLanguage(language: LanguageOption): Promise<void> {
+    if (this.installingLanguageId !== null) {
+      return;
+    }
+
     this.installingLanguageId = language.id;
     this.errorMessage = '';
     try {
@@ -51,6 +59,10 @@ export class LanguageSelectionPage implements OnInit {
   }
 
   async selectLanguage(language: LanguageOption): Promise<void> {
+    if (this.installingLanguageId !== null) {
+      return;
+    }
+
     if (language.accessType === 'restricted' && !language.installed) {
       if (!this.supabase.hasModuleAccessGrant(language.id)) {
         await this.router.navigate(['/access-code'], {

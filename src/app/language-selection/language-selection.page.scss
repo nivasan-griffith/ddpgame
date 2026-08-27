@@ -18,10 +18,11 @@ ion-content{
 
 .language-select {
   box-sizing: border-box;
-  min-height: 100%;
+  min-height: 0;
   max-width: 38rem;
   margin: 0 auto;
   padding: 3rem 1.5rem;
+  overflow-y: auto;
   text-align: center;
   color: #2c2025;
 }
@@ -80,6 +81,12 @@ h1 {
 
 .language-select__loading {
   margin-top: 3rem;
+}
+
+.language-select__download-status {
+  margin: 1rem 0;
+  font-weight: 700;
+  color: #2c2025;
 }
 
 .language-select__error {
