@@ -16,8 +16,8 @@ describe('LanguageModuleService', () => {
 
     const options = await firstValueFrom(service.loadLanguageOptions());
 
-    expect(options.map(option => option.accessType)).toEqual(['restricted', 'public']);
-    expect(options.map(option => option.name)).toEqual(['Bininj Kunwok', 'Kuku Thaypan']);
+    expect(options.map(option => option.accessType)).toEqual(['public', 'restricted']);
+    expect(options.map(option => option.name)).toEqual(['Kuku Thaypan', 'Bininj Kunwok']);
   });
 
   it('keeps the full inventory but exposes only explicitly playable entries', (done: DoneFn) => {

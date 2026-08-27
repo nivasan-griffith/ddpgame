@@ -21,7 +21,7 @@ ion-content{
   min-height: 0;
   max-width: 38rem;
   margin: 0 auto;
-  padding: 3rem 1.5rem;
+  padding: clamp(1.25rem, 4vh, 2.25rem) 1.5rem;
   overflow-y: auto;
   text-align: center;
   color: #2c2025;
@@ -40,13 +40,13 @@ h1 {
 .language-select__options {
   display: grid;
   gap: 1rem;
-  margin-top: 2rem;
+  margin-top: 1rem;
 }
 
 .language-select__option {
   display: grid;
   gap: 0.35rem;
-  margin-block: 0.8rem;
+  margin-block: 0.35rem;
 }
 
 .language-select__options ion-button {

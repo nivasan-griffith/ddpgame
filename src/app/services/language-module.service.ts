@@ -118,7 +118,9 @@ export class LanguageModuleService {
         }
       }
 
-      return options.sort((first, second) => first.name.localeCompare(second.name));
+      // Keep the order supplied by languages/index.json (Kuku Thaypan, then Bininj Kunwok).
+      // Installed modules are only appended when an index entry is unavailable offline.
+      return options;
     }));
   }
 
