@@ -6,6 +6,11 @@ ion-content{
   --background: rgb(0,0,0)  ;
  }
 
+#layout {
+  box-sizing: border-box;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+}
+
  .language{
   // position:relative;
   // top:-1em;
@@ -18,10 +23,11 @@ ion-content{
 
 .language-select {
   box-sizing: border-box;
-  min-height: 100%;
+  min-height: 0;
   max-width: 38rem;
   margin: 0 auto;
-  padding: 3rem 1.5rem;
+  padding: clamp(1.25rem, 4vh, 2.25rem) 1.5rem;
+  overflow-y: visible;
   text-align: center;
   color: #2c2025;
 }
@@ -39,13 +45,13 @@ h1 {
 .language-select__options {
   display: grid;
   gap: 1rem;
-  margin-top: 2rem;
+  margin-top: 1rem;
 }
 
 .language-select__option {
   display: grid;
   gap: 0.35rem;
-  margin-block: 0.8rem;
+  margin-block: 0.35rem;
 }
 
 .language-select__options ion-button {
@@ -80,6 +86,12 @@ h1 {
 
 .language-select__loading {
   margin-top: 3rem;
+}
+
+.language-select__download-status {
+  margin: 1rem 0;
+  font-weight: 700;
+  color: #2c2025;
 }
 
 .language-select__error {
@@ -159,6 +171,41 @@ h1 {
    
   max-height:calc(var(--header-height)*0.5);
 }
+}
+
+// Keep both language choices visible on common laptop/tablet-height screens.
+// Shorter screens still use the existing scrollable content area.
+@media only screen and (max-height:760px){
+  .language-select {
+    padding-block: 1rem;
+  }
+
+  .language-select__logo {
+    width: min(6.5rem, 30vw);
+    margin-bottom: 0.5rem;
+  }
+
+  h1 {
+    font-size: 2rem;
+  }
+
+  .language-select > p:not(.language-select__loading):not(.language-select__download-status):not(.language-select__error) {
+    margin-block: 0.5rem;
+  }
+
+  .language-select__options {
+    margin-top: 0.75rem;
+  }
+
+  .language-select__options ion-button {
+    min-height: 3.75rem;
+  }
+}
+
+@media only screen and (max-height:600px){
+  .language-select {
+    overflow-y: auto;
+  }
 }
 @media only screen and (min-width:900px){
 

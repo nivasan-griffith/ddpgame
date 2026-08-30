@@ -118,6 +118,8 @@ export class LanguageModuleService {
         }
       }
 
+      // Keep the order supplied by languages/index.json (Kuku Thaypan, then Bininj Kunwok).
+      // Installed modules are only appended when an index entry is unavailable offline.
       return options;
     }));
   }

@@ -17,6 +17,9 @@
         <h1>Welcome!</h1>
         <p *ngIf="loading" class="language-select__loading">Loading languages...</p>
         <p>Download a language for offline use, then choose it.</p>
+        <p *ngIf="installingLanguageId" class="language-select__download-status" role="status" aria-live="polite">
+          Downloading {{ installingLanguageName }}… Please keep this page open.
+        </p>
 
         <div *ngIf="!loading && languages.length > 0" class="language-select__options">
           <div *ngFor="let language of languages" class="language-select__option">
@@ -24,7 +27,11 @@
               <span class="language-select__option-name">{{ language.name }}</span>
               <small class="language-select__option-access">
                 Version {{ language.version }} ·
-                {{ language.accessType === 'public' ? 'Public' : 'Restricted — access code required' }}
+                {{ language.accessType === 'public'
+                  ? 'Public'
+                  : language.installed
+                    ? 'Restricted — installed and available offline'
+                    : 'Restricted — access code required' }}
               </small>
             </span>
             <ion-button
@@ -38,14 +45,24 @@
               *ngIf="language.accessType === 'public' && language.installed"
               expand="block"
               color="success"
+              [disabled]="installingLanguageId !== null"
               (click)="selectLanguage(language)">
               Use {{ language.name }} · Available offline
             </ion-button>
             <ion-button
-              *ngIf="language.accessType === 'restricted'"
+              *ngIf="language.accessType === 'restricted' && !language.installed"
               expand="block"
+              [disabled]="installingLanguageId !== null"
               (click)="selectLanguage(language)">
               Enter access code for {{ language.name }}
+            </ion-button>
+            <ion-button
+              *ngIf="language.accessType === 'restricted' && language.installed"
+              expand="block"
+              color="success"
+              [disabled]="installingLanguageId !== null"
+              (click)="selectLanguage(language)">
+              Use {{ language.name }} · Available offline
             </ion-button>
           </div>
         </div>
