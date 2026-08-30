@@ -21,7 +21,7 @@ describe('QuizPage', () => {
       providers: [
         provideRouter([]),
         { provide: LanguageModuleService, useValue: { loadSelectedModule: () => of(module) } },
-        { provide: LanguageThemeService, useValue: { applyManifestTheme: () => undefined, asset: () => 'assets/test-theme.svg' } },
+        { provide: LanguageThemeService, useValue: { applyManifestTheme: () => undefined, asset: () => 'assets/dot.png' } },
         { provide: UtilsService, useValue: { shuffleArray: <T>(items: T[]) => items } }
       ]
     });
