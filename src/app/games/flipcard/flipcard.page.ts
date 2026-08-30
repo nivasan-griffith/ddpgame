@@ -37,7 +37,7 @@ export class FlipcardPage implements OnInit {
 
   constructor(
     private languageModules: LanguageModuleService,
-    private languageTheme: LanguageThemeService,
+    public readonly theme: LanguageThemeService,
     private utils: UtilsService
   ) {
     addIcons({ volumeHighOutline, arrowForward, arrowBack, infinite });
@@ -57,7 +57,7 @@ export class FlipcardPage implements OnInit {
 
   private loadCards(): void {
     this.languageModules.loadSelectedModule().subscribe(module => {
-      this.languageTheme.applyManifestTheme(module.manifest);
+      this.theme.applyManifestTheme(module.manifest);
       const playableCards = module.playableWords.filter(word => word.image !== null);
       this.cards = this.utils.shuffleArray([...playableCards]);
       this.cardcount = this.cards.length;

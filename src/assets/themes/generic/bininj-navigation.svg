@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" role="img" aria-label="Navigation icon">
+  <circle cx="24" cy="24" r="21" fill="#2f5d50"/>
+  <circle cx="17" cy="17" r="3" fill="#fff"/><circle cx="31" cy="17" r="3" fill="#fff"/>
+  <circle cx="17" cy="31" r="3" fill="#fff"/><circle cx="31" cy="31" r="3" fill="#fff"/>
+</svg>

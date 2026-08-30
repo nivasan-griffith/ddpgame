@@ -31,7 +31,7 @@ export class QuizPage implements OnInit {
 
   constructor(
     private languageModules: LanguageModuleService,
-    private languageTheme: LanguageThemeService,
+    public readonly theme: LanguageThemeService,
     private utils: UtilsService
   ) {
     addIcons({ volumeHighOutline, arrowForward, arrowBack });
@@ -51,7 +51,7 @@ export class QuizPage implements OnInit {
 
   private loadQuestions(): void {
     this.languageModules.loadSelectedModule().subscribe(module => {
-      this.languageTheme.applyManifestTheme(module.manifest);
+      this.theme.applyManifestTheme(module.manifest);
       const playableCards = module.playableWords.filter(word => word.image !== null);
       this.cards = playableCards;
       this.quiz = this.utils.shuffleArray([...playableCards]);

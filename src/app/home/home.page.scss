@@ -42,7 +42,7 @@ ion-content{
         
       }
       & li:before{
-        content:url("/assets/dot.png");
+        content:var(--theme-bullet-icon, url("/assets/dot.png"));
         filter: drop-shadow(4px 4px 5px #0003);
         padding-right:0.5em;
         transform:filter 0.3s;

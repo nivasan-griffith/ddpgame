@@ -30,6 +30,17 @@ export interface LanguageManifest {
 
 export interface LanguageTheme {
   tokens: LanguageThemeTokens;
+  assets?: LanguageThemeAssets;
+}
+
+export interface LanguageThemeAssets {
+  hero: string;
+  topLeftTrim: string;
+  bottomRightTrim: string;
+  navigationIcon: string;
+  bulletIcon: string;
+  successIcon: string;
+  retryIcon: string;
 }
 
 export interface LanguageThemeTokens {

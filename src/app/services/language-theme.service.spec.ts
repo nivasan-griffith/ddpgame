@@ -21,6 +21,15 @@ describe('LanguageThemeService', () => {
           linkHover: '#9a4e32',
           accent: '#9a4e32',
           surface: '#ffffff'
+        },
+        assets: {
+          hero: 'assets/themes/generic/hero.svg',
+          topLeftTrim: 'assets/themes/generic/top-left.svg',
+          bottomRightTrim: 'assets/themes/generic/bottom-right.svg',
+          navigationIcon: 'assets/themes/generic/navigation.svg',
+          bulletIcon: 'assets/themes/generic/bullet.svg',
+          successIcon: 'assets/themes/generic/success.svg',
+          retryIcon: 'assets/themes/generic/retry.svg'
         }
       }
     });
@@ -28,5 +37,7 @@ describe('LanguageThemeService', () => {
     expect(setProperty).toHaveBeenCalledWith('--primary-bg', '#eef4ef');
     expect(setProperty).toHaveBeenCalledWith('--button-bg', '#2f5d50');
     expect(setProperty).toHaveBeenCalledWith('--theme-accent', '#9a4e32');
+    expect(setProperty).toHaveBeenCalledWith('--theme-bullet-icon', 'url("assets/themes/generic/bullet.svg")');
+    expect(service.asset('hero')).toBe('assets/themes/generic/hero.svg');
   });
 });

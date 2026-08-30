@@ -1,6 +1,6 @@
 import { DOCUMENT } from '@angular/common';
 import { Inject, Injectable } from '@angular/core';
-import { LanguageManifest, LanguageThemeTokens } from './language-module.service';
+import { LanguageManifest, LanguageThemeAssets, LanguageThemeTokens } from './language-module.service';
 
 @Injectable({ providedIn: 'root' })
 export class LanguageThemeService {
@@ -13,11 +13,22 @@ export class LanguageThemeService {
     accent: '#8a4b2d',
     surface: '#fff8ed'
   };
+  private readonly defaultAssets: LanguageThemeAssets = {
+    hero: 'assets/icon/icon-only.png',
+    topLeftTrim: 'assets/corneronly.png',
+    bottomRightTrim: 'assets/corneronly.png',
+    navigationIcon: 'assets/dots-maroon.png',
+    bulletIcon: 'assets/dot.png',
+    successIcon: 'assets/accent.png',
+    retryIcon: 'assets/accent.png'
+  };
+  private assets: LanguageThemeAssets = this.defaultAssets;
 
   constructor(@Inject(DOCUMENT) private readonly document: Document) {}
 
   applyManifestTheme(manifest: LanguageManifest): void {
     const tokens = { ...this.defaultTokens, ...manifest.theme?.tokens };
+    this.assets = { ...this.defaultAssets, ...manifest.theme?.assets };
     const style = this.document.documentElement.style;
 
     style.setProperty('--primary-bg', tokens.primaryBackground);
@@ -27,6 +38,11 @@ export class LanguageThemeService {
     style.setProperty('--link-hover', tokens.linkHover);
     style.setProperty('--theme-accent', tokens.accent);
     style.setProperty('--theme-surface', tokens.surface);
+    style.setProperty('--theme-bullet-icon', `url("${this.assets.bulletIcon}")`);
+  }
+
+  asset(name: keyof LanguageThemeAssets): string {
+    return this.assets[name];
   }
 
   applyDefaultTheme(): void {
@@ -36,7 +52,7 @@ export class LanguageThemeService {
       version: '1.0.0',
       data: '',
       games: [],
-      theme: { tokens: this.defaultTokens }
+      theme: { tokens: this.defaultTokens, assets: this.defaultAssets }
     });
   }
 }

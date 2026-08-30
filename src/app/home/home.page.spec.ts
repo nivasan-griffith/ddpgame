@@ -24,7 +24,10 @@ describe('HomePage', () => {
             })
           }
         },
-        { provide: LanguageThemeService, useValue: { applyManifestTheme: () => undefined } }
+        {
+          provide: LanguageThemeService,
+          useValue: { applyManifestTheme: () => undefined, asset: () => 'assets/test-theme.svg' }
+        }
       ]
     });
     fixture = TestBed.createComponent(HomePage);

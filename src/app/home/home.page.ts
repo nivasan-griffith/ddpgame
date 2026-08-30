@@ -18,13 +18,13 @@ export class HomePage implements OnInit {
   languageName = '';
   constructor(
     private languageModules: LanguageModuleService,
-    private languageTheme: LanguageThemeService
+    public readonly theme: LanguageThemeService
   ) { }
 
   ngOnInit() {
     this.languageModules.loadSelectedModule().subscribe(module => {
       this.languageName = module.manifest.name;
-      this.languageTheme.applyManifestTheme(module.manifest);
+      this.theme.applyManifestTheme(module.manifest);
     });
   }
 
