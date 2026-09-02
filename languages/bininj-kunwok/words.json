@@ -4,7 +4,7 @@
     "word": "djak",
     "english": "ant",
     "category": "Uncategorized",
-    "image": "images/djak.jpeg",
+    "image": "images/djak.png",
     "audio": {
       "language": "audio/djak.mp3",
       "english": null
@@ -17,7 +17,7 @@
     "word": "bobo",
     "english": "good-bye",
     "category": "Uncategorized",
-    "image": "images/bobo.jpeg",
+    "image": "images/bobo.png",
     "audio": {
       "language": "audio/bobo.mp3",
       "english": null
@@ -30,7 +30,7 @@
     "word": "danjbik",
     "english": "three (3)",
     "category": "Uncategorized",
-    "image": "images/Danjbik.jpeg",
+    "image": "images/Danjbik.png",
     "audio": {
       "language": "audio/danjbik.mp3",
       "english": null
@@ -43,7 +43,7 @@
     "word": "djamun",
     "english": "police officer",
     "category": "Uncategorized",
-    "image": "images/djamun.jpeg",
+    "image": "images/djamun.png",
     "audio": {
       "language": "audio/djamun.mp3",
       "english": null
@@ -56,7 +56,7 @@
     "word": "dird",
     "english": "moon",
     "category": "Uncategorized",
-    "image": "images/dird.jpeg",
+    "image": "images/dird.png",
     "audio": {
       "language": "audio/rdird.mp3",
       "english": null
@@ -83,7 +83,7 @@
     "word": "mirrhmak",
     "english": "sharp",
     "category": "Uncategorized",
-    "image": "images/mirrhmak.jpeg",
+    "image": "images/mirrhmak.png",
     "audio": {
       "language": "audio/mirrhmak.mp3",
       "english": null
@@ -96,7 +96,7 @@
     "word": "kunkeb",
     "english": "nose",
     "category": "Uncategorized",
-    "image": "images/Kunkeb.jpeg",
+    "image": "images/Kunkeb.png",
     "audio": {
       "language": "audio/kunkeb.mp3",
       "english": null
@@ -213,7 +213,7 @@
     "word": "balabbala",
     "english": "platform/table/bed",
     "category": "Uncategorized",
-    "image": "images/balabbala.jpeg",
+    "image": "images/balabbala.png",
     "audio": {
       "language": "audio/balabbala.mp3",
       "english": null
@@ -226,7 +226,7 @@
     "word": "kakkak",
     "english": "grandmother",
     "category": "Uncategorized",
-    "image": "images/kakkak.jpeg",
+    "image": "images/kakkak.png",
     "audio": {
       "language": "audio/kakkak.mp3",
       "english": null
@@ -239,7 +239,7 @@
     "word": "kundalk",
     "english": "grass",
     "category": "Uncategorized",
-    "image": "images/kun-dalk.jpeg",
+    "image": "images/kun-dalk.png",
     "audio": {
       "language": "audio/kundalk.mp3",
       "english": null
@@ -252,7 +252,7 @@
     "word": "ngabba",
     "english": "father",
     "category": "Uncategorized",
-    "image": "images/ngabba.jpeg",
+    "image": "images/ngabba.png",
     "audio": {
       "language": "audio/ngabba.mp3",
       "english": null
@@ -278,7 +278,7 @@
     "word": "borndok",
     "english": "spearthrower",
     "category": "Uncategorized",
-    "image": "images/Borndok.jpeg",
+    "image": "images/Borndok.png",
     "audio": {
       "language": "audio/borndok.mp3",
       "english": null
@@ -291,7 +291,7 @@
     "word": "kardab",
     "english": "spider",
     "category": "Uncategorized",
-    "image": "images/kardab.jpeg",
+    "image": "images/kardab.png",
     "audio": {
       "language": "audio/kardab.mp3",
       "english": null
@@ -304,7 +304,7 @@
     "word": "manbiri",
     "english": "sea turtle",
     "category": "Uncategorized",
-    "image": "images/Manbiri.jpeg",
+    "image": "images/Manbiri.png",
     "audio": {
       "language": "audio/manbiri.mp3",
       "english": null
@@ -354,7 +354,7 @@
   {
     "id": "walabi",
     "word": "walabi",
-    "english": "traditional fishing net, grass species",
+    "english": "traditional fishing net",
     "category": "Uncategorized",
     "image": "images/walabi.png",
     "audio": {
