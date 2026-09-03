@@ -2,3 +2,8 @@
 # The app has no Supabase Auth users yet. The function authenticates each
 # request with an opaque, module-scoped access-grant token instead.
 verify_jwt = false
+
+[functions.admin-access-management]
+# This endpoint accepts only a logged-in Supabase Auth user, then confirms that
+# the user has an admin_users record before it touches code or module data.
+verify_jwt = true
