@@ -2,6 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { of } from 'rxjs';
 import { LanguageModuleService } from '../services/language-module.service';
+import { LanguageThemeService } from '../services/language-theme.service';
 import { HomePage } from './home.page';
 
 describe('HomePage', () => {
@@ -22,6 +23,10 @@ describe('HomePage', () => {
               playableWords: []
             })
           }
+        },
+        {
+          provide: LanguageThemeService,
+          useValue: { applyManifestTheme: () => undefined, asset: () => 'assets/test-theme.svg' }
         }
       ]
     });

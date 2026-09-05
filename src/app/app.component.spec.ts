@@ -1,13 +1,20 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { of } from 'rxjs';
 
 import { AppComponent } from './app.component';
+import { LanguageModuleService } from './services/language-module.service';
+import { LanguageThemeService } from './services/language-theme.service';
 
 describe('AppComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [AppComponent],
-      providers: [provideRouter([])]
+      providers: [
+        provideRouter([]),
+        { provide: LanguageModuleService, useValue: { loadSelectedModule: () => of({ manifest: {} }) } },
+        { provide: LanguageThemeService, useValue: { applyManifestTheme: () => undefined, applyDefaultTheme: () => undefined } }
+      ]
     }).compileComponents();
   });
 

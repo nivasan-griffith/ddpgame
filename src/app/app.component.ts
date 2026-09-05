@@ -1,7 +1,9 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { IonApp, IonSplitPane, IonRouterOutlet} from '@ionic/angular/standalone';
 import { MenuComponent } from './comps/menu/menu.component';
+import { LanguageModuleService } from './services/language-module.service';
+import { LanguageThemeService } from './services/language-theme.service';
 
 
 @Component({
@@ -11,10 +13,16 @@ import { MenuComponent } from './comps/menu/menu.component';
   standalone: true,
   imports: [ CommonModule, IonApp, IonSplitPane, IonRouterOutlet,MenuComponent],
 })
-export class AppComponent {
+export class AppComponent implements OnInit {
+  constructor(
+    private readonly languageModules: LanguageModuleService,
+    private readonly languageTheme: LanguageThemeService
+  ) {}
 
-  
-  constructor() {
-   
+  ngOnInit(): void {
+    this.languageModules.loadSelectedModule().subscribe({
+      next: module => this.languageTheme.applyManifestTheme(module.manifest),
+      error: () => this.languageTheme.applyDefaultTheme()
+    });
   }
 }

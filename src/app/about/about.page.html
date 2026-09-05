@@ -5,9 +5,9 @@
   <div id="layout">
    
     <div class="layouttop">
-      <div class="corner"><img src="assets/corneronly.png"/></div>
+      <div class="corner"><img [src]="theme.asset('topLeftTrim')" alt=""/></div>
       <div class="language"></div>
-      <div class="dots"><a routerLink="/" ><img src="assets/dots-maroon.png" role="navigation" alt="nav back button" />-home-</a></div>
+      <div class="dots"><a routerLink="/" ><img [src]="theme.asset('navigationIcon')" role="navigation" alt="nav back button" />-home-</a></div>
     </div>
   
   
@@ -25,7 +25,7 @@
     
 
      
-  <div class="layoutbottom"><img src="assets/corneronly.png"/></div>
+  <div class="layoutbottom"><img [src]="theme.asset('bottomRightTrim')" alt=""/></div>
   
     
   </div>

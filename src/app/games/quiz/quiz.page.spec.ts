@@ -2,6 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { of } from 'rxjs';
 import { LanguageModuleService, LoadedLanguageModule, ResolvedLanguageWord } from 'src/app/services/language-module.service';
+import { LanguageThemeService } from 'src/app/services/language-theme.service';
 import { UtilsService } from 'src/app/services/utils.service';
 import { QuizPage } from './quiz.page';
 
@@ -20,6 +21,7 @@ describe('QuizPage', () => {
       providers: [
         provideRouter([]),
         { provide: LanguageModuleService, useValue: { loadSelectedModule: () => of(module) } },
+        { provide: LanguageThemeService, useValue: { applyManifestTheme: () => undefined, asset: () => 'assets/dot.png' } },
         { provide: UtilsService, useValue: { shuffleArray: <T>(items: T[]) => items } }
       ]
     });

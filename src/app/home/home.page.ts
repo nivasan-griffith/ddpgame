@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { IonContent, IonButton, IonIcon } from '@ionic/angular/standalone';
 import { LanguageModuleService } from 'src/app/services/language-module.service';
+import { LanguageThemeService } from 'src/app/services/language-theme.service';
 
 
 @Component({
@@ -15,11 +16,15 @@ import { LanguageModuleService } from 'src/app/services/language-module.service'
 })
 export class HomePage implements OnInit {
   languageName = '';
-  constructor(private languageModules: LanguageModuleService) { }
+  constructor(
+    private languageModules: LanguageModuleService,
+    public readonly theme: LanguageThemeService
+  ) { }
 
   ngOnInit() {
     this.languageModules.loadSelectedModule().subscribe(module => {
       this.languageName = module.manifest.name;
+      this.theme.applyManifestTheme(module.manifest);
     });
   }
 
