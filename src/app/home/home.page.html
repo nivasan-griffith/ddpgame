@@ -7,7 +7,7 @@
       <div class="corner"><img src="assets/corneronly.png"/></div>
       <!-- <div class="language">{{setinfo.lang}}</div> -->
        <div class="dots">
-        <a routerLink="/language-selection" >
+        <a routerLink="/language-selection" [queryParams]="{ configure: true }">
           <img src="assets/dots-maroon.png" role="navigation" alt="nav language button" />
         </a>
         change language

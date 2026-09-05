@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { IonContent,IonList,IonItem } from '@ionic/angular/standalone';
@@ -11,11 +11,8 @@ import { RouterLink } from '@angular/router';
   standalone: true,
   imports: [RouterLink,IonContent,IonList,IonItem, CommonModule, FormsModule]
 })
-export class AboutPage implements OnInit {
+export class AboutPage {
 
   constructor() { }
-
-  ngOnInit() {
-  }
 
 }

@@ -22,9 +22,9 @@ describe('AppComponent', () => {
     fixture.detectChanges();
     const app = fixture.nativeElement;
     const menuItems = app.querySelectorAll('ion-label');
-    expect(menuItems.length).toEqual(4);
+    expect(menuItems.length).toEqual(5);
     expect(Array.from(menuItems).map((item: any) => item.textContent.trim())).toEqual([
-      'Home', 'Flip Card', 'Quiz', 'About'
+      'Home', 'Languages', 'Flip Card', 'Quiz', 'About'
     ]);
   });
 
@@ -33,9 +33,9 @@ describe('AppComponent', () => {
     fixture.detectChanges();
     const app = fixture.nativeElement;
     const menuItems = app.querySelectorAll('ion-item');
-    expect(menuItems.length).toEqual(4);
+    expect(menuItems.length).toEqual(5);
     expect(Array.from(menuItems).map((item: any) => item.getAttribute('ng-reflect-router-link'))).toEqual([
-      '/home', '/games/flipcard', '/games/quiz', '/about'
+      '/home', '/language-selection', '/games/flipcard', '/games/quiz', '/about'
     ]);
   });
 });
