@@ -4,6 +4,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { IonContent, IonButton, IonIcon, IonProgressBar } from '@ionic/angular/standalone';
 import { LanguageDownloadProgress, LanguageModuleService, LanguageOption } from 'src/app/services/language-module.service';
 import { SupabaseService } from 'src/app/services/supabase.service';
+import { LanguageThemeService } from 'src/app/services/language-theme.service';
 
 
 @Component({
@@ -30,6 +31,7 @@ export class LanguageSelectionPage implements OnInit {
   constructor(
     private languageModules: LanguageModuleService,
     private supabase: SupabaseService,
+    private languageTheme: LanguageThemeService,
     private router: Router,
     private route: ActivatedRoute,
   ) {}
@@ -111,6 +113,10 @@ export class LanguageSelectionPage implements OnInit {
     }
 
     this.languageModules.setSelectedLanguage(language.id);
+    this.languageModules.loadSelectedModule().subscribe({
+      next: module => this.languageTheme.applyManifestTheme(module.manifest),
+      error: () => this.languageTheme.applyDefaultTheme()
+    });
     await this.router.navigateByUrl('/home', { replaceUrl: true });
   }
 }

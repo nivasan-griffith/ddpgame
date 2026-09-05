@@ -29,7 +29,7 @@ ion-content{
   padding: clamp(1.25rem, 4vh, 2.25rem) 1.5rem;
   overflow-y: visible;
   text-align: center;
-  color: #2c2025;
+  color: var(--primary-text);
 }
 
 .language-select__logo {
@@ -62,6 +62,9 @@ h1 {
 }
 
 .language-select__action {
+  --background: var(--button-bg);
+  --background-activated: var(--link-hover);
+  --color: var(--button-text);
   flex: 0 0 auto;
   min-width: 9.25rem;
   min-height: 2.75rem;
@@ -70,14 +73,15 @@ h1 {
 }
 
 .language-select__action--available {
-  --background: #2f7d4a;
-  --background-activated: #245f39;
+  --background: var(--button-bg);
+  --background-activated: var(--link-hover);
 }
 
 .language-select__action--restricted,
 .language-select__configure {
-  --background: #6e4e5b;
-  --background-activated: #2c2025;
+  --background: var(--button-bg);
+  --background-activated: var(--link-hover);
+  --color: var(--button-text);
 }
 
 .language-select__option-label {

@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 90" role="img" aria-label="Generic decorative trim">
+  <rect width="220" height="90" fill="#2f5d50"/>
+  <path d="M16 24h40v42H16z" fill="#9a4e32"/>
+  <circle cx="96" cy="45" r="14" fill="#fff" opacity=".4"/>
+  <circle cx="142" cy="45" r="14" fill="#fff" opacity=".65"/>
+  <circle cx="188" cy="45" r="14" fill="#fff" opacity=".9"/>
+</svg>

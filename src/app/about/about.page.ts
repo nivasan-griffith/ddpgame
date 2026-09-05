@@ -1,8 +1,10 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { IonContent,IonList,IonItem } from '@ionic/angular/standalone';
 import { RouterLink } from '@angular/router';
+import { LanguageThemeService } from '../services/language-theme.service';
+import { LanguageModuleService } from '../services/language-module.service';
 
 @Component({
   selector: 'app-about',
@@ -11,8 +13,16 @@ import { RouterLink } from '@angular/router';
   standalone: true,
   imports: [RouterLink,IonContent,IonList,IonItem, CommonModule, FormsModule]
 })
-export class AboutPage {
+export class AboutPage implements OnInit {
 
-  constructor() { }
+  constructor(
+    private readonly languageModules: LanguageModuleService,
+    public readonly theme: LanguageThemeService
+  ) { }
 
+  ngOnInit() {
+    this.languageModules.loadSelectedModule().subscribe(module => {
+      this.theme.applyManifestTheme(module.manifest);
+    });
+  }
 }

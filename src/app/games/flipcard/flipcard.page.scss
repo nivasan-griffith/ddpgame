@@ -13,8 +13,18 @@ ion-button{
   --background:var(--button-bg);
   --color:var(--button-text);
 }
+
+.layouttop .corner img,
+.layoutbottom.corner img {
+  display: block;
+  width: min(300px, 25vw);
+  height: auto;
+  max-height: none;
+  min-width: 0;
+}
+
 .gamebuttons ion-button{
-  --background:rgb(210,181,159);
+  --background:var(--theme-surface);
   --border-color:rgb(0,0,0);
   --border-width:4px;
   --border-radius:12px;
@@ -187,4 +197,4 @@ ion-button{
   .word{
     font-size: 2.3em;
   }
- } 
+ }

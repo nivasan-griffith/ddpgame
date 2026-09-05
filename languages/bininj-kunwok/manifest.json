@@ -1,12 +1,28 @@
 {
   "id": "bininj-kunwok",
   "name": "Bininj Kunwok",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "accessType": "restricted",
+  "theme": {
+    "tokens": {
+      "primaryBackground": "#eef4ef",
+      "buttonBackground": "#2f5d50",
+      "buttonText": "#ffffff",
+      "primaryText": "#15312d",
+      "linkHover": "#9a4e32",
+      "accent": "#9a4e32",
+      "surface": "#ffffff"
+    },
+    "assets": {
+      "hero": "assets/themes/generic/bininj-fallback-hero.svg",
+      "topLeftTrim": "assets/themes/generic/bininj-trim-top-left.svg",
+      "bottomRightTrim": "assets/themes/generic/bininj-trim-bottom-right.svg",
+      "navigationIcon": "assets/themes/generic/bininj-navigation.svg",
+      "bulletIcon": "assets/themes/generic/bininj-bullet.svg",
+      "successIcon": "assets/themes/generic/bininj-success.svg",
+      "retryIcon": "assets/themes/generic/bininj-retry.svg"
+    }
+  },
   "data": "words.json",
-  "games": [
-    "flipcard",
-    "quiz",
-    "drag-drop"
-  ]
+  "games": ["flipcard", "quiz", "drag-drop"]
 }

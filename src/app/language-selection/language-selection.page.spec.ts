@@ -2,11 +2,13 @@ import { ActivatedRoute, convertToParamMap, Router } from '@angular/router';
 import { of } from 'rxjs';
 import { LanguageModuleService, LanguageOption } from '../services/language-module.service';
 import { SupabaseService } from '../services/supabase.service';
+import { LanguageThemeService } from '../services/language-theme.service';
 import { LanguageSelectionPage } from './language-selection.page';
 
 describe('LanguageSelectionPage', () => {
   let languageModules: jasmine.SpyObj<LanguageModuleService>;
   let supabase: jasmine.SpyObj<SupabaseService>;
+  let languageTheme: jasmine.SpyObj<LanguageThemeService>;
   let router: jasmine.SpyObj<Router>;
   let route: ActivatedRoute;
   let page: LanguageSelectionPage;
@@ -15,12 +17,22 @@ describe('LanguageSelectionPage', () => {
     languageModules = jasmine.createSpyObj<LanguageModuleService>('LanguageModuleService', [
       'loadLanguageOptions',
       'installLanguage',
-      'setSelectedLanguage'
+      'setSelectedLanguage',
+      'loadSelectedModule'
     ]);
+    languageModules.loadSelectedModule.and.returnValue(of({
+      manifest: { id: 'test', name: 'Test', version: '1.0.0', data: 'words.json', games: [] },
+      words: [],
+      playableWords: []
+    }));
     supabase = jasmine.createSpyObj<SupabaseService>('SupabaseService', ['hasModuleAccessGrant']);
+    languageTheme = jasmine.createSpyObj<LanguageThemeService>('LanguageThemeService', [
+      'applyManifestTheme',
+      'applyDefaultTheme'
+    ]);
     router = jasmine.createSpyObj<Router>('Router', ['navigate', 'navigateByUrl']);
     route = { snapshot: { queryParamMap: convertToParamMap({}) } } as ActivatedRoute;
-    page = new LanguageSelectionPage(languageModules, supabase, router, route);
+    page = new LanguageSelectionPage(languageModules, supabase, languageTheme, router, route);
   });
 
   it('shows the language-not-selected prompt without loading the list on first launch', () => {

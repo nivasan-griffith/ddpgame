@@ -25,6 +25,32 @@ export interface LanguageManifest {
   data: string;
   games: string[];
   accessType?: string;
+  theme?: LanguageTheme;
+}
+
+export interface LanguageTheme {
+  tokens: LanguageThemeTokens;
+  assets?: LanguageThemeAssets;
+}
+
+export interface LanguageThemeAssets {
+  hero: string;
+  topLeftTrim: string;
+  bottomRightTrim: string;
+  navigationIcon: string;
+  bulletIcon: string;
+  successIcon: string;
+  retryIcon: string;
+}
+
+export interface LanguageThemeTokens {
+  primaryBackground: string;
+  buttonBackground: string;
+  buttonText: string;
+  primaryText: string;
+  linkHover: string;
+  accent: string;
+  surface: string;
 }
 
 export interface LanguageWord {

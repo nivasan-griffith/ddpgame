@@ -7,6 +7,7 @@ import { addIcons } from 'ionicons';
 import { arrowBack, arrowForward, infinite, volumeHighOutline } from 'ionicons/icons';
 import { LanguageModuleService, ResolvedLanguageWord } from 'src/app/services/language-module.service';
 import { UtilsService } from 'src/app/services/utils.service';
+import { LanguageThemeService } from 'src/app/services/language-theme.service';
 
 @Component({
   selector: 'app-flipcard',
@@ -34,7 +35,11 @@ export class FlipcardPage implements OnInit {
   audionotplaying = true;
   private firstEntry = true;
 
-  constructor(private languageModules: LanguageModuleService, private utils: UtilsService) {
+  constructor(
+    private languageModules: LanguageModuleService,
+    public readonly theme: LanguageThemeService,
+    private utils: UtilsService
+  ) {
     addIcons({ volumeHighOutline, arrowForward, arrowBack, infinite });
   }
 
@@ -52,6 +57,7 @@ export class FlipcardPage implements OnInit {
 
   private loadCards(): void {
     this.languageModules.loadSelectedModule().subscribe(module => {
+      this.theme.applyManifestTheme(module.manifest);
       const playableCards = module.playableWords.filter(word => word.image !== null);
       this.cards = this.utils.shuffleArray([...playableCards]);
       this.cardcount = this.cards.length;
