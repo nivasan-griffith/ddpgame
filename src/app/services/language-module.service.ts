@@ -88,6 +88,14 @@ export interface LanguageOption {
   accessType: LanguageAccessType;
 }
 
+export interface LanguageDownloadProgress {
+  completedAssets: number;
+  totalAssets: number;
+  percent: number;
+}
+
+export type LanguageDownloadProgressHandler = (progress: LanguageDownloadProgress) => void;
+
 interface StoredLanguageModule {
   id: string;
   manifestPath: string;
@@ -150,10 +158,13 @@ export class LanguageModuleService {
     }));
   }
 
-  async installLanguage(languageId: string): Promise<void> {
+  async installLanguage(
+    languageId: string,
+    onProgress?: LanguageDownloadProgressHandler,
+  ): Promise<void> {
     const accessType = await this.supabase.getModuleAccessType(languageId);
     if (accessType === 'private') {
-      await this.installPrivateLanguage(languageId);
+      await this.installPrivateLanguage(languageId, onProgress);
       return;
     }
 
@@ -169,6 +180,7 @@ export class LanguageModuleService {
     );
     const existing = await this.readInstalledModule(languageId);
     if (existing?.manifest.version === manifest.version) {
+      onProgress?.({ completedAssets: 0, totalAssets: 0, percent: 100 });
       return;
     }
 
@@ -176,7 +188,7 @@ export class LanguageModuleService {
       this.http.get<LanguageWord[]>(`${basePath}/${manifest.data}`)
     );
     const assetPaths = this.collectAssetPaths(words);
-    const assets = await this.downloadAssets(basePath, assetPaths);
+    const assets = await this.downloadAssets(basePath, assetPaths, onProgress);
 
     await this.writeInstalledModule({
       id: languageId,
@@ -188,7 +200,10 @@ export class LanguageModuleService {
     });
   }
 
-  private async installPrivateLanguage(languageId: string): Promise<void> {
+  private async installPrivateLanguage(
+    languageId: string,
+    onProgress?: LanguageDownloadProgressHandler,
+  ): Promise<void> {
     if (!this.supabase.hasModuleAccessGrant(languageId)) {
       throw new Error('Private module access has not been granted.');
     }
@@ -204,6 +219,7 @@ export class LanguageModuleService {
     const manifest = await this.fetchPrivateJson<LanguageManifest>(manifestUrls[entry.manifest]);
     const existing = await this.readInstalledModule(languageId);
     if (existing?.manifest.version === manifest.version) {
+      onProgress?.({ completedAssets: 0, totalAssets: 0, percent: 100 });
       return;
     }
 
@@ -213,7 +229,11 @@ export class LanguageModuleService {
     const assetPaths = this.collectAssetPaths(words);
     const assets = assetPaths.length === 0
       ? {}
-      : await this.downloadPrivateAssets(languageId, basePath, assetPaths);
+      : await this.downloadPrivateAssets(languageId, basePath, assetPaths, onProgress);
+
+    if (assetPaths.length === 0) {
+      onProgress?.({ completedAssets: 0, totalAssets: 0, percent: 100 });
+    }
 
     await this.writeInstalledModule({
       id: languageId,
@@ -337,21 +357,28 @@ export class LanguageModuleService {
     languageId: string,
     basePath: string,
     relativePaths: string[],
+    onProgress?: LanguageDownloadProgressHandler,
   ): Promise<Record<string, Blob>> {
     const storagePaths = relativePaths.map(path => `${basePath}/${path}`);
     const urls = await this.supabase.getPrivateModuleUrls(languageId, storagePaths);
     const assets: Record<string, Blob> = {};
     let nextIndex = 0;
+    let completedAssets = 0;
+    onProgress?.({ completedAssets, totalAssets: relativePaths.length, percent: 0 });
     const worker = async (): Promise<void> => {
       while (nextIndex < relativePaths.length) {
         const path = relativePaths[nextIndex++];
         const url = urls[`${basePath}/${path}`];
-        if (!url) continue;
         try {
-          const response = await fetch(url);
-          if (response.ok) assets[path] = await response.blob();
+          if (url) {
+            const response = await fetch(url);
+            if (response.ok) assets[path] = await response.blob();
+          }
         } catch {
           // Keep the downloaded module usable if an optional media file is unavailable.
+        } finally {
+          completedAssets += 1;
+          onProgress?.(this.makeDownloadProgress(completedAssets, relativePaths.length));
         }
       }
     };
@@ -429,9 +456,19 @@ export class LanguageModuleService {
     return [...paths];
   }
 
-  private async downloadAssets(basePath: string, paths: string[]): Promise<Record<string, Blob>> {
+  private async downloadAssets(
+    basePath: string,
+    paths: string[],
+    onProgress?: LanguageDownloadProgressHandler,
+  ): Promise<Record<string, Blob>> {
     const assets: Record<string, Blob> = {};
     let nextIndex = 0;
+    let completedAssets = 0;
+    onProgress?.({
+      completedAssets,
+      totalAssets: paths.length,
+      percent: paths.length === 0 ? 100 : 0,
+    });
     const worker = async (): Promise<void> => {
       while (nextIndex < paths.length) {
         const path = paths[nextIndex++];
@@ -442,12 +479,23 @@ export class LanguageModuleService {
         } catch {
           // Some source manifests intentionally reference unavailable media.
           // Keep the module usable and expose that asset as unavailable offline.
+        } finally {
+          completedAssets += 1;
+          onProgress?.(this.makeDownloadProgress(completedAssets, paths.length));
         }
       }
     };
 
     await Promise.all(Array.from({ length: Math.min(6, paths.length) }, () => worker()));
     return assets;
+  }
+
+  private makeDownloadProgress(completedAssets: number, totalAssets: number): LanguageDownloadProgress {
+    return {
+      completedAssets,
+      totalAssets,
+      percent: totalAssets === 0 ? 100 : Math.round((completedAssets / totalAssets) * 100),
+    };
   }
 
   private moduleBasePath(manifestPath: string): string {

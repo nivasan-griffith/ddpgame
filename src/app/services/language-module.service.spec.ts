@@ -4,6 +4,33 @@ import { LanguageModuleService, LanguageWord } from './language-module.service';
 import { SupabaseService } from './supabase.service';
 
 describe('LanguageModuleService', () => {
+  it('reports meaningful asset progress while installing a public module', async () => {
+    const words = [
+      { ...makeWord('one', undefined, true), image: 'one.png' },
+      { ...makeWord('two', undefined, true), audio: { language: 'two.mp3', english: null } },
+    ];
+    const http = jasmine.createSpyObj<HttpClient>('HttpClient', ['get']);
+    http.get.and.returnValues(
+      of({ modules: [{ id: 'test', manifest: 'test/manifest.json' }] }),
+      of({ id: 'test', name: 'Test', version: '1.0.0', data: 'words.json', games: [] }),
+      of(words),
+      of(new Blob(['one'])),
+      of(new Blob(['two'])),
+    );
+    const supabase = jasmine.createSpyObj<SupabaseService>('SupabaseService', ['getModuleAccessType']);
+    supabase.getModuleAccessType.and.resolveTo('public');
+    const service = new LanguageModuleService(http, supabase);
+    spyOn<any>(service, 'readInstalledModule').and.resolveTo(null);
+    spyOn<any>(service, 'writeInstalledModule').and.resolveTo();
+    const updates: number[] = [];
+
+    await service.installLanguage('test', progress => updates.push(progress.percent));
+
+    expect(updates[0]).toBe(0);
+    expect(updates[updates.length - 1]).toBe(100);
+    expect(updates).toContain(50);
+  });
+
   it('maps public and private access from Supabase without loading a private manifest', async () => {
     const http = jasmine.createSpyObj<HttpClient>('HttpClient', ['get']);
     http.get.and.returnValue(of({ modules: [
