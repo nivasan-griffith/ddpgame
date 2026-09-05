@@ -4,6 +4,17 @@ import { environment } from '../../environments/environment';
 
 export type ModuleAccessType = 'public' | 'private';
 
+/** Safe module metadata returned to the learner app by the catalogue RPC. */
+export interface LanguageModuleCatalogEntry {
+  id: string;
+  name: string;
+  access_type: ModuleAccessType;
+  content_bucket: string | null;
+  content_prefix: string | null;
+  published_version: string | null;
+  published_at: string | null;
+}
+
 interface RedeemModuleAccessResponse {
   granted: boolean;
   grant_token?: string;
@@ -72,6 +83,26 @@ export class SupabaseService {
     }
 
     return data === 'public' ? 'public' : 'private';
+  }
+
+  async getLanguageModuleCatalog(): Promise<LanguageModuleCatalogEntry[]> {
+    const { data, error } = await this.client.rpc('get_language_module_catalog');
+    if (error) throw error;
+    if (!Array.isArray(data)) throw new Error('Language module catalogue is unavailable.');
+
+    return data.filter((entry): entry is LanguageModuleCatalogEntry =>
+      typeof entry?.id === 'string'
+      && typeof entry?.name === 'string'
+      && (entry.access_type === 'public' || entry.access_type === 'private')
+      && typeof entry?.content_bucket === 'string'
+      && typeof entry?.content_prefix === 'string'
+    );
+  }
+
+  getPublicModuleUrl(bucket: string, path: string): string {
+    const { data } = this.client.storage.from(bucket).getPublicUrl(path);
+    if (!data.publicUrl) throw new Error('Public module file URL could not be created.');
+    return data.publicUrl;
   }
 
   async redeemModuleAccessCode(moduleId: string, accessCode: string): Promise<boolean> {

@@ -1,6 +1,5 @@
 import { createClient } from 'npm:@supabase/supabase-js@2';
 
-const bucketName = 'private-language-modules';
 const signedUrlLifetimeSeconds = 300;
 
 const corsHeaders = {
@@ -56,7 +55,30 @@ Deno.serve(async request => {
     return response({ error: 'moduleId, grantToken, and paths are required.' }, 400);
   }
 
-  const modulePrefix = `${moduleId}/`;
+  const supabaseUrl = Deno.env.get('SUPABASE_URL');
+  const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+  if (!supabaseUrl || !serviceRoleKey) {
+    console.error('Supabase server credentials are not configured.');
+    return response({ error: 'Server configuration error.' }, 500);
+  }
+
+  // This client stays inside the Edge Function. Its service-role key is never
+  // sent to or stored by the Angular application.
+  const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey);
+  const { data: module, error: moduleError } = await supabaseAdmin
+    .from('language_modules')
+    .select('access_type, content_bucket, content_prefix')
+    .eq('id', moduleId)
+    .maybeSingle();
+  if (moduleError) {
+    console.error('Could not check module access type.', moduleError);
+    return response({ error: 'Could not validate module access.' }, 500);
+  }
+  if (!module || module.access_type !== 'private' || !module.content_bucket || !module.content_prefix) {
+    return response({ error: 'This module is not currently private.' }, 403);
+  }
+
+  const modulePrefix = `${module.content_prefix}/`;
   const requestedPaths = paths as string[];
   const hasUnsafePath = requestedPaths.some(path =>
     !path.startsWith(modulePrefix) ||
@@ -68,17 +90,6 @@ Deno.serve(async request => {
   if (hasUnsafePath) {
     return response({ error: 'Requested asset path is not allowed.' }, 400);
   }
-
-  const supabaseUrl = Deno.env.get('SUPABASE_URL');
-  const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-  if (!supabaseUrl || !serviceRoleKey) {
-    console.error('Supabase server credentials are not configured.');
-    return response({ error: 'Server configuration error.' }, 500);
-  }
-
-  // This client stays inside the Edge Function. Its service-role key is never
-  // sent to or stored by the Angular application.
-  const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey);
   const { data: grant, error: grantError } = await supabaseAdmin
     .from('module_access_grants')
     .select('language_module_id, expires_at, revoked_at')
@@ -97,7 +108,7 @@ Deno.serve(async request => {
   }
 
   const { data: signedUrls, error: signedUrlError } = await supabaseAdmin.storage
-    .from(bucketName)
+    .from(module.content_bucket)
     .createSignedUrls(requestedPaths, signedUrlLifetimeSeconds);
 
   if (signedUrlError) {

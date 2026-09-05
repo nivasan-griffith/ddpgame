@@ -104,6 +104,21 @@ describe('LanguageSelectionPage', () => {
     expect(page.errorMessage).toBe('');
   });
 
+  it('updates a downloaded module without removing its offline status', async () => {
+    languageModules.installLanguage.and.resolveTo();
+    const option = makeOption('kuku-thaypan', 'public', true);
+    option.version = '1.1.0';
+    option.installedVersion = '1.0.0';
+    option.updateAvailable = true;
+
+    await page.updateLanguage(option);
+
+    expect(languageModules.installLanguage).toHaveBeenCalledOnceWith('kuku-thaypan');
+    expect(option.installed).toBeTrue();
+    expect(option.installedVersion).toBe('1.1.0');
+    expect(option.updateAvailable).toBeFalse();
+  });
+
   it('prevents a second language action while a download is in progress', async () => {
     page.installingLanguageId = 'bininj-kunwok';
 
@@ -127,5 +142,14 @@ function makeOption(
   accessType: LanguageOption['accessType'],
   installed = true
 ): LanguageOption {
-  return { id, name: id, version: '1.0.0', installed, accessType };
+  return {
+    id,
+    name: id,
+    version: '1.0.0',
+    installed,
+    installedVersion: installed ? '1.0.0' : undefined,
+    updateAvailable: false,
+    latestVersionKnown: false,
+    accessType,
+  };
 }

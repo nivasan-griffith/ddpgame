@@ -5,6 +5,10 @@ export interface LanguageModule {
   id: string;
   name: string;
   access_type: 'public' | 'private';
+  content_bucket: string | null;
+  content_prefix: string | null;
+  published_version: string | null;
+  published_at: string | null;
   created_at: string;
 }
 
@@ -55,5 +59,15 @@ export class AdminApiService {
       name: module.name,
       accessType: module.access_type,
     });
+  }
+
+  publishAccessType(moduleId: string, accessType: 'public' | 'private'): Promise<{
+    published: boolean;
+    accessType: 'public' | 'private';
+    fileCount?: number;
+    publishedVersion?: string | null;
+    message?: string;
+  }> {
+    return this.request({ action: 'publish_access_type', moduleId, accessType });
   }
 }

@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, catchError, firstValueFrom, forkJoin, from, map, of, switchMap } from 'rxjs';
-import { SupabaseService } from './supabase.service';
+import { LanguageModuleCatalogEntry, SupabaseService } from './supabase.service';
 
 export type LanguageEntrySource = 'original' | 'dictionary';
 export type LanguageAccessType = 'public' | 'restricted';
@@ -83,9 +83,25 @@ export interface LoadedLanguageModule {
 export interface LanguageOption {
   id: string;
   name: string;
+  /** Latest version visible while the device has a connection. */
   version: string;
   installed: boolean;
+  /** Version currently saved on this device for offline use. */
+  installedVersion?: string;
+  /** A newer remote module can be downloaded without removing the installed one. */
+  updateAvailable: boolean;
+  /** Whether the app successfully read the latest manifest during this visit. */
+  latestVersionKnown: boolean;
   accessType: LanguageAccessType;
+}
+
+interface RemoteModuleEntry {
+  id: string;
+  name: string;
+  accessType: 'public' | 'private';
+  bucket: string;
+  prefix: string;
+  manifestPath: string;
 }
 
 interface StoredLanguageModule {
@@ -127,10 +143,18 @@ export class LanguageModuleService {
       installed: from(this.readInstalledModules()).pipe(catchError(() => of([])))
     }).pipe(map(({ remote, installed }) => {
       const installedById = new Map(installed.map(module => [module.id, module]));
-      const options = remote.map(option => ({
-        ...option,
-        installed: installedById.has(option.id)
-      }));
+      const options = remote.map(option => {
+        const stored = installedById.get(option.id);
+        return {
+          ...option,
+          installed: stored !== undefined,
+          installedVersion: stored?.manifest.version,
+          // An empty remote version means the device is offline or a private
+          // module grant is unavailable. Keep the installed copy usable and
+          // do not claim that an update is available in that situation.
+          updateAvailable: stored !== undefined && option.version !== '' && option.version !== stored.manifest.version,
+        };
+      });
 
       for (const stored of installed) {
         if (!options.some(option => option.id === stored.id)) {
@@ -139,6 +163,9 @@ export class LanguageModuleService {
             name: stored.manifest.name,
             version: stored.manifest.version,
             installed: true,
+            installedVersion: stored.manifest.version,
+            updateAvailable: false,
+            latestVersionKnown: false,
             accessType: this.normalizeAccessType(stored.manifest.accessType)
           });
         }
@@ -151,21 +178,15 @@ export class LanguageModuleService {
   }
 
   async installLanguage(languageId: string): Promise<void> {
-    const accessType = await this.supabase.getModuleAccessType(languageId);
-    if (accessType === 'private') {
-      await this.installPrivateLanguage(languageId);
+    const entry = await this.getRemoteModuleEntry(languageId);
+    if (entry.accessType === 'private') {
+      await this.installPrivateLanguage(entry);
       return;
     }
 
-    const index = await firstValueFrom(this.http.get<LanguageModuleIndex>('languages/index.json'));
-    const entry = index.modules.find(module => module.id === languageId);
-    if (!entry) {
-      throw new Error(`Language module "${languageId}" is not available.`);
-    }
-
-    const basePath = this.moduleBasePath(entry.manifest);
+    const manifestUrl = this.supabase.getPublicModuleUrl(entry.bucket, entry.manifestPath);
     const manifest = await firstValueFrom(
-      this.http.get<LanguageManifest>(`languages/${entry.manifest}`)
+      this.http.get<LanguageManifest>(manifestUrl)
     );
     const existing = await this.readInstalledModule(languageId);
     if (existing?.manifest.version === manifest.version) {
@@ -173,14 +194,14 @@ export class LanguageModuleService {
     }
 
     const words = await firstValueFrom(
-      this.http.get<LanguageWord[]>(`${basePath}/${manifest.data}`)
+      this.http.get<LanguageWord[]>(this.publicModuleFileUrl(entry, manifest.data))
     );
     const assetPaths = this.collectAssetPaths(words);
-    const assets = await this.downloadAssets(basePath, assetPaths);
+    const assets = await this.downloadPublicAssets(entry, assetPaths);
 
     await this.writeInstalledModule({
       id: languageId,
-      manifestPath: entry.manifest,
+      manifestPath: entry.manifestPath,
       manifest,
       words,
       assets,
@@ -188,36 +209,29 @@ export class LanguageModuleService {
     });
   }
 
-  private async installPrivateLanguage(languageId: string): Promise<void> {
-    if (!this.supabase.hasModuleAccessGrant(languageId)) {
+  private async installPrivateLanguage(entry: RemoteModuleEntry): Promise<void> {
+    if (!this.supabase.hasModuleAccessGrant(entry.id)) {
       throw new Error('Private module access has not been granted.');
     }
 
-    const index = await firstValueFrom(this.http.get<LanguageModuleIndex>('languages/index.json'));
-    const entry = index.modules.find(module => module.id === languageId);
-    if (!entry) {
-      throw new Error(`Language module "${languageId}" is not available.`);
-    }
-
-    const basePath = this.privateModuleBasePath(entry.manifest);
-    const manifestUrls = await this.supabase.getPrivateModuleUrls(languageId, [entry.manifest]);
-    const manifest = await this.fetchPrivateJson<LanguageManifest>(manifestUrls[entry.manifest]);
-    const existing = await this.readInstalledModule(languageId);
+    const manifestUrls = await this.supabase.getPrivateModuleUrls(entry.id, [entry.manifestPath]);
+    const manifest = await this.fetchPrivateJson<LanguageManifest>(manifestUrls[entry.manifestPath]);
+    const existing = await this.readInstalledModule(entry.id);
     if (existing?.manifest.version === manifest.version) {
       return;
     }
 
-    const dataPath = `${basePath}/${manifest.data}`;
-    const dataUrls = await this.supabase.getPrivateModuleUrls(languageId, [dataPath]);
+    const dataPath = `${entry.prefix}/${manifest.data}`;
+    const dataUrls = await this.supabase.getPrivateModuleUrls(entry.id, [dataPath]);
     const words = await this.fetchPrivateJson<LanguageWord[]>(dataUrls[dataPath]);
     const assetPaths = this.collectAssetPaths(words);
     const assets = assetPaths.length === 0
       ? {}
-      : await this.downloadPrivateAssets(languageId, basePath, assetPaths);
+      : await this.downloadPrivateAssets(entry.id, entry.prefix, assetPaths);
 
     await this.writeInstalledModule({
-      id: languageId,
-      manifestPath: entry.manifest,
+      id: entry.id,
+      manifestPath: entry.manifestPath,
       manifest,
       words,
       assets,
@@ -239,71 +253,84 @@ export class LanguageModuleService {
   }
 
   private loadRemoteLanguageOptions(): Observable<LanguageOption[]> {
-    return this.http.get<LanguageModuleIndex>('languages/index.json').pipe(
-      switchMap(index => forkJoin(index.modules.map(module => {
-        return from(this.supabase.getModuleAccessType(module.id)).pipe(
-          switchMap(accessType => {
-            if (accessType === 'private') {
-              return of({
-                id: module.id,
-                name: module.name ?? module.id,
+    return from(this.getRemoteModuleEntries()).pipe(
+      switchMap(entries => forkJoin(entries.map(entry => {
+        if (entry.accessType === 'private') {
+              const privateOption = {
+                id: entry.id,
+                name: entry.name,
                 version: '',
                 installed: false,
+                updateAvailable: false,
+                latestVersionKnown: false,
                 accessType: 'restricted' as LanguageAccessType,
-              });
-            }
+              };
 
-            return this.http.get<LanguageManifest>(`languages/${module.manifest}`).pipe(
+              // A private manifest can only be checked if this browser still
+              // has a valid grant. Without it, the saved offline copy remains
+              // available but its latest version is intentionally unknown.
+              if (!this.supabase.hasModuleAccessGrant(entry.id)) {
+                return of(privateOption);
+              }
+
+              return from(this.fetchPrivateManifest(entry.id, entry.manifestPath)).pipe(
+                map(manifest => ({
+                  ...privateOption,
+                  name: entry.name || manifest.name,
+                  version: manifest.version,
+                  latestVersionKnown: true,
+                })),
+                catchError(() => of(privateOption))
+              );
+        }
+
+        return this.http.get<LanguageManifest>(this.supabase.getPublicModuleUrl(entry.bucket, entry.manifestPath)).pipe(
               map(manifest => ({
-                id: module.id,
-                name: module.name ?? manifest.name,
+                id: entry.id,
+                name: entry.name || manifest.name,
                 version: manifest.version,
                 installed: false,
+                updateAvailable: false,
+                latestVersionKnown: true,
                 accessType: 'public' as LanguageAccessType,
               }))
             );
-          })
-        );
       })))
     );
   }
 
   private loadRemoteModule(languageId: string | null): Observable<LoadedLanguageModule> {
-    return this.http.get<LanguageModuleIndex>('languages/index.json').pipe(
-      switchMap(index => {
-        const selected = index.modules.find(module => module.id === languageId) ?? index.modules[0];
+    return from(this.getRemoteModuleEntries()).pipe(
+      switchMap(entries => {
+        const selected = entries.find(module => module.id === languageId) ?? entries[0];
         if (!selected) {
           throw new Error('No language modules are available.');
         }
 
-        return from(this.supabase.getModuleAccessType(selected.id)).pipe(
-          switchMap(accessType => accessType === 'private'
-            ? this.loadPrivateRemoteModule(selected)
-            : this.loadPublicRemoteModule(selected))
-        );
+        return selected.accessType === 'private'
+          ? this.loadPrivateRemoteModule(selected)
+          : this.loadPublicRemoteModule(selected);
       })
     );
   }
 
-  private loadPublicRemoteModule(selected: LanguageModuleIndexEntry): Observable<LoadedLanguageModule> {
-    const basePath = this.moduleBasePath(selected.manifest);
-    return this.http.get<LanguageManifest>(`languages/${selected.manifest}`).pipe(
-      switchMap(manifest => this.http.get<LanguageWord[]>(`${basePath}/${manifest.data}`).pipe(
-        map(words => this.buildLoadedModule(manifest, words.map(word => this.resolveRemoteWord(basePath, word))))
+  private loadPublicRemoteModule(selected: RemoteModuleEntry): Observable<LoadedLanguageModule> {
+    return this.http.get<LanguageManifest>(this.supabase.getPublicModuleUrl(selected.bucket, selected.manifestPath)).pipe(
+      switchMap(manifest => this.http.get<LanguageWord[]>(this.publicModuleFileUrl(selected, manifest.data)).pipe(
+        map(words => this.buildLoadedModule(manifest, words.map(word => this.resolveRemoteWord(this.publicModuleBaseUrl(selected), word))))
       ))
     );
   }
 
-  private loadPrivateRemoteModule(selected: LanguageModuleIndexEntry): Observable<LoadedLanguageModule> {
-    const basePath = this.privateModuleBasePath(selected.manifest);
-    return from(this.supabase.getPrivateModuleUrls(selected.id, [selected.manifest])).pipe(
-      switchMap(urls => from(this.fetchPrivateJson<LanguageManifest>(urls[selected.manifest]))),
+  private loadPrivateRemoteModule(selected: RemoteModuleEntry): Observable<LoadedLanguageModule> {
+    return from(this.supabase.getPrivateModuleUrls(selected.id, [selected.manifestPath])).pipe(
+      switchMap(urls => from(this.fetchPrivateJson<LanguageManifest>(urls[selected.manifestPath]))),
       switchMap(manifest => {
-        const dataPath = `${basePath}/${manifest.data}`;
+        const dataPath = `${selected.prefix}/${manifest.data}`;
         return from(this.supabase.getPrivateModuleUrls(selected.id, [dataPath])).pipe(
           switchMap(urls => from(this.fetchPrivateJson<LanguageWord[]>(urls[dataPath]))),
           switchMap(words => {
-            const assetPaths = this.collectAssetPaths(words).map(path => `${basePath}/${path}`);
+            const assetPaths = this.collectAssetPaths(words).map(path => `${selected.prefix}/${path}`);
             if (assetPaths.length === 0) {
               return of(this.buildLoadedModule(manifest, words.map(word => ({
                 ...word,
@@ -315,9 +342,9 @@ export class LanguageModuleService {
             return from(this.supabase.getPrivateModuleUrls(selected.id, assetPaths)).pipe(
               map(assetUrls => this.buildLoadedModule(manifest, words.map(word => ({
                 ...word,
-                imageUrl: word.image ? assetUrls[`${basePath}/${word.image}`] ?? null : null,
-                languageAudioUrl: word.audio?.language ? assetUrls[`${basePath}/${word.audio.language}`] ?? null : null,
-                englishAudioUrl: word.audio?.english ? assetUrls[`${basePath}/${word.audio.english}`] ?? null : null,
+                imageUrl: word.image ? assetUrls[`${selected.prefix}/${word.image}`] ?? null : null,
+                languageAudioUrl: word.audio?.language ? assetUrls[`${selected.prefix}/${word.audio.language}`] ?? null : null,
+                englishAudioUrl: word.audio?.english ? assetUrls[`${selected.prefix}/${word.audio.english}`] ?? null : null,
               }))))
             );
           })
@@ -331,6 +358,47 @@ export class LanguageModuleService {
     const response = await fetch(url);
     if (!response.ok) throw new Error(`Private module file request failed (${response.status}).`);
     return response.json() as Promise<T>;
+  }
+
+  private async fetchPrivateManifest(languageId: string, manifestPath: string): Promise<LanguageManifest> {
+    const urls = await this.supabase.getPrivateModuleUrls(languageId, [manifestPath]);
+    return this.fetchPrivateJson<LanguageManifest>(urls[manifestPath]);
+  }
+
+  private async getRemoteModuleEntries(): Promise<RemoteModuleEntry[]> {
+    const catalogue = await this.supabase.getLanguageModuleCatalog();
+    return catalogue.map(entry => this.toRemoteModuleEntry(entry));
+  }
+
+  private async getRemoteModuleEntry(languageId: string): Promise<RemoteModuleEntry> {
+    const entries = await this.getRemoteModuleEntries();
+    const entry = entries.find(module => module.id === languageId);
+    if (!entry) {
+      throw new Error(`Language module "${languageId}" is not available.`);
+    }
+    return entry;
+  }
+
+  private toRemoteModuleEntry(entry: LanguageModuleCatalogEntry): RemoteModuleEntry {
+    if (!entry.content_bucket || !entry.content_prefix) {
+      throw new Error(`Language module "${entry.id}" has no published storage location.`);
+    }
+    return {
+      id: entry.id,
+      name: entry.name,
+      accessType: entry.access_type,
+      bucket: entry.content_bucket,
+      prefix: entry.content_prefix,
+      manifestPath: `${entry.content_prefix}/manifest.json`,
+    };
+  }
+
+  private publicModuleBaseUrl(entry: RemoteModuleEntry): string {
+    return this.supabase.getPublicModuleUrl(entry.bucket, entry.prefix);
+  }
+
+  private publicModuleFileUrl(entry: RemoteModuleEntry, relativePath: string): string {
+    return this.supabase.getPublicModuleUrl(entry.bucket, `${entry.prefix}/${relativePath}`);
   }
 
   private async downloadPrivateAssets(
@@ -357,11 +425,6 @@ export class LanguageModuleService {
     };
     await Promise.all(Array.from({ length: Math.min(6, relativePaths.length) }, () => worker()));
     return assets;
-  }
-
-  private privateModuleBasePath(manifestPath: string): string {
-    const separatorIndex = manifestPath.lastIndexOf('/');
-    return separatorIndex === -1 ? '' : manifestPath.slice(0, separatorIndex);
   }
 
   private resolveStoredModule(stored: StoredLanguageModule): LoadedLanguageModule {
@@ -429,7 +492,7 @@ export class LanguageModuleService {
     return [...paths];
   }
 
-  private async downloadAssets(basePath: string, paths: string[]): Promise<Record<string, Blob>> {
+  private async downloadPublicAssets(entry: RemoteModuleEntry, paths: string[]): Promise<Record<string, Blob>> {
     const assets: Record<string, Blob> = {};
     let nextIndex = 0;
     const worker = async (): Promise<void> => {
@@ -437,7 +500,7 @@ export class LanguageModuleService {
         const path = paths[nextIndex++];
         try {
           assets[path] = await firstValueFrom(
-            this.http.get(`${basePath}/${path}`, { responseType: 'blob' })
+            this.http.get(this.publicModuleFileUrl(entry, path), { responseType: 'blob' })
           );
         } catch {
           // Some source manifests intentionally reference unavailable media.
@@ -448,11 +511,6 @@ export class LanguageModuleService {
 
     await Promise.all(Array.from({ length: Math.min(6, paths.length) }, () => worker()));
     return assets;
-  }
-
-  private moduleBasePath(manifestPath: string): string {
-    const separatorIndex = manifestPath.lastIndexOf('/');
-    return separatorIndex === -1 ? 'languages' : `languages/${manifestPath.slice(0, separatorIndex)}`;
   }
 
   private openDatabase(): Promise<IDBDatabase> {

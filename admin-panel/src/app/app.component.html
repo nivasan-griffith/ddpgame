@@ -104,7 +104,7 @@
       <div class="section-heading">
         <div>
           <h2>Language settings</h2>
-          <p>Access type is currently shown for reference. Safely changing it requires publishing the module files to the correct public or private location, which will be added with content management.</p>
+          <p>Publishing an access change copies all module files to the correct Storage bucket. Making a module public exposes it to future public downloads; previously downloaded copies cannot be taken back.</p>
         </div>
       </div>
       <article class="module-row" *ngFor="let module of modules">
@@ -114,9 +114,19 @@
         </label>
         <label>
           Access type
-          <span class="read-only-value">{{ module.access_type }}</span>
+          <select [name]="'access-' + module.id" [(ngModel)]="accessTypeSelections[module.id]">
+            <option value="public">Public</option>
+            <option value="private">Private</option>
+          </select>
         </label>
         <button class="secondary" type="button" (click)="saveModule(module)">Save name</button>
+        <button
+          class="primary"
+          type="button"
+          [disabled]="publishingModuleId !== null || accessTypeSelections[module.id] === module.access_type"
+          (click)="publishAccessType(module)">
+          {{ publishingModuleId === module.id ? 'Publishing…' : 'Publish access change' }}
+        </button>
       </article>
     </section>
   </ng-template>

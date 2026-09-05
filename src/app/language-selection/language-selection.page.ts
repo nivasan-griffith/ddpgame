@@ -43,7 +43,7 @@ export class LanguageSelectionPage implements OnInit {
     });
   }
 
-  async downloadLanguage(language: LanguageOption): Promise<void> {
+  async downloadLanguage(language: LanguageOption, isUpdate = false): Promise<void> {
     if (this.installingLanguageId !== null) {
       return;
     }
@@ -53,11 +53,19 @@ export class LanguageSelectionPage implements OnInit {
     try {
       await this.languageModules.installLanguage(language.id);
       language.installed = true;
+      language.installedVersion = language.version || language.installedVersion;
+      language.updateAvailable = false;
     } catch {
-      this.errorMessage = `Couldn't download ${language.name}. Check your connection and try again.`;
+      this.errorMessage = isUpdate
+        ? `Couldn't update ${language.name}. Your downloaded version is still available offline.`
+        : `Couldn't download ${language.name}. Check your connection and try again.`;
     } finally {
       this.installingLanguageId = null;
     }
+  }
+
+  async updateLanguage(language: LanguageOption): Promise<void> {
+    await this.downloadLanguage(language, true);
   }
 
   async selectLanguage(language: LanguageOption): Promise<void> {
