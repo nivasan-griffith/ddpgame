@@ -13,6 +13,16 @@ ion-button{
   --background:var(--button-bg);
   --color:var(--button-text);
 }
+
+.layouttop .corner img,
+.layoutbottom.corner img {
+  display: block;
+  width: min(300px, 25vw);
+  height: auto;
+  max-height: none;
+  min-width: 0;
+}
+
 .gamebuttons ion-button{
   --background:var(--theme-surface);
   --border-color:rgb(0,0,0);
