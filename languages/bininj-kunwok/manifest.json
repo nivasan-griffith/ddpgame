@@ -1,7 +1,7 @@
 {
   "id": "bininj-kunwok",
   "name": "Bininj Kunwok",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "accessType": "restricted",
   "theme": {
     "tokens": {
@@ -24,9 +24,5 @@
     }
   },
   "data": "words.json",
-  "games": [
-    "flipcard",
-    "quiz",
-    "drag-drop"
-  ]
+  "games": ["flipcard", "quiz", "drag-drop"]
 }
