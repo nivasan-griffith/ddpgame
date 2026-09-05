@@ -188,6 +188,27 @@ export class LanguageModuleService {
     });
   }
 
+  async removeLanguage(languageId: string): Promise<boolean> {
+    const database = await this.openDatabase();
+    await new Promise<void>((resolve, reject) => {
+      const transaction = database.transaction(this.moduleStoreName, 'readwrite');
+      transaction.objectStore(this.moduleStoreName).delete(languageId);
+      transaction.oncomplete = () => resolve();
+      transaction.onerror = () => reject(transaction.error);
+      transaction.onabort = () => reject(transaction.error ?? new Error('Module removal was aborted.'));
+    });
+
+    this.revokeStoredAssetUrls(languageId);
+
+    const removedSelectedLanguage = this.selectedLanguageId === languageId;
+    if (removedSelectedLanguage) {
+      this.selectedLanguageId = null;
+      this.clearSavedLanguage();
+    }
+
+    return removedSelectedLanguage;
+  }
+
   private async installPrivateLanguage(languageId: string): Promise<void> {
     if (!this.supabase.hasModuleAccessGrant(languageId)) {
       throw new Error('Private module access has not been granted.');
@@ -419,6 +440,16 @@ export class LanguageModuleService {
     return url;
   }
 
+  private revokeStoredAssetUrls(languageId: string): void {
+    const keyPrefix = `${languageId}@`;
+    for (const [key, url] of this.objectUrls) {
+      if (key.startsWith(keyPrefix)) {
+        URL.revokeObjectURL(url);
+        this.objectUrls.delete(key);
+      }
+    }
+  }
+
   private collectAssetPaths(words: LanguageWord[]): string[] {
     const paths = new Set<string>();
     for (const word of words) {
@@ -528,6 +559,14 @@ export class LanguageModuleService {
       localStorage.setItem(this.selectionStorageKey, languageId);
     } catch {
       // Continue using the in-memory selection if localStorage is unavailable.
+    }
+  }
+
+  private clearSavedLanguage(): void {
+    try {
+      localStorage.removeItem(this.selectionStorageKey);
+    } catch {
+      // The in-memory selection has still been cleared when localStorage is unavailable.
     }
   }
 

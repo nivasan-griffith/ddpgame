@@ -1,4 +1,5 @@
 import { Router } from '@angular/router';
+import { AlertController } from '@ionic/angular';
 import { of } from 'rxjs';
 import { LanguageModuleService, LanguageOption } from '../services/language-module.service';
 import { SupabaseService } from '../services/supabase.service';
@@ -10,12 +11,15 @@ describe('LanguageSelectionPage', () => {
   let supabase: jasmine.SpyObj<SupabaseService>;
   let languageTheme: jasmine.SpyObj<LanguageThemeService>;
   let router: jasmine.SpyObj<Router>;
+  let alertController: jasmine.SpyObj<AlertController>;
+  let alert: jasmine.SpyObj<HTMLIonAlertElement>;
   let page: LanguageSelectionPage;
 
   beforeEach(() => {
     languageModules = jasmine.createSpyObj<LanguageModuleService>('LanguageModuleService', [
       'loadLanguageOptions',
       'installLanguage',
+      'removeLanguage',
       'setSelectedLanguage',
       'loadSelectedModule'
     ]);
@@ -30,7 +34,11 @@ describe('LanguageSelectionPage', () => {
       'applyDefaultTheme'
     ]);
     router = jasmine.createSpyObj<Router>('Router', ['navigate', 'navigateByUrl']);
-    page = new LanguageSelectionPage(languageModules, supabase, languageTheme, router);
+    alert = jasmine.createSpyObj<HTMLIonAlertElement>('HTMLIonAlertElement', ['present']);
+    alert.present.and.resolveTo();
+    alertController = jasmine.createSpyObj<AlertController>('AlertController', ['create']);
+    alertController.create.and.resolveTo(alert);
+    page = new LanguageSelectionPage(languageModules, supabase, languageTheme, router, alertController);
   });
 
   it('selects a public module through the existing home flow', async () => {
@@ -112,6 +120,63 @@ describe('LanguageSelectionPage', () => {
 
     expect(languageModules.installLanguage).not.toHaveBeenCalled();
     expect(languageModules.setSelectedLanguage).not.toHaveBeenCalled();
+  });
+
+  it('asks for confirmation before removing a downloaded module', async () => {
+    const option = makeOption('kuku-thaypan', 'public');
+
+    await page.confirmRemoveLanguage(option);
+
+    expect(alertController.create).toHaveBeenCalledWith(jasmine.objectContaining({
+      header: 'Remove kuku-thaypan?',
+      message: jasmine.stringContaining('offline files'),
+    }));
+    expect(alert.present).toHaveBeenCalled();
+    expect(languageModules.removeLanguage).not.toHaveBeenCalled();
+  });
+
+  it('removes a module, makes it downloadable again, and reports success', async () => {
+    languageModules.removeLanguage.and.resolveTo(false);
+    const option = makeOption('kuku-thaypan', 'public');
+
+    await page.removeLanguage(option);
+
+    expect(languageModules.removeLanguage).toHaveBeenCalledOnceWith('kuku-thaypan');
+    expect(option.installed).toBeFalse();
+    expect(page.successMessage).toContain('removed from this device');
+    expect(page.errorMessage).toBe('');
+    expect(languageTheme.applyDefaultTheme).not.toHaveBeenCalled();
+  });
+
+  it('restores the default theme when the active module is removed', async () => {
+    languageModules.removeLanguage.and.resolveTo(true);
+
+    await page.removeLanguage(makeOption('kuku-thaypan', 'public'));
+
+    expect(languageTheme.applyDefaultTheme).toHaveBeenCalled();
+  });
+
+  it('keeps a module installed and reports an error when removal fails', async () => {
+    languageModules.removeLanguage.and.rejectWith(new Error('storage failure'));
+    const option = makeOption('kuku-thaypan', 'public');
+
+    await page.removeLanguage(option);
+
+    expect(option.installed).toBeTrue();
+    expect(page.errorMessage).toContain("Couldn't remove");
+    expect(page.successMessage).toBe('');
+  });
+
+  it('blocks other language actions while removal is in progress', async () => {
+    page.removingLanguageId = 'bininj-kunwok';
+
+    await page.downloadLanguage(makeOption('kuku-thaypan', 'public', false));
+    await page.selectLanguage(makeOption('kuku-thaypan', 'public'));
+    await page.confirmRemoveLanguage(makeOption('kuku-thaypan', 'public'));
+
+    expect(languageModules.installLanguage).not.toHaveBeenCalled();
+    expect(languageModules.setSelectedLanguage).not.toHaveBeenCalled();
+    expect(alertController.create).not.toHaveBeenCalled();
   });
 
   it('exposes the downloading language name for the visible progress message', () => {

@@ -41,14 +41,24 @@
               (click)="downloadLanguage(language)">
               {{ installingLanguageId === language.id ? 'Downloading…' : 'Download' }}
             </ion-button>
-            <ion-button
-              *ngIf="language.accessType === 'public' && language.installed"
-              expand="block"
-              color="success"
-              [disabled]="installingLanguageId !== null"
-              (click)="selectLanguage(language)">
-              Use {{ language.name }} · Available offline
-            </ion-button>
+            <div *ngIf="language.accessType === 'public' && language.installed" class="language-select__option-actions">
+              <ion-button
+                expand="block"
+                color="success"
+                [disabled]="installingLanguageId !== null || removingLanguageId !== null"
+                (click)="selectLanguage(language)">
+                Use {{ language.name }} · Available offline
+              </ion-button>
+              <ion-button
+                expand="block"
+                fill="outline"
+                color="danger"
+                [disabled]="installingLanguageId !== null || removingLanguageId !== null"
+                [attr.aria-label]="'Remove downloaded ' + language.name + ' module from this device'"
+                (click)="confirmRemoveLanguage(language)">
+                {{ removingLanguageId === language.id ? 'Removing…' : 'Remove from device' }}
+              </ion-button>
+            </div>
             <ion-button
               *ngIf="language.accessType === 'restricted' && !language.installed"
               expand="block"
@@ -56,18 +66,29 @@
               (click)="selectLanguage(language)">
               Enter access code for {{ language.name }}
             </ion-button>
-            <ion-button
-              *ngIf="language.accessType === 'restricted' && language.installed"
-              expand="block"
-              color="success"
-              [disabled]="installingLanguageId !== null"
-              (click)="selectLanguage(language)">
-              Use {{ language.name }} · Available offline
-            </ion-button>
+            <div *ngIf="language.accessType === 'restricted' && language.installed" class="language-select__option-actions">
+              <ion-button
+                expand="block"
+                color="success"
+                [disabled]="installingLanguageId !== null || removingLanguageId !== null"
+                (click)="selectLanguage(language)">
+                Use {{ language.name }} · Available offline
+              </ion-button>
+              <ion-button
+                expand="block"
+                fill="outline"
+                color="danger"
+                [disabled]="installingLanguageId !== null || removingLanguageId !== null"
+                [attr.aria-label]="'Remove downloaded ' + language.name + ' module from this device'"
+                (click)="confirmRemoveLanguage(language)">
+                {{ removingLanguageId === language.id ? 'Removing…' : 'Remove from device' }}
+              </ion-button>
+            </div>
           </div>
         </div>
 
-        <p *ngIf="errorMessage" class="language-select__error">{{ errorMessage }}</p>
+        <p *ngIf="successMessage" class="language-select__success" role="status" aria-live="polite">{{ successMessage }}</p>
+        <p *ngIf="errorMessage" class="language-select__error" role="alert">{{ errorMessage }}</p>
 
         <p *ngIf="!loading && languages.length === 0" class="language-select__error">
           No languages are available currently.

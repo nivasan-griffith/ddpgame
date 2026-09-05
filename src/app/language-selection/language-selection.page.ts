@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
+import { AlertController } from '@ionic/angular';
 import { IonContent, IonButton, IonIcon } from '@ionic/angular/standalone';
 import { LanguageModuleService, LanguageOption } from 'src/app/services/language-module.service';
 import { SupabaseService } from 'src/app/services/supabase.service';
@@ -19,7 +20,9 @@ export class LanguageSelectionPage implements OnInit {
   languages: LanguageOption[] = [];
   loading = true;
   installingLanguageId: string | null = null;
+  removingLanguageId: string | null = null;
   errorMessage = '';
+  successMessage = '';
 
   get installingLanguageName(): string {
     return this.languages.find(language => language.id === this.installingLanguageId)?.name ?? 'language module';
@@ -30,6 +33,7 @@ export class LanguageSelectionPage implements OnInit {
     private supabase: SupabaseService,
     private languageTheme: LanguageThemeService,
     private router: Router,
+    private alertController: AlertController,
   ) {}
 
   ngOnInit(): void {
@@ -44,12 +48,13 @@ export class LanguageSelectionPage implements OnInit {
   }
 
   async downloadLanguage(language: LanguageOption): Promise<void> {
-    if (this.installingLanguageId !== null) {
+    if (this.installingLanguageId !== null || this.removingLanguageId !== null) {
       return;
     }
 
     this.installingLanguageId = language.id;
     this.errorMessage = '';
+    this.successMessage = '';
     try {
       await this.languageModules.installLanguage(language.id);
       language.installed = true;
@@ -60,8 +65,53 @@ export class LanguageSelectionPage implements OnInit {
     }
   }
 
+  async confirmRemoveLanguage(language: LanguageOption): Promise<void> {
+    if (this.installingLanguageId !== null || this.removingLanguageId !== null) {
+      return;
+    }
+
+    const alert = await this.alertController.create({
+      header: `Remove ${language.name}?`,
+      message: 'This removes the downloaded module and its offline files from this device. You can download it again later.',
+      buttons: [
+        { text: 'Cancel', role: 'cancel' },
+        {
+          text: 'Remove',
+          role: 'destructive',
+          handler: () => {
+            void this.removeLanguage(language);
+          },
+        },
+      ],
+    });
+
+    await alert.present();
+  }
+
+  async removeLanguage(language: LanguageOption): Promise<void> {
+    if (this.installingLanguageId !== null || this.removingLanguageId !== null) {
+      return;
+    }
+
+    this.removingLanguageId = language.id;
+    this.errorMessage = '';
+    this.successMessage = '';
+    try {
+      const removedSelectedLanguage = await this.languageModules.removeLanguage(language.id);
+      language.installed = false;
+      if (removedSelectedLanguage) {
+        this.languageTheme.applyDefaultTheme();
+      }
+      this.successMessage = `${language.name} was removed from this device. You can download it again later.`;
+    } catch {
+      this.errorMessage = `Couldn't remove ${language.name}. Try again.`;
+    } finally {
+      this.removingLanguageId = null;
+    }
+  }
+
   async selectLanguage(language: LanguageOption): Promise<void> {
-    if (this.installingLanguageId !== null) {
+    if (this.installingLanguageId !== null || this.removingLanguageId !== null) {
       return;
     }
 
