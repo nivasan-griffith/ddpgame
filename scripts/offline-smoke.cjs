@@ -86,14 +86,14 @@ async function main() {
     mobile: false
   });
 
-  await send('Page.navigate', { url: 'http://127.0.0.1:4200/language-selection' });
+  await send('Page.navigate', { url: 'http://127.0.0.1:4200/language-selection?configure=true' });
   const kukuOption = `[...document.querySelectorAll('.language-select__option')].find(option => option.textContent.includes('Kuku Thaypan'))`;
   await waitFor(`!!${kukuOption}?.querySelector('ion-button')`);
-  const alreadyInstalled = await evaluate(`${kukuOption}?.querySelector('ion-button')?.textContent.includes('Use Kuku Thaypan')`);
+  const alreadyInstalled = await evaluate(`${kukuOption}?.querySelector('ion-button')?.textContent.includes('Use language')`);
   if (!alreadyInstalled) {
     await evaluate(`${kukuOption}.querySelector('ion-button').click()`);
   }
-  await waitFor(`${kukuOption}?.querySelector('ion-button')?.textContent.includes('Available offline') || document.body.innerText.includes("Couldn't download")`, 300000);
+  await waitFor(`${kukuOption}?.querySelector('ion-button')?.textContent.includes('Use language') || document.body.innerText.includes("Couldn't download")`, 300000);
   const installError = await evaluate(`document.body.innerText.includes("Couldn't download") ? document.body.innerText : null`);
   if (installError) throw new Error(installError);
 
@@ -167,7 +167,7 @@ async function main() {
     uploadThroughput: -1
   });
 
-  await send('Page.navigate', { url: 'http://127.0.0.1:4200/language-selection' });
+  await send('Page.navigate', { url: 'http://127.0.0.1:4200/language-selection?configure=true' });
   const bininjOption = `[...document.querySelectorAll('.language-select__option')].find(option => option.textContent.includes('Bininj Kunwok'))`;
   await waitFor(`${bininjOption}?.querySelector('ion-button')?.textContent.includes('Enter access code')`);
   await evaluate(`${bininjOption}.querySelector('ion-button').click()`);

@@ -14,64 +14,81 @@
         
         <img src="/assets/icon/icon-only.png" alt="KukThaypan" class="language-select__logo">
 
-        <h1>Welcome!</h1>
-        <p *ngIf="loading" class="language-select__loading">Loading languages...</p>
-        <p>Download a language for offline use, then choose it.</p>
-        <p *ngIf="installingLanguageId" class="language-select__download-status" role="status" aria-live="polite">
-          Downloading {{ installingLanguageName }}… Please keep this page open.
-        </p>
-
-        <div *ngIf="!loading && languages.length > 0" class="language-select__options">
-          <div *ngFor="let language of languages" class="language-select__option">
-            <span class="language-select__option-label">
-              <span class="language-select__option-name">{{ language.name }}</span>
-              <small class="language-select__option-access">
-                Version {{ language.version }} ·
-                {{ language.accessType === 'public'
-                  ? 'Public'
-                  : language.installed
-                    ? 'Restricted — installed and available offline'
-                    : 'Restricted — access code required' }}
-              </small>
-            </span>
-            <ion-button
-              *ngIf="language.accessType === 'public' && !language.installed"
-              expand="block"
-              [disabled]="installingLanguageId !== null"
-              (click)="downloadLanguage(language)">
-              {{ installingLanguageId === language.id ? 'Downloading…' : 'Download' }}
-            </ion-button>
-            <ion-button
-              *ngIf="language.accessType === 'public' && language.installed"
-              expand="block"
-              color="success"
-              [disabled]="installingLanguageId !== null"
-              (click)="selectLanguage(language)">
-              Use {{ language.name }} · Available offline
-            </ion-button>
-            <ion-button
-              *ngIf="language.accessType === 'restricted' && !language.installed"
-              expand="block"
-              [disabled]="installingLanguageId !== null"
-              (click)="selectLanguage(language)">
-              Enter access code for {{ language.name }}
-            </ion-button>
-            <ion-button
-              *ngIf="language.accessType === 'restricted' && language.installed"
-              expand="block"
-              color="success"
-              [disabled]="installingLanguageId !== null"
-              (click)="selectLanguage(language)">
-              Use {{ language.name }} · Available offline
-            </ion-button>
-          </div>
+        <div *ngIf="!showLanguageList" class="language-select__empty-state">
+          <h1>Welcome!</h1>
+          <p>No language selected</p>
+          <ion-button class="language-select__configure" (click)="beginLanguageConfiguration()">
+            Click here to configure
+          </ion-button>
         </div>
 
-        <p *ngIf="errorMessage" class="language-select__error">{{ errorMessage }}</p>
+        <ng-container *ngIf="showLanguageList">
+          <h1>Choose a language</h1>
+          <p *ngIf="loading" class="language-select__loading">Loading languages...</p>
+          <p *ngIf="!loading">Download a language for offline use, then choose it.</p>
+          <div *ngIf="installingLanguageId" class="language-select__download-status" role="status" aria-live="polite">
+            <strong>Downloading {{ installingLanguageName }}…</strong>
+            <ion-progress-bar
+              [value]="(downloadProgress?.percent ?? 0) / 100"
+              aria-label="Language download progress">
+            </ion-progress-bar>
+            <span *ngIf="downloadProgress && downloadProgress.totalAssets > 0">
+              {{ downloadProgress.completedAssets }} of {{ downloadProgress.totalAssets }} assets · {{ downloadProgress.percent }}%
+            </span>
+            <span *ngIf="!downloadProgress || downloadProgress.totalAssets === 0">Preparing download…</span>
+          </div>
 
-        <p *ngIf="!loading && languages.length === 0" class="language-select__error">
-          No languages are available currently.
-        </p>
+          <div *ngIf="!loading && languages.length > 0" class="language-select__options">
+            <div *ngFor="let language of languages" class="language-select__option">
+              <span class="language-select__option-label">
+                <span class="language-select__option-name">{{ language.name }}</span>
+                <small class="language-select__option-access">
+                  Version {{ language.version || 'managed online' }} ·
+                  {{ language.accessType === 'public'
+                    ? 'Available'
+                    : language.installed
+                      ? 'Restricted · available offline'
+                      : 'Access code required' }}
+                </small>
+              </span>
+              <ion-button
+                *ngIf="language.accessType === 'public' && !language.installed"
+                class="language-select__action language-select__action--available"
+                [disabled]="installingLanguageId !== null"
+                (click)="downloadLanguage(language)">
+                {{ installingLanguageId === language.id ? 'Downloading…' : 'Download' }}
+              </ion-button>
+              <ion-button
+                *ngIf="language.accessType === 'public' && language.installed"
+                class="language-select__action language-select__action--available"
+                [disabled]="installingLanguageId !== null"
+                (click)="selectLanguage(language)">
+                Use language
+              </ion-button>
+              <ion-button
+                *ngIf="language.accessType === 'restricted' && !language.installed"
+                class="language-select__action language-select__action--restricted"
+                [disabled]="installingLanguageId !== null"
+                (click)="selectLanguage(language)">
+                Enter access code
+              </ion-button>
+              <ion-button
+                *ngIf="language.accessType === 'restricted' && language.installed"
+                class="language-select__action language-select__action--available"
+                [disabled]="installingLanguageId !== null"
+                (click)="selectLanguage(language)">
+                Use language
+              </ion-button>
+            </div>
+          </div>
+
+          <p *ngIf="successMessage" class="language-select__success" role="status" aria-live="polite">{{ successMessage }}</p>
+          <p *ngIf="errorMessage" class="language-select__error" role="alert">{{ errorMessage }}</p>
+
+          <p *ngIf="!loading && languages.length === 0 && !errorMessage" class="language-select__error">
+            No languages are available currently.
+          </p>
+        </ng-container>
       </div>
     
 
