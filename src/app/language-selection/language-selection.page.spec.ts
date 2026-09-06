@@ -1,4 +1,4 @@
-import { Router } from '@angular/router';
+import { ActivatedRoute, convertToParamMap, Router } from '@angular/router';
 import { AlertController } from '@ionic/angular';
 import { of } from 'rxjs';
 import { LanguageModuleService, LanguageOption } from '../services/language-module.service';
@@ -11,6 +11,7 @@ describe('LanguageSelectionPage', () => {
   let supabase: jasmine.SpyObj<SupabaseService>;
   let languageTheme: jasmine.SpyObj<LanguageThemeService>;
   let router: jasmine.SpyObj<Router>;
+  let route: ActivatedRoute;
   let alertController: jasmine.SpyObj<AlertController>;
   let alert: jasmine.SpyObj<HTMLIonAlertElement>;
   let page: LanguageSelectionPage;
@@ -34,11 +35,28 @@ describe('LanguageSelectionPage', () => {
       'applyDefaultTheme'
     ]);
     router = jasmine.createSpyObj<Router>('Router', ['navigate', 'navigateByUrl']);
+    route = { snapshot: { queryParamMap: convertToParamMap({}) } } as ActivatedRoute;
     alert = jasmine.createSpyObj<HTMLIonAlertElement>('HTMLIonAlertElement', ['present']);
     alert.present.and.resolveTo();
     alertController = jasmine.createSpyObj<AlertController>('AlertController', ['create']);
     alertController.create.and.resolveTo(alert);
-    page = new LanguageSelectionPage(languageModules, supabase, languageTheme, router, alertController);
+    page = new LanguageSelectionPage(languageModules, supabase, languageTheme, router, route, alertController);
+  });
+
+  it('shows the language-not-selected prompt without loading the list on first launch', () => {
+    page.ngOnInit();
+
+    expect(page.showLanguageList).toBeFalse();
+    expect(languageModules.loadLanguageOptions).not.toHaveBeenCalled();
+  });
+
+  it('loads the language list when configuration is requested', () => {
+    languageModules.loadLanguageOptions.and.returnValue(of([]));
+
+    page.beginLanguageConfiguration();
+
+    expect(page.showLanguageList).toBeTrue();
+    expect(languageModules.loadLanguageOptions).toHaveBeenCalledTimes(1);
   });
 
   it('selects a public module through the existing home flow', async () => {
@@ -67,7 +85,10 @@ describe('LanguageSelectionPage', () => {
 
     await page.selectLanguage(makeOption('bininj-kunwok', 'restricted', false));
 
-    expect(languageModules.installLanguage).toHaveBeenCalledOnceWith('bininj-kunwok');
+    expect(languageModules.installLanguage).toHaveBeenCalledOnceWith(
+      'bininj-kunwok',
+      jasmine.any(Function),
+    );
     expect(languageModules.setSelectedLanguage).toHaveBeenCalledOnceWith('bininj-kunwok');
     expect(router.navigate).not.toHaveBeenCalled();
     expect(router.navigateByUrl).toHaveBeenCalledOnceWith('/home', { replaceUrl: true });
@@ -102,14 +123,21 @@ describe('LanguageSelectionPage', () => {
   });
 
   it('downloads a module and marks it available offline', async () => {
-    languageModules.installLanguage.and.resolveTo();
+    languageModules.installLanguage.and.callFake(async (_id, onProgress) => {
+      onProgress?.({ completedAssets: 4, totalAssets: 4, percent: 100 });
+    });
     const option = makeOption('kuku-thaypan', 'public', false);
 
     await page.downloadLanguage(option);
 
-    expect(languageModules.installLanguage).toHaveBeenCalledOnceWith('kuku-thaypan');
+    expect(languageModules.installLanguage).toHaveBeenCalledOnceWith(
+      'kuku-thaypan',
+      jasmine.any(Function),
+    );
     expect(option.installed).toBeTrue();
     expect(page.errorMessage).toBe('');
+    expect(page.downloadProgress?.percent).toBe(100);
+    expect(page.successMessage).toContain('ready to use offline');
   });
 
   it('prevents a second language action while a download is in progress', async () => {

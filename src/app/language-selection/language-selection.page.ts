@@ -1,9 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { AlertController } from '@ionic/angular';
-import { IonContent, IonButton, IonIcon } from '@ionic/angular/standalone';
-import { LanguageModuleService, LanguageOption } from 'src/app/services/language-module.service';
+import { IonContent, IonButton, IonIcon, IonProgressBar } from '@ionic/angular/standalone';
+import { LanguageDownloadProgress, LanguageModuleService, LanguageOption } from 'src/app/services/language-module.service';
 import { SupabaseService } from 'src/app/services/supabase.service';
 import { LanguageThemeService } from 'src/app/services/language-theme.service';
 
@@ -13,14 +13,16 @@ import { LanguageThemeService } from 'src/app/services/language-theme.service';
   templateUrl: './language-selection.page.html',
   styleUrls: ['./language-selection.page.scss'],
   standalone: true,
-  imports: [IonIcon, IonButton,IonContent,  CommonModule]
+  imports: [IonIcon, IonButton, IonProgressBar, IonContent, CommonModule]
 })
 
 export class LanguageSelectionPage implements OnInit {
   languages: LanguageOption[] = [];
-  loading = true;
+  loading = false;
+  showLanguageList = false;
   installingLanguageId: string | null = null;
   removingLanguageId: string | null = null;
+  downloadProgress: LanguageDownloadProgress | null = null;
   errorMessage = '';
   successMessage = '';
 
@@ -33,17 +35,37 @@ export class LanguageSelectionPage implements OnInit {
     private supabase: SupabaseService,
     private languageTheme: LanguageThemeService,
     private router: Router,
+    private route: ActivatedRoute,
     private alertController: AlertController,
   ) {}
 
   ngOnInit(): void {
+    this.showLanguageList = this.route.snapshot.queryParamMap.get('configure') === 'true';
+    if (this.showLanguageList) {
+      this.loadLanguages();
+    }
+  }
+
+  beginLanguageConfiguration(): void {
+    this.showLanguageList = true;
+    this.loadLanguages();
+  }
+
+  private loadLanguages(): void {
+    if (this.loading || this.languages.length > 0) {
+      return;
+    }
+
+    this.loading = true;
     this.languageModules.loadLanguageOptions().subscribe({
       next: languages => {
         this.languages = languages;
         this.loading = false;
-
       },
-      error: () => this.loading = false
+      error: () => {
+        this.loading = false;
+        this.errorMessage = 'Languages could not be loaded. Check your connection and try again.';
+      }
     });
   }
 
@@ -53,11 +75,15 @@ export class LanguageSelectionPage implements OnInit {
     }
 
     this.installingLanguageId = language.id;
+    this.downloadProgress = null;
     this.errorMessage = '';
     this.successMessage = '';
     try {
-      await this.languageModules.installLanguage(language.id);
+      await this.languageModules.installLanguage(language.id, progress => {
+        this.downloadProgress = progress;
+      });
       language.installed = true;
+      this.successMessage = `${language.name} is downloaded and ready to use offline.`;
     } catch {
       this.errorMessage = `Couldn't download ${language.name}. Check your connection and try again.`;
     } finally {

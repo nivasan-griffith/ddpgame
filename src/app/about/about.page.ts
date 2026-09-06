@@ -25,5 +25,4 @@ export class AboutPage implements OnInit {
       this.theme.applyManifestTheme(module.manifest);
     });
   }
-
 }

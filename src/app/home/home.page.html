@@ -7,7 +7,7 @@
       <div class="corner"><img [src]="theme.asset('topLeftTrim')" alt=""/></div>
       <!-- <div class="language">{{setinfo.lang}}</div> -->
        <div class="dots">
-        <a routerLink="/language-selection" >
+        <a routerLink="/language-selection" [queryParams]="{ configure: true }">
           <img [src]="theme.asset('navigationIcon')" role="navigation" alt="nav language button" />
         </a>
         change language
