@@ -1,0 +1,75 @@
+<ion-content [fullscreen]="true">
+
+  <ion-popover class="popover" slide="top" alignment="center" [isOpen]="isPopovertrueOpen" (didDismiss)="nextRound()">
+    <ng-template>
+      <div class="notification">
+        <img [src]="theme.asset('successIcon')" alt="" /> <p>Well Done</p>
+        <ion-button class="close" (click)="nextRound()">Next</ion-button>
+        <div class="fireworks"><div class="firework"></div><div class="firework"></div></div>
+     </div>
+    </ng-template>
+
+  </ion-popover>
+  <ion-popover slide="top" alignment="center" size="cover" dismissOnSelect="true" [isOpen]="isPopoverfalseOpen" (didDismiss)="restartRound()">
+    <ng-template>
+     
+        <div class="notification">
+         <img [src]="theme.asset('retryIcon')" alt=""/> <p>Try Again</p>
+         <ion-button class="close" (click)="restartRound()">close</ion-button>
+      </div>
+    </ng-template>
+  </ion-popover>
+
+  <div id="layout">
+    <div class="layouttop">
+      <div class="corner"><img [src]="theme.asset('topLeftTrim')" alt="" /></div>
+      <div class="dots">
+        <a routerLink="/home"><img [src]="theme.asset('navigationIcon')" alt="Back to home" /></a>
+        home
+      </div>
+    </div>
+
+    <div class="gamespace">
+      <p class="instruction">Drag or tap to match each word to it's drawing.</p>
+
+      <section class="picture-grid" aria-label="Drawings">
+        <div *ngFor="let target of targets" class="drop-zone" [class.has-word]="target.droppedWord" [class.ready-to-place]="selectedWord"
+          (dragover)="allowDrop($event)" (drop)="dropWord($event, target)" (click)="placeSelectedWord(target)">
+          <img [src]="target.word.imageUrl" [alt]="target.word.english" />
+
+          <div *ngIf="target.droppedWord" class="dropped-word">
+            {{ target.droppedWord.word }}
+          </div>
+
+        </div>
+      </section>
+          
+      <section class="word-bank" aria-label="Words to match">
+        <button *ngFor="let word of wordBank" class="word-card" type="button" draggable="true"
+          [class.selected]="selectedWord?.id === word.id" (dragstart)="dragStarted($event, word)" (click)="selectWord(word)">
+          {{ word.word }}
+        </button>
+      </section>
+
+      <div class="controls gamebuttons">
+
+        <div class="restart">
+          <ion-button (click)="restartRound()"> <ion-icon size="large"  name="reload-outline"></ion-icon> </ion-button>
+        </div>
+
+        <div class="check-container">
+          <ion-button class="check-button" (click)="checkAnswers()" [disabled]="!canCheck">Check answers</ion-button>
+        </div>
+
+        <div class="next">
+          <ion-button (click)="nextRound()"> <ion-icon size="large"  name="arrow-forward"></ion-icon> </ion-button>
+        </div>
+      </div>
+     
+      
+    </div>
+
+    <div class="layoutbottom corner"><img [src]="theme.asset('bottomRightTrim')" alt="" /></div>
+    
+  </div>
+</ion-content>
