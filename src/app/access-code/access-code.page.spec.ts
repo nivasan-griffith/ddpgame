@@ -16,7 +16,10 @@ describe('AccessCodePage', () => {
     await page.validate();
 
     expect(supabase.redeemModuleAccessCode).toHaveBeenCalledOnceWith('another-restricted-module', 'ACCESS-123');
-    expect(languageModules.installLanguage).toHaveBeenCalledOnceWith('another-restricted-module');
+    expect(languageModules.installLanguage).toHaveBeenCalledOnceWith(
+      'another-restricted-module',
+      jasmine.any(Function),
+    );
     expect(languageModules.setSelectedLanguage).toHaveBeenCalledOnceWith('another-restricted-module');
     expect(router.navigateByUrl).toHaveBeenCalledOnceWith('/home', { replaceUrl: true });
     expect(languageModules.installLanguage).toHaveBeenCalledBefore(languageModules.setSelectedLanguage);
@@ -52,7 +55,10 @@ describe('AccessCodePage', () => {
     await page.validate();
 
     expect(supabase.redeemModuleAccessCode).not.toHaveBeenCalled();
-    expect(languageModules.installLanguage).toHaveBeenCalledOnceWith('restricted-module');
+    expect(languageModules.installLanguage).toHaveBeenCalledOnceWith(
+      'restricted-module',
+      jasmine.any(Function),
+    );
     expect(languageModules.setSelectedLanguage).toHaveBeenCalledOnceWith('restricted-module');
     expect(router.navigateByUrl).toHaveBeenCalledOnceWith('/home', { replaceUrl: true });
   });
@@ -88,6 +94,34 @@ describe('AccessCodePage', () => {
     expect(languageModules.installLanguage).not.toHaveBeenCalled();
     expect(languageModules.setSelectedLanguage).not.toHaveBeenCalled();
     expect(router.navigateByUrl).not.toHaveBeenCalled();
+  });
+
+  it('shows progress while a restricted module is downloading', async () => {
+    const supabase = makeSupabase();
+    supabase.redeemModuleAccessCode.and.resolveTo(true);
+    const languageModules = makeLanguageModules();
+    let finishDownload!: () => void;
+    languageModules.installLanguage.and.callFake(async (_moduleId, onProgress) => {
+      onProgress?.({ completedAssets: 2, totalAssets: 5, percent: 40 });
+      await new Promise<void>(resolve => {
+        finishDownload = resolve;
+      });
+    });
+    const router = jasmine.createSpyObj<Router>('Router', ['navigateByUrl']);
+    const page = new AccessCodePage(supabase, languageModules, makeRoute('restricted-module'), router);
+    page.accessCode = 'ACCESS-123';
+
+    const validation = page.validate();
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(page.isDownloading).toBeTrue();
+    expect(page.downloadProgress).toEqual({ completedAssets: 2, totalAssets: 5, percent: 40 });
+
+    finishDownload();
+    await validation;
+
+    expect(page.isDownloading).toBeFalse();
   });
 });
 

@@ -59,26 +59,29 @@
                 {{ installingLanguageId === language.id ? 'Downloading…' : 'Download' }}
               </ion-button>
               <ion-button
-                *ngIf="language.accessType === 'public' && language.installed"
-                class="language-select__action language-select__action--available"
-                [disabled]="installingLanguageId !== null"
-                (click)="selectLanguage(language)">
-                Use language
-              </ion-button>
-              <ion-button
                 *ngIf="language.accessType === 'restricted' && !language.installed"
                 class="language-select__action language-select__action--restricted"
                 [disabled]="installingLanguageId !== null"
                 (click)="selectLanguage(language)">
                 Enter access code
               </ion-button>
-              <ion-button
-                *ngIf="language.accessType === 'restricted' && language.installed"
-                class="language-select__action language-select__action--available"
-                [disabled]="installingLanguageId !== null"
-                (click)="selectLanguage(language)">
-                Use language
-              </ion-button>
+              <div *ngIf="language.installed" class="language-select__option-actions">
+                <ion-button
+                  class="language-select__action language-select__action--available"
+                  [disabled]="installingLanguageId !== null || removingLanguageId !== null"
+                  (click)="selectLanguage(language)">
+                  Use language
+                </ion-button>
+                <ion-button
+                  class="language-select__action language-select__action--remove"
+                  fill="outline"
+                  color="danger"
+                  [disabled]="installingLanguageId !== null || removingLanguageId !== null"
+                  [attr.aria-label]="'Remove downloaded ' + language.name + ' module from this device'"
+                  (click)="confirmRemoveLanguage(language)">
+                  {{ removingLanguageId === language.id ? 'Removing…' : 'Remove' }}
+                </ion-button>
+              </div>
             </div>
           </div>
 

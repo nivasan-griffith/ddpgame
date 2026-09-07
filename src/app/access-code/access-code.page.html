@@ -23,6 +23,18 @@
       <span *ngIf="!isChecking">Check access code</span>
     </ion-button>
 
+    <div *ngIf="isDownloading" class="download-status" role="status" aria-live="polite">
+      <strong>Downloading {{ moduleName }}…</strong>
+      <ion-progress-bar
+        [value]="(downloadProgress?.percent ?? 0) / 100"
+        aria-label="Restricted language download progress">
+      </ion-progress-bar>
+      <span *ngIf="downloadProgress && downloadProgress.totalAssets > 0">
+        {{ downloadProgress.completedAssets }} of {{ downloadProgress.totalAssets }} assets · {{ downloadProgress.percent }}%
+      </span>
+      <span *ngIf="!downloadProgress || downloadProgress.totalAssets === 0">Preparing download…</span>
+    </div>
+
     <ion-text *ngIf="resultMessage" [color]="isValid ? 'success' : 'danger'">
       <p role="status">{{ resultMessage }}</p>
     </ion-text>

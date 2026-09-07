@@ -9,13 +9,14 @@ import {
   IonInput,
   IonItem,
   IonLabel,
+  IonProgressBar,
   IonSpinner,
   IonText,
   IonTitle,
   IonToolbar,
 } from '@ionic/angular/standalone';
 import { SupabaseService } from '../services/supabase.service';
-import { LanguageModuleService } from '../services/language-module.service';
+import { LanguageDownloadProgress, LanguageModuleService } from '../services/language-module.service';
 
 @Component({
   selector: 'app-access-code',
@@ -31,6 +32,7 @@ import { LanguageModuleService } from '../services/language-module.service';
     IonInput,
     IonItem,
     IonLabel,
+    IonProgressBar,
     IonSpinner,
     IonText,
     IonTitle,
@@ -43,6 +45,8 @@ export class AccessCodePage {
   private returnUrl = '/home';
   accessCode = '';
   isChecking = false;
+  isDownloading = false;
+  downloadProgress: LanguageDownloadProgress | null = null;
   resultMessage = '';
   isValid = false;
 
@@ -91,12 +95,18 @@ export class AccessCodePage {
 
       if (this.isValid) {
         try {
-          await this.languageModules.installLanguage(this.moduleId);
+          this.isDownloading = true;
+          this.downloadProgress = null;
+          await this.languageModules.installLanguage(this.moduleId, progress => {
+            this.downloadProgress = progress;
+          });
           this.languageModules.setSelectedLanguage(this.moduleId);
           await this.router.navigateByUrl(this.returnUrl, { replaceUrl: true });
         } catch (error) {
           console.error('Unlocked language module download failed.', error);
           this.resultMessage = 'Access was granted, but the language module could not be downloaded. Check your connection and try again.';
+        } finally {
+          this.isDownloading = false;
         }
       }
     } catch (error) {

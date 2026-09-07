@@ -77,6 +77,19 @@ h1 {
   --background-activated: var(--link-hover);
 }
 
+.language-select__option-actions {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 0.5rem;
+}
+
+.language-select__action--remove {
+  --background: transparent;
+  --border-color: #b42318;
+  --color: #b42318;
+  min-width: 6.5rem;
+}
+
 .language-select__action--restricted,
 .language-select__configure {
   --background: var(--button-bg);
@@ -272,6 +285,12 @@ h1 {
   }
 
   .language-select__action {
+    width: 100%;
+  }
+
+  .language-select__option-actions {
+    align-items: stretch;
+    flex-direction: column;
     width: 100%;
   }
 }

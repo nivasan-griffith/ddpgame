@@ -1,31 +1,44 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
-import { IonContent, IonButton, IonIcon, IonProgressBar } from '@ionic/angular/standalone';
-import { LanguageDownloadProgress, LanguageModuleService, LanguageOption } from 'src/app/services/language-module.service';
+import {
+  AlertController,
+  IonContent,
+  IonButton,
+  IonIcon,
+  IonProgressBar,
+} from '@ionic/angular/standalone';
+import {
+  LanguageDownloadProgress,
+  LanguageModuleService,
+  LanguageOption,
+} from 'src/app/services/language-module.service';
 import { SupabaseService } from 'src/app/services/supabase.service';
 import { LanguageThemeService } from 'src/app/services/language-theme.service';
-
 
 @Component({
   selector: 'app-language-selection',
   templateUrl: './language-selection.page.html',
   styleUrls: ['./language-selection.page.scss'],
   standalone: true,
-  imports: [IonIcon, IonButton, IonProgressBar, IonContent, CommonModule]
+  imports: [IonIcon, IonButton, IonProgressBar, IonContent, CommonModule],
 })
-
 export class LanguageSelectionPage implements OnInit {
   languages: LanguageOption[] = [];
   loading = false;
   showLanguageList = false;
   installingLanguageId: string | null = null;
+  removingLanguageId: string | null = null;
   downloadProgress: LanguageDownloadProgress | null = null;
   errorMessage = '';
   successMessage = '';
 
   get installingLanguageName(): string {
-    return this.languages.find(language => language.id === this.installingLanguageId)?.name ?? 'language module';
+    return (
+      this.languages.find(
+        (language) => language.id === this.installingLanguageId
+      )?.name ?? 'language module'
+    );
   }
 
   constructor(
@@ -34,10 +47,12 @@ export class LanguageSelectionPage implements OnInit {
     private languageTheme: LanguageThemeService,
     private router: Router,
     private route: ActivatedRoute,
+    private alertController: AlertController
   ) {}
 
   ngOnInit(): void {
-    this.showLanguageList = this.route.snapshot.queryParamMap.get('configure') === 'true';
+    this.showLanguageList =
+      this.route.snapshot.queryParamMap.get('configure') === 'true';
     if (this.showLanguageList) {
       this.loadLanguages();
     }
@@ -55,19 +70,23 @@ export class LanguageSelectionPage implements OnInit {
 
     this.loading = true;
     this.languageModules.loadLanguageOptions().subscribe({
-      next: languages => {
+      next: (languages) => {
         this.languages = languages;
         this.loading = false;
       },
       error: () => {
         this.loading = false;
-        this.errorMessage = 'Languages could not be loaded. Check your connection and try again.';
-      }
+        this.errorMessage =
+          'Languages could not be loaded. Check your connection and try again.';
+      },
     });
   }
 
   async downloadLanguage(language: LanguageOption): Promise<void> {
-    if (this.installingLanguageId !== null) {
+    if (
+      this.installingLanguageId !== null ||
+      this.removingLanguageId !== null
+    ) {
       return;
     }
 
@@ -76,7 +95,7 @@ export class LanguageSelectionPage implements OnInit {
     this.errorMessage = '';
     this.successMessage = '';
     try {
-      await this.languageModules.installLanguage(language.id, progress => {
+      await this.languageModules.installLanguage(language.id, (progress) => {
         this.downloadProgress = progress;
       });
       language.installed = true;
@@ -88,8 +107,67 @@ export class LanguageSelectionPage implements OnInit {
     }
   }
 
+  async confirmRemoveLanguage(language: LanguageOption): Promise<void> {
+    if (
+      this.installingLanguageId !== null ||
+      this.removingLanguageId !== null
+    ) {
+      return;
+    }
+
+    const alert = await this.alertController.create({
+      header: `Remove ${language.name}?`,
+      message:
+        'This removes the downloaded module and its offline files from this device. You can download it again later.',
+      buttons: [
+        { text: 'Cancel', role: 'cancel' },
+        {
+          text: 'Remove',
+          role: 'destructive',
+        },
+      ],
+    });
+
+    await alert.present();
+    const result = await alert.onDidDismiss();
+    if (result.role === 'destructive') {
+      await this.removeLanguage(language);
+    }
+  }
+
+  async removeLanguage(language: LanguageOption): Promise<void> {
+    if (
+      this.installingLanguageId !== null ||
+      this.removingLanguageId !== null
+    ) {
+      return;
+    }
+
+    this.removingLanguageId = language.id;
+    this.errorMessage = '';
+    this.successMessage = '';
+    try {
+      const removedSelectedLanguage = await this.languageModules.removeLanguage(
+        language.id
+      );
+      language.installed = false;
+      if (removedSelectedLanguage) {
+        this.languageTheme.applyDefaultTheme();
+      }
+      this.successMessage = `${language.name} was removed from this device. You can download it again later.`;
+    } catch (error) {
+      console.error('[IND-90] Module removal failed.', error);
+      this.errorMessage = `Couldn't remove ${language.name}. Try again.`;
+    } finally {
+      this.removingLanguageId = null;
+    }
+  }
+
   async selectLanguage(language: LanguageOption): Promise<void> {
-    if (this.installingLanguageId !== null) {
+    if (
+      this.installingLanguageId !== null ||
+      this.removingLanguageId !== null
+    ) {
       return;
     }
 
@@ -114,8 +192,8 @@ export class LanguageSelectionPage implements OnInit {
 
     this.languageModules.setSelectedLanguage(language.id);
     this.languageModules.loadSelectedModule().subscribe({
-      next: module => this.languageTheme.applyManifestTheme(module.manifest),
-      error: () => this.languageTheme.applyDefaultTheme()
+      next: (module) => this.languageTheme.applyManifestTheme(module.manifest),
+      error: () => this.languageTheme.applyDefaultTheme(),
     });
     await this.router.navigateByUrl('/home', { replaceUrl: true });
   }
