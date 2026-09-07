@@ -1,5 +1,5 @@
 import { ActivatedRoute, convertToParamMap, Router } from '@angular/router';
-import { AlertController } from '@ionic/angular';
+import { AlertController } from '@ionic/angular/standalone';
 import { of } from 'rxjs';
 import { LanguageModuleService, LanguageOption } from '../services/language-module.service';
 import { SupabaseService } from '../services/supabase.service';
@@ -36,8 +36,12 @@ describe('LanguageSelectionPage', () => {
     ]);
     router = jasmine.createSpyObj<Router>('Router', ['navigate', 'navigateByUrl']);
     route = { snapshot: { queryParamMap: convertToParamMap({}) } } as ActivatedRoute;
-    alert = jasmine.createSpyObj<HTMLIonAlertElement>('HTMLIonAlertElement', ['present']);
+    alert = jasmine.createSpyObj<HTMLIonAlertElement>('HTMLIonAlertElement', [
+      'present',
+      'onDidDismiss',
+    ]);
     alert.present.and.resolveTo();
+    alert.onDidDismiss.and.resolveTo({ role: 'cancel' });
     alertController = jasmine.createSpyObj<AlertController>('AlertController', ['create']);
     alertController.create.and.resolveTo(alert);
     page = new LanguageSelectionPage(languageModules, supabase, languageTheme, router, route, alertController);
@@ -161,6 +165,17 @@ describe('LanguageSelectionPage', () => {
     }));
     expect(alert.present).toHaveBeenCalled();
     expect(languageModules.removeLanguage).not.toHaveBeenCalled();
+  });
+
+  it('removes a downloaded module after destructive confirmation', async () => {
+    alert.onDidDismiss.and.resolveTo({ role: 'destructive' });
+    languageModules.removeLanguage.and.resolveTo(false);
+    const option = makeOption('kuku-thaypan', 'public');
+
+    await page.confirmRemoveLanguage(option);
+
+    expect(languageModules.removeLanguage).toHaveBeenCalledOnceWith('kuku-thaypan');
+    expect(option.installed).toBeFalse();
   });
 
   it('removes a module, makes it downloadable again, and reports success', async () => {
