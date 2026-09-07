@@ -26,8 +26,10 @@ export class DragDropPage implements OnInit {
   isPopovertrueOpen = false;
   isPopoverfalseOpen = false;
   private roundWords: ResolvedLanguageWord[] = [];
+  private wordBankWords: ResolvedLanguageWord[] = [];
   private draggedWord: ResolvedLanguageWord | null = null;
   selectedWord: ResolvedLanguageWord | null = null;
+  private firstEntry = true;
 
   constructor(
     private languageModules: LanguageModuleService,
@@ -41,6 +43,14 @@ export class DragDropPage implements OnInit {
     this.loadRound();
   }
 
+  ionViewWillEnter(): void {
+    if (this.firstEntry) {
+      this.firstEntry = false;
+      return;
+    }
+    this.loadRound();
+  }
+
   /** Words not currently placed beneath a drawing. */
   get wordBank(): ResolvedLanguageWord[] {
     const placedIds = new Set(
@@ -48,7 +58,7 @@ export class DragDropPage implements OnInit {
         .filter(target => target.droppedWord)
         .map(target => target.droppedWord!.id)
     );
-    return this.roundWords.filter(word => !placedIds.has(word.id));
+    return this.wordBankWords.filter(word => !placedIds.has(word.id));
   }
 
   get canCheck(): boolean {
@@ -122,11 +132,20 @@ export class DragDropPage implements OnInit {
 
 
   private loadRound(): void {
+    this.isPopovertrueOpen = false;
+    this.isPopoverfalseOpen = false;
+    this.selectedWord = null;
+    this.draggedWord = null;
+    this.roundWords = [];
+    this.wordBankWords = [];
+    this.targets = [];
+
     this.languageModules.loadSelectedModule().subscribe(module => {
       this.theme.applyManifestTheme(module.manifest);
       const usableWords = module.playableWords.filter(word => word.imageUrl !== null);
       this.roundWords = this.utils.shuffleArray([...usableWords]).slice(0, 4);
       this.targets = this.roundWords.map(word => ({ word, droppedWord: null }));
+      this.wordBankWords = this.utils.shuffleArray([...this.roundWords]);
     });
   }
 }
