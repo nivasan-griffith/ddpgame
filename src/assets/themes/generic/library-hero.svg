@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 160" role="img" aria-label="Generic language library illustration">
+  <rect width="200" height="160" rx="26" fill="#E8F0F2"/>
+  <path d="M43 44c19-7 38-7 57 2v70c-19-9-38-9-57-2V44Zm114 0c-19-7-38-7-57 2v70c19-9 38-9 57-2V44Z" fill="#3A6370"/>
+  <path d="M51 58c14-4 27-3 39 2m-39 14c14-4 27-3 39 2m-39 14c14-4 27-3 39 2m59-34c-14-4-27-3-39 2m39 14c-14-4-27-3-39 2m39 14c-14-4-27-3-39 2" fill="none" stroke="#F8FAFB" stroke-linecap="round" stroke-width="5"/>
+  <circle cx="100" cy="124" r="10" fill="#2F7D4A"/>
+</svg>

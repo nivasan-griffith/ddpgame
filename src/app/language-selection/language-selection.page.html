@@ -1,21 +1,14 @@
 
-<ion-content  >
-  <div id="layout">
-  
-   
-    <div class="layouttop">
-      <div class="corner"><img src="assets/corneronly.png"/></div>
-      <!-- <div class="language">{{setinfo.lang}}</div> -->
-      <div class="dots"></div>
-    </div>
-  
-   
-      <div class="language-select">
-        
-        <img src="/assets/icon/icon-only.png" alt="KukThaypan" class="language-select__logo">
+<ion-content class="language-selection-page">
+  <main class="language-selection-layout">
+    <img class="language-selection-layout__trim language-selection-layout__trim--top" src="assets/themes/generic/library-trim-top-left.svg" alt="">
+    <img class="language-selection-layout__trim language-selection-layout__trim--bottom" src="assets/themes/generic/library-trim-bottom-right.svg" alt="">
+    <section class="language-select" aria-labelledby="language-select-title">
+      <img src="assets/themes/generic/library-hero.svg" alt="" class="language-select__hero">
 
         <div *ngIf="!showLanguageList" class="language-select__empty-state">
-          <h1>Welcome!</h1>
+          <p class="language-select__eyebrow">Language Library</p>
+          <h1 id="language-select-title">Welcome</h1>
           <p>No language selected</p>
           <ion-button class="language-select__configure" (click)="beginLanguageConfiguration()">
             Click here to configure
@@ -23,9 +16,10 @@
         </div>
 
         <ng-container *ngIf="showLanguageList">
-          <h1>Choose a language</h1>
+          <p class="language-select__eyebrow">Language Library</p>
+          <h1 id="language-select-title">Choose a language</h1>
           <p *ngIf="loading" class="language-select__loading">Loading languages...</p>
-          <p *ngIf="!loading">Download a language for offline use, then choose it.</p>
+          <p *ngIf="!loading" class="language-select__intro">Download a language for offline use, then choose it.</p>
           <div *ngIf="installingLanguageId" class="language-select__download-status" role="status" aria-live="polite">
             <strong>Downloading {{ installingLanguageName }}…</strong>
             <ion-progress-bar
@@ -92,14 +86,6 @@
             No languages are available currently.
           </p>
         </ng-container>
-      </div>
-    
-
-     
-  <div class="layoutbottom corner"><img src="assets/corneronly.png"/></div>
-  
-  
-  </div>
-
-  </ion-content>
-  
+    </section>
+  </main>
+</ion-content>
