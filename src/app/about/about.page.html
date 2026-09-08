@@ -12,19 +12,66 @@
   
   
     <div class="gamespace">
-      <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Consequatur magni magnam placeat nostrum vel mollitia quis maiores id, accusamus quibusdam ducimus perspiciatis, vero libero rerum possimus quas, saepe temporibus repellendus.
-        Voluptatem nihil corporis quibusdam veniam aut, reiciendis impedit repellendus distinctio quia culpa excepturi quisquam ea modi asperiores odio deserunt pariatur. Aliquam pariatur explicabo ipsum mollitia provident. Doloremque quae neque reiciendis?</p>
-        <p>Neque ullam nihil non voluptas optio, corporis sequi atque sapiente. Rerum eveniet porro velit maiores numquam iste voluptates eius minima. Culpa ab perspiciatis voluptas dolorem saepe aspernatur incidunt, praesentium harum!
-        Error libero alias possimus nemo! Numquam odit temporibus magnam vel, quisquam maxime laudantium pariatur dolorem neque ut laborum alias minus doloribus incidunt porro est repellat necessitatibus, quidem possimus corporis natus?</p>
-        <h3>With Thanks to</h3>
-        <div class="thanks-logos">
-          <div class="thanks-logo">
-            <img src="assets/logos/vitalogy-foundation.png" alt="Vitalogy Foundation logo" />
+      <ng-container *ngIf="about as content; else missingAbout">
+        <section class="about-section">
+          <h1><span>I</span>About this app</h1>
+          <div class="about-copy">
+            <p *ngFor="let paragraph of content.paragraphs; let paragraphIndex = index">
+              <ng-container *ngFor="let segment of paragraphSegments(paragraph, paragraphIndex)">
+                <a
+                  *ngIf="segment.url; else plainText"
+                  [href]="segment.url"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >{{ segment.text }}</a>
+                <ng-template #plainText>{{ segment.text }}</ng-template>
+              </ng-container>
+            </p>
           </div>
-          <div class="thanks-logo">
-            <img src="assets/logos/griffith-university.png" alt="Griffith University logo" />
+        </section>
+
+        <section class="about-section" *ngIf="content.acknowledgements?.length">
+          <h2><span>II</span>Acknowledgements</h2>
+          <p class="section-intro" *ngIf="content.acknowledgementIntro">{{ content.acknowledgementIntro }}</p>
+          <dl class="acknowledgement-ledger">
+            <div
+              class="acknowledgement-row"
+              [class.acknowledgement-row--legacy]="!acknowledgementRole(acknowledgement)"
+              *ngFor="let acknowledgement of content.acknowledgements"
+            >
+              <dt *ngIf="acknowledgementRole(acknowledgement) as role">{{ role }}</dt>
+              <dd>{{ acknowledgementText(acknowledgement) }}</dd>
+            </div>
+          </dl>
+        </section>
+
+        <section class="about-section" *ngIf="content.supporters?.length">
+          <h2><span>III</span>Supported by</h2>
+          <div class="supporters">
+            <figure *ngFor="let supporter of content.supporters">
+              <img [src]="supporter.logo" [alt]="supporter.name + ' logo'" />
+              <figcaption>{{ supporter.name }}</figcaption>
+            </figure>
           </div>
-        </div>
+        </section>
+
+        <section class="about-section" *ngIf="content.artists?.length">
+          <h2><span>IV</span>The artists</h2>
+          <div class="artist-plates">
+            <figure class="plate" *ngFor="let artist of content.artists">
+              <img [src]="artist.image" [alt]="artist.name" />
+              <figcaption>
+                <strong>{{ artist.name }}</strong>
+                <span>{{ artist.role }}</span>
+                <p *ngIf="artist.description">{{ artist.description }}</p>
+              </figcaption>
+            </figure>
+          </div>
+        </section>
+      </ng-container>
+      <ng-template #missingAbout>
+        <p class="about-unavailable">About information for this language is not yet available.</p>
+      </ng-template>
     </div>
     
 

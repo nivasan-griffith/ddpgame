@@ -2,8 +2,81 @@
   "id": "kuku-thaypan",
   "name": "Kuku Thaypan",
   "location": "Laura",
-  "version": "1.0.0",
+  "version": "1.0.3",
   "accessType": "public",
+  "about": {
+    "paragraphs": [
+      "To assist people to learn Kuku Thaypan, an Indigenous language of southeast Cape York Peninsula, Queensland, Australia, these digital ‘flash cards’ have been designed. The designs show an image, with the corresponding word in Kuku Thaypan above the image and English below the image. [If you wish to purchase physical copies of the cards, please contact the Laura Rangers.]",
+      "The artists who created the individual motifs shown on the various cards are Chrissy Musgrave and Palmer Lee Cheu, members of the Laura Rangers and traditional owners for Kuku Warra, Kuku Thaypan and Kuku Possum lands in south east Cape York Peninsula. The style of the motif designs are drawn from the local Quinkan style of rock art, which can be found painted in the 1000s of sandstone rockshelters around the township of Laura."
+    ],
+    "links": [
+      {
+        "paragraph": 0,
+        "text": "flash cards",
+        "url": "https://cyprockart.org/thaypan/"
+      },
+      {
+        "paragraph": 0,
+        "text": "Laura Rangers",
+        "url": "https://www.laurarangers.com.au/contact-us"
+      }
+    ],
+    "acknowledgementIntro": "We pay respect to the Elders past and present who have carried this language, and we thank the following people and organisations, without whom this app would not exist.",
+    "acknowledgements": [
+      {
+        "role": "Custodians",
+        "text": "The Laura Rangers and Elders from the Laura community for use of the local Quinkan logo."
+      },
+      {
+        "role": "Language recordings",
+        "text": "Descendants of Kuku Thaypan speaker Christmas Shepherd who granted permission for language recordings made in the 1970s by Christmas with linguist Professor Bruce Rigsby to be used in this online app."
+      },
+      {
+        "role": "Design artwork",
+        "text": "Creative agency Humanize Media, an incredible Indigenous business, for providing the baseline design artwork."
+      },
+      {
+        "role": "Illustration workshop",
+        "text": "Adelaide-based artist and archaeologist Maggie Moy for delivering a workshop in mid-2024 during which Chrissy and Palmer produced their illustrations."
+      },
+      {
+        "role": "Printing",
+        "text": "Deven Crawford, John Fletcher and Colourchiefs for advice and support with printing."
+      }
+    ],
+    "supporters": [
+      {
+        "name": "Vitalogy Foundation",
+        "logo": "assets/logos/vitalogy-foundation.png"
+      },
+      {
+        "name": "Griffith University",
+        "logo": "assets/logos/griffith-university.png"
+      },
+      {
+        "name": "Laura Rangers",
+        "logo": "assets/logos/laura-ranger.png"
+      },
+      {
+        "name": "Humanize Media",
+        "logo": "assets/logos/humanize-media.jpg"
+      }
+    ],
+    "artists": [
+      {
+        "name": "Chrissy Musgrave",
+        "role": "Artist",
+        "image": "assets/artists/chrissy-musgrave.jpg",
+        "description": "Chrissy is a senior member of the Ranger team, having worked tirelessly over decades to protect her traditional country and knowledge."
+      },
+      {
+        "name": "Palmer Lee Cheu",
+        "role": "Artist",
+        "image": "assets/artists/palmer-lee-cheu.jpg",
+        "description": "Palmer is a younger member of the Ranger team who has had longstanding interests in artistic endeavours."
+      }
+    ]
+  },
   "theme": {
     "tokens": {
       "primaryBackground": "#f7edd9",

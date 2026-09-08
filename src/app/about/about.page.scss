@@ -1,51 +1,196 @@
 ion-content{
     --background: rgb(0,0,0)  ;
-    
-   }
-  
-  .gamespace{
-      // display:grid;
-      // grid-template-rows:1fr 4fr 1fr;
-      // height: 100vh;
-      // border:12px solid black;
-      
-      padding-inline:1em;
-     
-    }
+}
 
-  .thanks-logos {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: clamp(0.75rem, 2vw, 1.5rem);
-    margin: 0.75rem auto 1rem;
+#layout {
+  box-sizing: border-box;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  height: auto;
+  min-height: 100%;
+}
+
+.gamespace {
+  width: min(100%, 1050px);
+  box-sizing: border-box;
+  margin-inline: auto;
+  padding: clamp(1.5rem, 4vw, 4rem);
+  color: var(--primary-text);
+}
+
+.about-section {
+  padding-block: clamp(1.75rem, 4vw, 3rem);
+  border-top: 1px solid color-mix(in srgb, var(--primary-text) 25%, transparent);
+}
+
+.about-section:first-child {
+  padding-top: 0;
+  border-top: 0;
+}
+
+h1,
+h2 {
+  display: flex;
+  gap: 0.75rem;
+  align-items: baseline;
+  margin: 0 0 1.25rem;
+  font-size: clamp(1.25rem, 2.4vw, 1.75rem);
+  font-weight: 600;
+}
+
+h1 span,
+h2 span {
+  min-width: 2rem;
+  font-size: 0.7em;
+  font-variant: small-caps;
+  letter-spacing: 0.12em;
+}
+
+.about-copy p {
+  margin: 0 0 1rem;
+  text-align: justify;
+  line-height: 1.65;
+  hyphens: auto;
+}
+
+.about-copy a {
+  color: var(--link-hover);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.15em;
+}
+
+.about-copy a:hover,
+.about-copy a:focus-visible {
+  color: var(--theme-accent);
+  text-decoration-thickness: 2px;
+}
+
+.section-intro {
+  margin: 0 0 1.25rem;
+  font-style: italic;
+  line-height: 1.5;
+}
+
+.acknowledgement-ledger {
+  margin: 0;
+}
+
+.acknowledgement-row {
+  display: grid;
+  grid-template-columns: 150px minmax(0, 1fr);
+  gap: clamp(1rem, 3vw, 2.5rem);
+  padding-block: 1rem;
+  border-top: 1px solid color-mix(in srgb, var(--primary-text) 20%, transparent);
+}
+
+.acknowledgement-row:last-child {
+  border-bottom: 1px solid color-mix(in srgb, var(--primary-text) 20%, transparent);
+}
+
+.acknowledgement-row--legacy {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.acknowledgement-row dt {
+  color: #6b6152;
+  font-size: inherit;
+  font-variant: small-caps;
+  letter-spacing: 0.08em;
+  line-height: 1.4;
+}
+
+.acknowledgement-row dd {
+  min-width: 0;
+  margin: 0;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.supporters {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: clamp(0.75rem, 3vw, 2rem);
+  align-items: center;
+}
+
+.supporters figure {
+  display: grid;
+  gap: 0.6rem;
+  justify-items: center;
+  min-width: 0;
+  margin: 0;
+}
+
+.supporters img {
+  display: block;
+  width: 100%;
+  height: clamp(52px, 8vw, 88px);
+  object-fit: contain;
+}
+
+.supporters img[src$='.jpg'] {
+  mix-blend-mode: multiply;
+}
+
+.supporters figcaption {
+  text-align: center;
+  font-size: 0.85rem;
+  line-height: 1.25;
+}
+
+.artist-plates {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(1.25rem, 4vw, 3rem);
+}
+
+.plate {
+  margin: 0;
+}
+
+.plate img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+}
+
+.plate figcaption {
+  display: grid;
+  gap: 0.2rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid color-mix(in srgb, var(--primary-text) 20%, transparent);
+}
+
+.plate figcaption span {
+  font-size: 0.85rem;
+}
+
+.plate figcaption p {
+  margin: 0.5rem 0 0;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.about-unavailable {
+  margin: clamp(2rem, 8vh, 6rem) auto;
+  text-align: center;
+}
+
+@media only screen and (max-width: 600px) {
+  .acknowledgement-row {
+    grid-template-columns: 1fr;
+    gap: 0.4rem;
   }
 
-  .thanks-logo {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    box-sizing: border-box;
-    width: min(260px, 42vw);
-    height: clamp(72px, 10vw, 105px);
-    padding: clamp(0.5rem, 1.25vw, 0.85rem);
+  .supporters {
+    gap: 0.5rem;
   }
 
-  .thanks-logo img {
-    display: block;
-    width: auto;
-    height: auto;
-    max-width: 100%;
-    max-height: 100%;
-    object-fit: contain;
+  .supporters img {
+    height: clamp(42px, 14vw, 66px);
   }
 
-  @media only screen and (max-width: 360px) {
-    .thanks-logos {
-      flex-wrap: wrap;
-    }
-
-    .thanks-logo {
-      width: min(260px, 82vw);
-    }
+  .artist-plates {
+    grid-template-columns: minmax(0, 1fr);
   }
+}
