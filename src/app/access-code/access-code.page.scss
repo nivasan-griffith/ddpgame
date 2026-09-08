@@ -10,3 +10,20 @@ ion-button {
 ion-spinner {
   margin-right: 0.5rem;
 }
+
+.download-status {
+  display: grid;
+  gap: 0.45rem;
+  margin-top: 1rem;
+}
+
+.download-status ion-progress-bar {
+  --background: rgba(47, 125, 74, 0.2);
+  --progress-background: #2f7d4a;
+  height: 0.65rem;
+  border-radius: 999px;
+}
+
+.download-status span {
+  font-size: 0.85rem;
+}

@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { environment } from '../../environments/environment';
+import { AppConfigService } from './app-config.service';
 
 export type ModuleAccessType = 'public' | 'private';
 
@@ -40,9 +41,9 @@ export class SupabaseService {
   private readonly moduleGrantPrefix = 'module-access-grant:';
   readonly client: SupabaseClient;
 
-  constructor() {
+  constructor(appConfig: AppConfigService) {
     this.client = createClient(
-      environment.supabaseUrl,
+      appConfig.serverUrl,
       environment.supabasePublishableKey,
     );
   }
