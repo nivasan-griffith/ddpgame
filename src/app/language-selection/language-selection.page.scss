@@ -158,6 +158,26 @@ h1 {
   overflow-wrap: anywhere;
 }
 
+.language-select__update-notice {
+  margin-top: 0.35rem;
+  color: #7b3f00;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.language-select__up-to-date {
+  margin-top: 0.35rem;
+  color: #176d3a;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.language-select__options ion-button.language-select__update-button {
+  --background: #b65c00;
+  --background-activated: #834200;
+  --color: #fff;
+}
+
 .language-select__loading {
   margin-top: 3rem;
 }

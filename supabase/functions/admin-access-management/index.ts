@@ -6,7 +6,14 @@ const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
 };
 
-type Action = 'list_modules' | 'list_codes' | 'generate_code' | 'disable_code' | 'update_module';
+type Action = 'list_modules' | 'list_codes' | 'generate_code' | 'disable_code' | 'update_module' | 'publish_access_type';
+
+type AccessType = 'public' | 'private';
+
+interface StorageListItem {
+  name: string;
+  id: string | null;
+}
 
 interface AdminRequest {
   action?: Action;
@@ -46,6 +53,77 @@ function positiveInteger(value: unknown, field: string, maximum: number): number
     throw new Error(`${field} must be a whole number between 1 and ${maximum}.`);
   }
   return value;
+}
+
+function accessType(value: unknown): AccessType {
+  if (value === 'public' || value === 'private') return value;
+  throw new Error('Access type must be public or private.');
+}
+
+async function listModuleFiles(
+  client: ReturnType<typeof createClient>,
+  bucket: string,
+  prefix: string,
+): Promise<string[]> {
+  const files: string[] = [];
+
+  const walk = async (folder: string): Promise<void> => {
+    const { data, error } = await client.storage.from(bucket).list(folder, { limit: 1000 });
+    if (error) throw error;
+    for (const item of (data ?? []) as StorageListItem[]) {
+      const path = `${folder}/${item.name}`;
+      if (item.id === null) {
+        await walk(path);
+      } else {
+        files.push(path);
+        if (files.length > 5000) throw new Error('A module cannot contain more than 5,000 files.');
+      }
+    }
+  };
+
+  await walk(prefix);
+  if (!files.includes(`${prefix}/manifest.json`) || !files.includes(`${prefix}/words.json`)) {
+    throw new Error('The module must contain manifest.json and words.json before it can be published.');
+  }
+  return files;
+}
+
+async function copyModuleFiles(
+  client: ReturnType<typeof createClient>,
+  sourceBucket: string,
+  destinationBucket: string,
+  files: string[],
+): Promise<void> {
+  for (const path of files) {
+    const { data, error } = await client.storage.from(sourceBucket).download(path);
+    if (error || !data) throw error ?? new Error(`Could not read ${path}.`);
+    const { error: uploadError } = await client.storage
+      .from(destinationBucket)
+      .upload(path, data, { upsert: true, contentType: data.type || undefined });
+    if (uploadError) throw uploadError;
+  }
+}
+
+async function removeModuleFiles(
+  client: ReturnType<typeof createClient>,
+  bucket: string,
+  files: string[],
+): Promise<void> {
+  for (let index = 0; index < files.length; index += 100) {
+    const { error } = await client.storage.from(bucket).remove(files.slice(index, index + 100));
+    if (error) throw error;
+  }
+}
+
+async function readPublishedVersion(
+  client: ReturnType<typeof createClient>,
+  bucket: string,
+  prefix: string,
+): Promise<string | null> {
+  const { data, error } = await client.storage.from(bucket).download(`${prefix}/manifest.json`);
+  if (error || !data) throw error ?? new Error('Could not read the module manifest.');
+  const manifest = JSON.parse(await data.text()) as { version?: unknown };
+  return typeof manifest.version === 'string' ? manifest.version : null;
 }
 
 Deno.serve(async request => {
@@ -91,7 +169,7 @@ Deno.serve(async request => {
       case 'list_modules': {
         const { data, error } = await adminClient
           .from('language_modules')
-          .select('id, name, access_type, created_at')
+          .select('id, name, access_type, content_bucket, content_prefix, published_version, published_at, created_at')
           .order('name');
         if (error) throw error;
         return response({ modules: data });
@@ -183,6 +261,115 @@ Deno.serve(async request => {
           .eq('id', payload.moduleId);
         if (error) throw error;
         return response({ updated: true });
+      }
+
+      case 'publish_access_type': {
+        if (typeof payload.moduleId !== 'string' || payload.moduleId.length === 0) {
+          return response({ error: 'Choose a language module.' }, 400);
+        }
+        const nextAccessType = accessType(payload.accessType);
+        const { data: currentModule, error: currentModuleError } = await adminClient
+          .from('language_modules')
+          .select('id, name, access_type, content_bucket, content_prefix')
+          .eq('id', payload.moduleId)
+          .maybeSingle();
+        if (currentModuleError) throw currentModuleError;
+        if (!currentModule) return response({ error: 'That language module does not exist.' }, 400);
+        if (!currentModule.content_bucket || !currentModule.content_prefix) {
+          return response({ error: 'This module has no published Storage location.' }, 400);
+        }
+        if (currentModule.access_type === nextAccessType) {
+          return response({ published: false, accessType: nextAccessType, message: 'This module already has that access type.' });
+        }
+
+        const previousAccessType = accessType(currentModule.access_type);
+        const sourceBucket = currentModule.content_bucket;
+        const destinationBucket = nextAccessType === 'public'
+          ? 'public-language-modules'
+          : 'private-language-modules';
+        const prefix = currentModule.content_prefix;
+        const files = await listModuleFiles(adminClient, sourceBucket, prefix);
+        const publishedVersion = await readPublishedVersion(adminClient, sourceBucket, prefix);
+
+        // Copy first. A failed copy never changes the live module setting.
+        await copyModuleFiles(adminClient, sourceBucket, destinationBucket, files);
+
+        if (nextAccessType === 'private') {
+          // Do not mark a module private while an old public copy remains.
+          // If removal fails, the database stays public and the caller is told
+          // that the publish action was not completed.
+          try {
+            await removeModuleFiles(adminClient, sourceBucket, files);
+          } catch (error) {
+            await removeModuleFiles(adminClient, destinationBucket, files).catch(() => undefined);
+            throw error;
+          }
+        }
+
+        const { error: updateError } = await adminClient
+          .from('language_modules')
+          .update({
+            access_type: nextAccessType,
+            content_bucket: destinationBucket,
+            content_prefix: prefix,
+            published_version: publishedVersion,
+            published_at: new Date().toISOString(),
+          })
+          .eq('id', currentModule.id);
+
+        if (updateError) {
+          // Restore the public source when a public-to-private transition could
+          // not be recorded, so the configured public module still works.
+          if (nextAccessType === 'private') {
+            await copyModuleFiles(adminClient, destinationBucket, sourceBucket, files).catch(() => undefined);
+          } else {
+            await removeModuleFiles(adminClient, destinationBucket, files).catch(() => undefined);
+          }
+          throw updateError;
+        }
+
+        if (nextAccessType === 'public') {
+          // Old codes/grants no longer provide a separate private-access path.
+          // They remain auditable but cannot be reused if this module becomes
+          // private again later.
+          const now = new Date().toISOString();
+          const { error: codeError } = await adminClient
+            .from('access_codes')
+            .update({ is_active: false })
+            .eq('language_module_id', currentModule.id)
+            .eq('is_active', true);
+          if (codeError) throw codeError;
+          const { error: grantError } = await adminClient
+            .from('module_access_grants')
+            .update({ revoked_at: now })
+            .eq('language_module_id', currentModule.id)
+            .is('revoked_at', null);
+          if (grantError) throw grantError;
+          // A leftover private copy is not publicly accessible. Remove it only
+          // after the new public configuration is live.
+          await removeModuleFiles(adminClient, sourceBucket, files).catch(error =>
+            console.error('Published public module but could not remove old private copy.', error)
+          );
+        }
+
+        const { error: logError } = await adminClient.from('module_access_change_log').insert({
+          language_module_id: currentModule.id,
+          changed_by: userResult.user.id,
+          previous_access_type: previousAccessType,
+          new_access_type: nextAccessType,
+          source_bucket: sourceBucket,
+          destination_bucket: destinationBucket,
+          file_count: files.length,
+          published_version: publishedVersion,
+        });
+        if (logError) throw logError;
+
+        return response({
+          published: true,
+          accessType: nextAccessType,
+          fileCount: files.length,
+          publishedVersion,
+        });
       }
 
       default:

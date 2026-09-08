@@ -37,14 +37,27 @@
               <span class="language-select__option-label">
                 <span class="language-select__option-name">{{ language.name }}</span>
                 <small class="language-select__option-access">
-                  Version {{ language.version || 'managed online' }} ·
+                  Version {{ language.installedVersion || language.version || 'managed online' }} ·
                   {{ language.accessType === 'public'
                     ? 'Available'
                     : language.installed
                       ? 'Restricted · available offline'
                       : 'Access code required' }}
                 </small>
+                <small *ngIf="language.updateAvailable" class="language-select__update-notice">
+                  Update available: version {{ language.version }}
+                </small>
+                <small *ngIf="language.installed && language.latestVersionKnown && !language.updateAvailable" class="language-select__up-to-date">
+                  Version is up to date
+                </small>
               </span>
+              <ion-button
+                *ngIf="language.installed && language.updateAvailable"
+                class="language-select__update-button"
+                [disabled]="installingLanguageId !== null || removingLanguageId !== null"
+                (click)="updateLanguage(language)">
+                {{ installingLanguageId === language.id ? 'Updating…' : 'Update now' }}
+              </ion-button>
               <ion-button
                 *ngIf="language.accessType === 'public' && !language.installed"
                 class="language-select__action language-select__action--available"

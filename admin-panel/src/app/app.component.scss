@@ -51,7 +51,7 @@ button:disabled { cursor: not-allowed; opacity: .6; }
 .code-row strong, .code-row span { display: block; }
 .status { display: inline-block !important; color: #176d3a; font-weight: 700; }
 .status.inactive { color: #8d4914; }
-.module-row { grid-template-columns: minmax(180px, 1.5fr) minmax(130px, .75fr) auto; }
+.module-row { grid-template-columns: minmax(180px, 1.5fr) minmax(130px, .75fr) auto auto; }
 .empty { color: #5a665d; margin-bottom: 0; }
 .hint { margin: 24px 0 0; font-size: .85rem; }
 .loading { padding: 10vh 24px; text-align: center; color: #5a665d; }

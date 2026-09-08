@@ -26,6 +26,8 @@ export class AppComponent implements OnInit {
   maxRedemptions = 1;
   generatedCode = '';
   generating = false;
+  publishingModuleId: string | null = null;
+  accessTypeSelections: Record<string, 'public' | 'private'> = {};
 
   get privateModules(): LanguageModule[] {
     return this.modules.filter(module => module.access_type === 'private');
@@ -72,6 +74,9 @@ export class AppComponent implements OnInit {
     this.actionError = '';
     try {
       this.modules = await this.api.listModules();
+      this.accessTypeSelections = Object.fromEntries(
+        this.modules.map(module => [module.id, module.access_type])
+      ) as Record<string, 'public' | 'private'>;
       if (!this.privateModules.some(module => module.id === this.selectedModuleId)) {
         this.selectedModuleId = this.privateModules[0]?.id ?? '';
       }
@@ -138,6 +143,39 @@ export class AppComponent implements OnInit {
       this.message = `${module.name} settings saved.`;
     } catch (error) {
       this.actionError = this.errorMessage(error);
+    }
+  }
+
+  async publishAccessType(module: LanguageModule): Promise<void> {
+    if (this.publishingModuleId !== null) return;
+
+    const targetAccessType = this.accessTypeSelections[module.id] ?? module.access_type;
+    if (targetAccessType === module.access_type) {
+      this.message = `${module.name} is already ${targetAccessType}.`;
+      return;
+    }
+    const action = targetAccessType === 'public' ? 'make this module public' : 'make this module private';
+    const warning = targetAccessType === 'public'
+      ? 'Its files will become publicly downloadable. Copies already downloaded cannot be made private later.'
+      : 'The public copy will be removed before this module is marked private. New users will need an access code.';
+    if (!confirm(`Publish access change: ${action}?\n\n${warning}`)) return;
+
+    this.actionError = '';
+    this.message = '';
+    this.publishingModuleId = module.id;
+    try {
+      const result = await this.api.publishAccessType(module.id, targetAccessType);
+      if (result.published) {
+        this.message = `${module.name} is now ${result.accessType}. ${result.fileCount ?? 0} files were published${result.publishedVersion ? ` (version ${result.publishedVersion})` : ''}.`;
+      } else {
+        this.message = result.message ?? `${module.name} already has that access type.`;
+      }
+      await this.loadDashboard();
+    } catch (error) {
+      this.actionError = this.errorMessage(error);
+      await this.loadDashboard();
+    } finally {
+      this.publishingModuleId = null;
     }
   }
 
