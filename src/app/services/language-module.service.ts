@@ -26,6 +26,39 @@ export interface LanguageManifest {
   games: string[];
   accessType?: string;
   theme?: LanguageTheme;
+  about?: LanguageAbout;
+}
+
+export interface LanguageAbout {
+  paragraphs: string[];
+  links?: LanguageAboutLink[];
+  acknowledgementIntro?: string;
+  acknowledgements?: Array<LanguageAcknowledgement | string>;
+  supporters?: LanguageSupporter[];
+  artists?: LanguageArtist[];
+}
+
+export interface LanguageAboutLink {
+  paragraph: number;
+  text: string;
+  url: string;
+}
+
+export interface LanguageAcknowledgement {
+  role: string;
+  text: string;
+}
+
+export interface LanguageSupporter {
+  name: string;
+  logo: string;
+}
+
+export interface LanguageArtist {
+  name: string;
+  role: string;
+  image: string;
+  description?: string;
 }
 
 export interface LanguageTheme {
