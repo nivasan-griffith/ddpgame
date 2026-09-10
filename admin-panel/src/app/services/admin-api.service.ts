@@ -1,6 +1,8 @@
 import { Injectable } from '@angular/core';
 import { SupabaseClientService } from './supabase-client.service';
 
+export type AdminRole = 'system' | 'language';
+
 export interface LanguageModule {
   id: string;
   name: string;
@@ -23,20 +25,44 @@ export interface AccessCode {
   created_at: string;
 }
 
+export interface AdminDashboard {
+  modules: LanguageModule[];
+  role: AdminRole;
+}
+
+export interface AdministratorAccount {
+  user_id: string;
+  email: string;
+  display_name: string | null;
+  role: AdminRole;
+  module_ids: string[];
+}
+
+export interface AvailableUser {
+  id: string;
+  email: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class AdminApiService {
   constructor(private readonly supabase: SupabaseClientService) {}
 
   private async request<T>(body: Record<string, unknown>): Promise<T> {
     const { data, error } = await this.supabase.client.functions.invoke('admin-access-management', { body });
-    if (error) throw new Error(error.message);
+    if (error) {
+      const context = (error as { context?: unknown }).context;
+      if (context instanceof Response) {
+        const detail = await context.clone().json().catch(() => null) as { error?: unknown } | null;
+        if (typeof detail?.error === 'string') throw new Error(detail.error);
+      }
+      throw new Error(error.message);
+    }
     if (data?.error) throw new Error(data.error);
     return data as T;
   }
 
-  async listModules(): Promise<LanguageModule[]> {
-    const result = await this.request<{ modules: LanguageModule[] }>({ action: 'list_modules' });
-    return result.modules;
+  listModules(): Promise<AdminDashboard> {
+    return this.request<AdminDashboard>({ action: 'list_modules' });
   }
 
   async listCodes(moduleId?: string): Promise<AccessCode[]> {
@@ -50,6 +76,26 @@ export class AdminApiService {
 
   disableCode(codeId: string): Promise<{ disabled: boolean }> {
     return this.request({ action: 'disable_code', codeId });
+  }
+
+  updateCode(codeId: string, label: string, expiresInDays: number, maxRedemptions: number): Promise<{ updated: boolean }> {
+    return this.request({ action: 'update_code', codeId, label, expiresInDays, maxRedemptions });
+  }
+
+  listAdministrators(): Promise<{ administrators: AdministratorAccount[]; availableUsers: AvailableUser[] }> {
+    return this.request({ action: 'list_administrators' });
+  }
+
+  saveAdministratorPermissions(userId: string, role: AdminRole, moduleIds: string[]): Promise<{ saved: boolean }> {
+    return this.request({ action: 'save_administrator_permissions', userId, role, moduleIds });
+  }
+
+  createLanguageAdministrator(email: string, password: string, moduleIds: string[]): Promise<{ created: boolean }> {
+    return this.request({ action: 'create_language_administrator', email, password, moduleIds });
+  }
+
+  removeLanguageAdministrator(userId: string): Promise<{ removed: boolean }> {
+    return this.request({ action: 'remove_language_administrator', userId });
   }
 
   updateModule(module: LanguageModule): Promise<{ updated: boolean }> {

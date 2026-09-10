@@ -6,9 +6,10 @@ const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
 };
 
-type Action = 'list_modules' | 'list_codes' | 'generate_code' | 'disable_code' | 'update_module' | 'publish_access_type';
+type Action = 'list_modules' | 'list_codes' | 'generate_code' | 'disable_code' | 'update_code' | 'update_module' | 'publish_access_type' | 'list_administrators' | 'save_administrator_permissions' | 'create_language_administrator' | 'remove_language_administrator';
 
 type AccessType = 'public' | 'private';
+type AdminRole = 'system' | 'language';
 
 interface StorageListItem {
   name: string;
@@ -24,6 +25,11 @@ interface AdminRequest {
   maxRedemptions?: unknown;
   name?: unknown;
   accessType?: unknown;
+  userId?: unknown;
+  role?: unknown;
+  moduleIds?: unknown;
+  email?: unknown;
+  password?: unknown;
 }
 
 function response(body: Record<string, unknown>, status = 200): Response {
@@ -58,6 +64,31 @@ function positiveInteger(value: unknown, field: string, maximum: number): number
 function accessType(value: unknown): AccessType {
   if (value === 'public' || value === 'private') return value;
   throw new Error('Access type must be public or private.');
+}
+
+function adminRole(value: unknown): AdminRole {
+  return value === 'language' ? 'language' : 'system';
+}
+
+function moduleIds(value: unknown): string[] {
+  if (!Array.isArray(value) || value.some(id => typeof id !== 'string' || id.length === 0)) {
+    throw new Error('Choose one or more language modules.');
+  }
+  return [...new Set(value)];
+}
+
+function emailAddress(value: unknown): string {
+  if (typeof value !== 'string' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim())) {
+    throw new Error('Enter a valid email address.');
+  }
+  return value.trim().toLowerCase();
+}
+
+function temporaryPassword(value: unknown): string {
+  if (typeof value !== 'string' || value.length < 12) {
+    throw new Error('Temporary password must be at least 12 characters.');
+  }
+  return value;
 }
 
 async function listModuleFiles(
@@ -148,7 +179,7 @@ Deno.serve(async request => {
   const adminClient = createClient(supabaseUrl, serviceRoleKey);
   const { data: administrator, error: administratorError } = await adminClient
     .from('admin_users')
-    .select('user_id')
+    .select('user_id, role')
     .eq('user_id', userResult.user.id)
     .maybeSingle();
   if (administratorError) {
@@ -156,6 +187,20 @@ Deno.serve(async request => {
     return response({ error: 'Could not verify administrator permissions.' }, 500);
   }
   if (!administrator) return response({ error: 'This account is not an administrator.' }, 403);
+
+  const role = adminRole(administrator.role);
+  const { data: assignments, error: assignmentsError } = role === 'language'
+    ? await adminClient
+      .from('language_admin_modules')
+      .select('language_module_id')
+      .eq('user_id', userResult.user.id)
+    : { data: [], error: null };
+  if (assignmentsError) {
+    console.error('Could not load language administrator assignments.', assignmentsError);
+    return response({ error: 'Could not verify language permissions.' }, 500);
+  }
+  const assignedModuleIds = new Set((assignments ?? []).map(assignment => assignment.language_module_id));
+  const canManageModule = (moduleId: string): boolean => role === 'system' || assignedModuleIds.has(moduleId);
 
   let payload: AdminRequest;
   try {
@@ -167,22 +212,27 @@ Deno.serve(async request => {
   try {
     switch (payload.action) {
       case 'list_modules': {
-        const { data, error } = await adminClient
+        let query = adminClient
           .from('language_modules')
           .select('id, name, access_type, content_bucket, content_prefix, published_version, published_at, created_at')
           .order('name');
+        if (role === 'language') query = query.in('id', [...assignedModuleIds]);
+        const { data, error } = await query;
         if (error) throw error;
-        return response({ modules: data });
+        return response({ modules: data, role });
       }
 
       case 'list_codes': {
-        const query = adminClient
+        if (typeof payload.moduleId === 'string' && !canManageModule(payload.moduleId)) {
+          return response({ error: 'You do not have access to that language module.' }, 403);
+        }
+        let query = adminClient
           .from('access_codes')
           .select('id, language_module_id, label, is_active, expires_at, max_redemptions, redemption_count, created_at')
           .order('created_at', { ascending: false });
-        const { data, error } = typeof payload.moduleId === 'string'
-          ? await query.eq('language_module_id', payload.moduleId)
-          : await query;
+        if (typeof payload.moduleId === 'string') query = query.eq('language_module_id', payload.moduleId);
+        else if (role === 'language') query = query.in('language_module_id', [...assignedModuleIds]);
+        const { data, error } = await query;
         if (error) throw error;
         return response({ codes: data });
       }
@@ -190,6 +240,9 @@ Deno.serve(async request => {
       case 'generate_code': {
         if (typeof payload.moduleId !== 'string' || payload.moduleId.length === 0) {
           return response({ error: 'Choose a language module.' }, 400);
+        }
+        if (!canManageModule(payload.moduleId)) {
+          return response({ error: 'You do not have access to that language module.' }, 403);
         }
         const { data: module, error: moduleError } = await adminClient
           .from('language_modules')
@@ -223,6 +276,16 @@ Deno.serve(async request => {
 
       case 'disable_code': {
         if (typeof payload.codeId !== 'string') return response({ error: 'A code is required.' }, 400);
+        const { data: code, error: codeLookupError } = await adminClient
+          .from('access_codes')
+          .select('language_module_id')
+          .eq('id', payload.codeId)
+          .maybeSingle();
+        if (codeLookupError) throw codeLookupError;
+        if (!code) return response({ error: 'That access code does not exist.' }, 404);
+        if (!canManageModule(code.language_module_id)) {
+          return response({ error: 'You do not have access to that language module.' }, 403);
+        }
         const { error } = await adminClient
           .from('access_codes')
           .update({ is_active: false })
@@ -238,9 +301,41 @@ Deno.serve(async request => {
         return response({ disabled: true });
       }
 
+      case 'update_code': {
+        if (typeof payload.codeId !== 'string') return response({ error: 'A code is required.' }, 400);
+        const { data: code, error: codeLookupError } = await adminClient
+          .from('access_codes')
+          .select('language_module_id')
+          .eq('id', payload.codeId)
+          .maybeSingle();
+        if (codeLookupError) throw codeLookupError;
+        if (!code) return response({ error: 'That access code does not exist.' }, 404);
+        if (!canManageModule(code.language_module_id)) {
+          return response({ error: 'You do not have access to that language module.' }, 403);
+        }
+        const expiresInDays = positiveInteger(payload.expiresInDays, 'Expiry', 3650);
+        const maxRedemptions = positiveInteger(payload.maxRedemptions, 'Usage limit', 100000);
+        if (expiresInDays === null || maxRedemptions === null) {
+          return response({ error: 'Expiry and usage limit are required.' }, 400);
+        }
+        const { error } = await adminClient
+          .from('access_codes')
+          .update({
+            label: typeof payload.label === 'string' ? payload.label.trim().slice(0, 120) || null : null,
+            expires_at: new Date(Date.now() + expiresInDays * 24 * 60 * 60 * 1000).toISOString(),
+            max_redemptions: maxRedemptions,
+          })
+          .eq('id', payload.codeId);
+        if (error) throw error;
+        return response({ updated: true });
+      }
+
       case 'update_module': {
         if (typeof payload.moduleId !== 'string' || typeof payload.name !== 'string') {
           return response({ error: 'A module and display name are required.' }, 400);
+        }
+        if (!canManageModule(payload.moduleId)) {
+          return response({ error: 'You do not have access to that language module.' }, 403);
         }
         const { data: currentModule, error: currentModuleError } = await adminClient
           .from('language_modules')
@@ -266,6 +361,9 @@ Deno.serve(async request => {
       case 'publish_access_type': {
         if (typeof payload.moduleId !== 'string' || payload.moduleId.length === 0) {
           return response({ error: 'Choose a language module.' }, 400);
+        }
+        if (role !== 'system') {
+          return response({ error: 'Only a System Administrator can publish a public/private access change.' }, 403);
         }
         const nextAccessType = accessType(payload.accessType);
         const { data: currentModule, error: currentModuleError } = await adminClient
@@ -370,6 +468,117 @@ Deno.serve(async request => {
           fileCount: files.length,
           publishedVersion,
         });
+      }
+
+      case 'list_administrators': {
+        if (role !== 'system') return response({ error: 'Only a System Administrator can manage administrator access.' }, 403);
+        const [{ data: adminRecords, error: adminRecordsError }, { data: assignments, error: assignmentsError }, userList] = await Promise.all([
+          adminClient.from('admin_users').select('user_id, display_name, role').order('created_at'),
+          adminClient.from('language_admin_modules').select('user_id, language_module_id'),
+          adminClient.auth.admin.listUsers({ page: 1, perPage: 1000 }),
+        ]);
+        if (adminRecordsError || assignmentsError || userList.error) {
+          throw adminRecordsError ?? assignmentsError ?? userList.error;
+        }
+        const usersById = new Map((userList.data.users ?? []).map(user => [user.id, user]));
+        const assignmentsByUser = new Map<string, string[]>();
+        for (const assignment of assignments ?? []) {
+          const current = assignmentsByUser.get(assignment.user_id) ?? [];
+          current.push(assignment.language_module_id);
+          assignmentsByUser.set(assignment.user_id, current);
+        }
+        return response({
+          administrators: (adminRecords ?? []).map(record => ({
+            user_id: record.user_id,
+            email: usersById.get(record.user_id)?.email ?? 'Unknown account',
+            display_name: record.display_name,
+            role: adminRole(record.role),
+            module_ids: assignmentsByUser.get(record.user_id) ?? [],
+          })),
+          availableUsers: (userList.data.users ?? []).map(user => ({ id: user.id, email: user.email ?? user.id })),
+        });
+      }
+
+      case 'save_administrator_permissions': {
+        if (role !== 'system') return response({ error: 'Only a System Administrator can manage administrator access.' }, 403);
+        if (typeof payload.userId !== 'string' || payload.userId.length === 0) return response({ error: 'Choose an administrator account.' }, 400);
+        const nextRole = adminRole(payload.role);
+        if (payload.userId === userResult.user.id && nextRole !== 'system') {
+          return response({ error: 'You cannot remove your own System Administrator access.' }, 400);
+        }
+        const { data: targetUser, error: targetUserError } = await adminClient.auth.admin.getUserById(payload.userId);
+        if (targetUserError || !targetUser.user) return response({ error: 'That Supabase account does not exist.' }, 400);
+        const assignedIds = nextRole === 'language' ? moduleIds(payload.moduleIds) : [];
+        const { error: upsertError } = await adminClient
+          .from('admin_users')
+          .upsert({ user_id: payload.userId, role: nextRole }, { onConflict: 'user_id' });
+        if (upsertError) throw upsertError;
+        const { error: clearError } = await adminClient
+          .from('language_admin_modules')
+          .delete()
+          .eq('user_id', payload.userId);
+        if (clearError) throw clearError;
+        if (assignedIds.length > 0) {
+          const { error: insertError } = await adminClient
+            .from('language_admin_modules')
+            .insert(assignedIds.map(language_module_id => ({ user_id: payload.userId, language_module_id })));
+          if (insertError) throw insertError;
+        }
+        return response({ saved: true });
+      }
+
+      case 'create_language_administrator': {
+        if (role !== 'system') return response({ error: 'Only a System Administrator can create administrator accounts.' }, 403);
+        const email = emailAddress(payload.email);
+        const password = temporaryPassword(payload.password);
+        const assignedIds = moduleIds(payload.moduleIds);
+        const { data: createResult, error: createError } = await adminClient.auth.admin.createUser({
+          email,
+          password,
+          email_confirm: true,
+        });
+        if (createError || !createResult.user) throw createError ?? new Error('Could not create the administrator account.');
+        try {
+          const { error: adminError } = await adminClient
+            .from('admin_users')
+            .insert({ user_id: createResult.user.id, role: 'language' });
+          if (adminError) throw adminError;
+          const { error: assignmentError } = await adminClient
+            .from('language_admin_modules')
+            .insert(assignedIds.map(language_module_id => ({ user_id: createResult.user.id, language_module_id })));
+          if (assignmentError) throw assignmentError;
+        } catch (error) {
+          await adminClient.auth.admin.deleteUser(createResult.user.id).catch(() => undefined);
+          throw error;
+        }
+        return response({ created: true });
+      }
+
+      case 'remove_language_administrator': {
+        if (role !== 'system') return response({ error: 'Only a System Administrator can remove administrator access.' }, 403);
+        if (typeof payload.userId !== 'string' || payload.userId.length === 0) return response({ error: 'Choose a Language Administrator account.' }, 400);
+        const { data: targetAdministrator, error: targetError } = await adminClient
+          .from('admin_users')
+          .select('role')
+          .eq('user_id', payload.userId)
+          .maybeSingle();
+        if (targetError) throw targetError;
+        if (!targetAdministrator || adminRole(targetAdministrator.role) !== 'language') {
+          return response({ error: 'Only a Language Administrator can be removed here.' }, 400);
+        }
+        const { error: assignmentError } = await adminClient
+          .from('language_admin_modules')
+          .delete()
+          .eq('user_id', payload.userId);
+        if (assignmentError) throw assignmentError;
+        const { error: deleteError } = await adminClient
+          .from('admin_users')
+          .delete()
+          .eq('user_id', payload.userId);
+        if (deleteError) throw deleteError;
+        // Deliberately keep the underlying Supabase Auth account. A System
+        // Administrator can reassign it later without creating a new login.
+        return response({ removed: true });
       }
 
       default:
