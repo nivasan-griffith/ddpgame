@@ -3,16 +3,9 @@
     <p class="eyebrow">INDIGENOUS LANGUAGES</p>
     <h1>Administrator portal</h1>
     <p class="intro">Sign in to manage language settings and access codes.</p>
-
     <form (ngSubmit)="signIn()">
-      <label>
-        Email address
-        <input name="email" [(ngModel)]="email" type="email" autocomplete="email" required>
-      </label>
-      <label>
-        Password
-        <input name="password" [(ngModel)]="password" type="password" autocomplete="current-password" required>
-      </label>
+      <label>Email address<input name="email" [(ngModel)]="email" type="email" autocomplete="email" required></label>
+      <label>Password<input name="password" [(ngModel)]="password" type="password" autocomplete="current-password" required></label>
       <p class="error" *ngIf="loginError">{{ loginError }}</p>
       <button class="primary" type="submit">Sign in</button>
     </form>
@@ -21,114 +14,154 @@
 
   <ng-template #dashboardTemplate>
     <header class="page-header">
-      <div>
-        <p class="eyebrow">INDIGENOUS LANGUAGES</p>
-        <h1>Administrator portal</h1>
-      </div>
+      <div><p class="eyebrow">INDIGENOUS LANGUAGES</p><h1>Administrator portal</h1></div>
       <button class="secondary" type="button" (click)="signOut()">Sign out</button>
     </header>
+
+    <nav class="portal-nav" aria-label="Administrator portal sections">
+      <button type="button" [class.active]="activeSection === 'languages'" (click)="openLanguages()">Languages</button>
+      <button *ngIf="isSystemAdmin" type="button" [class.active]="activeSection === 'administrators'" (click)="openAdministrators()">Users</button>
+    </nav>
 
     <p class="error" *ngIf="actionError">{{ actionError }}</p>
     <p class="success" *ngIf="message">{{ message }}</p>
 
-    <section class="card">
+    <section class="card" *ngIf="activeSection === 'languages' && !configuredModule">
       <div class="section-heading">
         <div>
-          <h2>Generate access code</h2>
-          <p>Codes are stored securely. The readable code is shown only once after it is created.</p>
+          <h2>Languages</h2>
+          <p>Choose a language to configure its settings.</p>
         </div>
       </div>
-
-      <div class="form-grid">
-        <label>
-          Private language module
-          <select name="selectedModule" [(ngModel)]="selectedModuleId" (change)="loadCodes()">
-            <option *ngFor="let module of privateModules" [value]="module.id">{{ module.name }}</option>
-          </select>
-        </label>
-        <label>
-          Label <span class="optional">(optional)</span>
-          <input name="codeLabel" [(ngModel)]="codeLabel" maxlength="120" placeholder="e.g. School trial">
-        </label>
-        <label>
-          Expiry in days
-          <input name="expiry" [(ngModel)]="expiresInDays" type="number" min="1" max="3650" required>
-        </label>
-        <label>
-          Usage limit
-          <input name="usage" [(ngModel)]="maxRedemptions" type="number" min="1" max="100000" required>
-        </label>
-      </div>
-      <p class="empty" *ngIf="privateModules.length === 0">No private language modules are available for access-code management.</p>
-      <button class="primary" type="button" [disabled]="!selectedModuleId || generating" (click)="generateCode()">
-        {{ generating ? 'Generating…' : 'Generate code' }}
-      </button>
-
-      <div class="generated-code" *ngIf="generatedCode">
-        <span>New access code</span>
-        <strong>{{ generatedCode }}</strong>
-        <p>Copy it now before leaving this page.</p>
-      </div>
-    </section>
-
-    <section class="card">
-      <div class="section-heading">
-        <div>
-          <h2>Access codes</h2>
-          <p>Codes cannot be read back after creation. Their status and usage can still be managed.</p>
-        </div>
-      </div>
-
-      <div class="code-list" *ngIf="activeCodes.length; else emptyCodes">
-        <article class="code-row" *ngFor="let code of activeCodes">
-          <div>
-            <strong>{{ code.label || 'Unlabelled code' }}</strong>
-            <span>Created {{ code.created_at | date:'mediumDate' }}</span>
-          </div>
-          <div>
-            <span class="muted">Expires</span>
-            <strong>{{ code.expires_at ? (code.expires_at | date:'mediumDate') : 'Never' }}</strong>
-          </div>
-          <div>
-            <span class="muted">Uses</span>
-            <strong>{{ code.redemption_count }} / {{ code.max_redemptions ?? 'Unlimited' }}</strong>
-          </div>
-          <div><span class="status" [class.inactive]="codeStatus(code) !== 'Active'">{{ codeStatus(code) }}</span></div>
-          <button *ngIf="code.is_active" class="danger" type="button" (click)="disableCode(code)">Disable</button>
+      <div class="module-grid" *ngIf="modules.length; else emptyModules">
+        <article class="module-card" *ngFor="let module of modules">
+          <div><span class="access-badge" [class.private]="module.access_type === 'private'">{{ module.access_type }}</span><h3>{{ module.name }}</h3></div>
+          <button class="secondary" type="button" (click)="configureModule(module)">Configure</button>
         </article>
       </div>
-      <ng-template #emptyCodes><p class="empty">No active codes are available for this language.</p></ng-template>
+      <ng-template #emptyModules><p class="empty">No language modules have been assigned to this account.</p></ng-template>
     </section>
 
-    <section class="card">
+    <section class="card" *ngIf="activeSection === 'languages' && configuredModule as module">
+      <div class="section-heading config-heading">
+        <div><button class="back-link" type="button" (click)="openLanguages()">← All languages</button><h2>Configure {{ module.name }}</h2><p>Update the display settings for this language module.</p></div>
+        <span class="access-badge" [class.private]="module.access_type === 'private'">{{ module.access_type }}</span>
+      </div>
+      <nav class="configure-nav" aria-label="Language configuration sections">
+        <button type="button" [class.active]="configureSection === 'settings'" (click)="selectConfigureSection('settings')">Settings</button>
+        <button type="button" [class.active]="configureSection === 'content'" (click)="selectConfigureSection('content')">Modify language</button>
+      </nav>
+
+      <div *ngIf="configureSection === 'settings'">
+      <div class="form-grid">
+        <label>Display name<input [name]="'name-' + module.id" [(ngModel)]="module.name" maxlength="120"></label>
+        <label *ngIf="isSystemAdmin">Access type<select [name]="'access-' + module.id" [(ngModel)]="accessTypeSelections[module.id]"><option value="public">Public</option><option value="private">Private</option></select></label>
+        <label *ngIf="!isSystemAdmin">Access type<div class="read-only-value">{{ module.access_type }}</div></label>
+        <label>Published version<div class="read-only-value">{{ module.published_version || 'Not recorded' }}</div></label>
+      </div>
+      <div class="config-actions">
+        <button class="primary" type="button" [disabled]="publishingModuleId !== null" (click)="saveModule(module)">{{ publishingModuleId === module.id ? 'Saving…' : 'Save changes' }}</button>
+      </div>
+
+      <section class="access-settings" *ngIf="module.access_type === 'private'">
+        <h3>Access codes</h3>
+        <p>Generate and manage codes for {{ module.name }}. The readable code is shown only once after it is created.</p>
+        <div class="form-grid">
+          <label>Label <span class="optional">(optional)</span><input name="codeLabel" [(ngModel)]="codeLabel" maxlength="120" placeholder="e.g. School trial"></label>
+          <label>Expiry in days<input name="expiry" [(ngModel)]="expiresInDays" type="number" min="1" max="3650" required></label>
+          <label>Usage limit<input name="usage" [(ngModel)]="maxRedemptions" type="number" min="1" max="100000" required></label>
+        </div>
+        <button class="primary" type="button" [disabled]="!selectedModuleId || generating" (click)="generateCode()">{{ generating ? 'Generating…' : 'Generate code' }}</button>
+        <div class="generated-code" *ngIf="generatedCode"><span>New access code</span><strong>{{ generatedCode }}</strong><p>Copy it now before leaving this page.</p></div>
+        <div class="code-list" *ngIf="activeCodes.length; else emptyCodes">
+          <article class="code-row" *ngFor="let code of activeCodes">
+            <div><strong>{{ code.label || 'Unlabelled code' }}</strong><span>Created {{ code.created_at | date:'mediumDate' }}</span></div>
+            <div><span class="muted">Expires</span><strong>{{ code.expires_at ? (code.expires_at | date:'mediumDate') : 'Never' }}</strong></div>
+            <div><span class="muted">Uses</span><strong>{{ code.redemption_count }} / {{ code.max_redemptions ?? 'Unlimited' }}</strong></div>
+            <div><span class="status" [class.inactive]="codeStatus(code) !== 'Active'">{{ codeStatus(code) }}</span></div>
+            <button class="secondary" type="button" (click)="openCodeManager(code)">Manage</button>
+          </article>
+        </div>
+        <ng-template #emptyCodes><p class="empty">No active codes are available for this language.</p></ng-template>
+      </section>
+      </div>
+
+      <section class="content-outline" *ngIf="configureSection === 'content'">
+        <div class="section-heading"><div><h3>Modify language content</h3><p>Planned content-management area for a future release.</p></div><span class="outline-badge">Outline only</span></div>
+        <div class="future-grid">
+          <article><h3>Words and images</h3><p>Add, edit, or remove words and their associated images.</p></article>
+          <article><h3>Audio</h3><p>Upload or replace optional pronunciation audio for each word.</p></article>
+          <article><h3>Review and publish</h3><p>Validate changes, preview them, and publish a new module version for users to download.</p></article>
+        </div>
+      </section>
+    </section>
+
+    <section class="card" *ngIf="activeSection === 'administrators' && isSystemAdmin">
       <div class="section-heading">
         <div>
-          <h2>Language settings</h2>
-          <p>Publishing an access change copies all module files to the correct Storage bucket. Making a module public exposes it to future public downloads; previously downloaded copies cannot be taken back.</p>
+          <h2>Users</h2>
+          <p>Create Language Administrator accounts and choose the language modules each person may manage.</p>
         </div>
+        <span class="role-badge">System Administrator only</span>
       </div>
-      <article class="module-row" *ngFor="let module of modules">
-        <label>
-          Display name
-          <input [name]="'name-' + module.id" [(ngModel)]="module.name" maxlength="120">
-        </label>
-        <label>
-          Access type
-          <select [name]="'access-' + module.id" [(ngModel)]="accessTypeSelections[module.id]">
-            <option value="public">Public</option>
-            <option value="private">Private</option>
-          </select>
-        </label>
-        <button class="secondary" type="button" (click)="saveModule(module)">Save name</button>
-        <button
-          class="primary"
-          type="button"
-          [disabled]="publishingModuleId !== null || accessTypeSelections[module.id] === module.access_type"
-          (click)="publishAccessType(module)">
-          {{ publishingModuleId === module.id ? 'Publishing…' : 'Publish access change' }}
-        </button>
-      </article>
+      <section class="user-management-section" id="update-language-administrator">
+        <h3>Create Language Administrator</h3>
+        <p class="hint">Create a login, choose a temporary password, and assign one or more language modules.</p>
+        <div class="form-grid">
+          <label>Email address<input name="newAdministratorEmail" [(ngModel)]="newAdministratorEmail" type="email" autocomplete="off" required></label>
+          <label>Temporary password<input name="newAdministratorPassword" [(ngModel)]="newAdministratorPassword" type="password" minlength="12" autocomplete="new-password" required></label>
+        </div>
+        <div class="assignment-builder">
+          <label>Language module<select name="newAdministratorModule" [(ngModel)]="newAdministratorSelectedModuleId"><option *ngFor="let module of modules" [value]="module.id">{{ module.name }}</option></select></label>
+          <button class="secondary" type="button" (click)="addNewAdministratorModule()">Add language</button>
+        </div>
+        <div class="assigned-modules" *ngIf="newAdministratorModuleIds.length; else noNewAssignments"><button type="button" *ngFor="let moduleId of newAdministratorModuleIds" (click)="removeNewAdministratorModule(moduleId)">{{ moduleName(moduleId) }} <span aria-hidden="true">×</span></button></div>
+        <ng-template #noNewAssignments><p class="hint assignment-empty">No languages assigned yet.</p></ng-template>
+        <button class="primary" type="button" [disabled]="!newAdministratorEmail || !newAdministratorPassword || newAdministratorModuleIds.length === 0 || creatingAdministrator" (click)="createLanguageAdministrator()">{{ creatingAdministrator ? 'Creating…' : 'Create Language Administrator' }}</button>
+      </section>
+
+      <p class="hint">Assignments are enforced by the secure server endpoint, not only by this screen. Share temporary passwords securely and ask users to change them after their first sign-in.</p>
+
+      <div class="administrator-list" *ngIf="administrators.length">
+        <h3>Current administrators</h3>
+        <article *ngFor="let administrator of administrators">
+          <div class="administrator-heading"><div class="administrator-identity"><strong>{{ administrator.email }}</strong><span class="role-badge">{{ administrator.role }} administrator</span></div><button *ngIf="administrator.role === 'language'" class="secondary edit-administrator" type="button" (click)="editAdministrator(administrator)">Edit</button></div>
+          <p *ngIf="administrator.role === 'system'">Full access to all languages and administrator assignments.</p>
+          <p *ngIf="administrator.role === 'language'">Assigned: <span *ngFor="let moduleId of administrator.module_ids; let last = last">{{ moduleName(moduleId) }}{{ last ? '' : ', ' }}</span></p>
+        </article>
+      </div>
     </section>
+
+    <div class="modal-backdrop" *ngIf="managingCode" (click)="closeCodeManager()">
+      <section class="modal" role="dialog" aria-modal="true" aria-labelledby="manage-code-title" (click)="$event.stopPropagation()">
+        <h2 id="manage-code-title">Manage access code</h2>
+        <p class="hint">For security, the original readable code cannot be viewed or changed after creation.</p>
+        <label>Label <span class="optional">(optional)</span><input name="editCodeLabel" [(ngModel)]="editCodeLabel" maxlength="120"></label>
+        <label>Expiry in days from today<input name="editExpiry" [(ngModel)]="editExpiresInDays" type="number" min="1" max="3650" required></label>
+        <label>Usage limit<input name="editUsage" [(ngModel)]="editMaxRedemptions" type="number" min="1" max="100000" required></label>
+        <div class="modal-actions"><button class="danger" type="button" [disabled]="savingCode" (click)="deleteCode()">Delete code</button><span></span><button class="secondary" type="button" [disabled]="savingCode" (click)="closeCodeManager()">Cancel</button><button class="primary" type="button" [disabled]="savingCode" (click)="saveCode()">{{ savingCode ? 'Saving…' : 'Save changes' }}</button></div>
+      </section>
+    </div>
+
+    <div class="modal-backdrop" *ngIf="editingAdministrator as administrator" (click)="closeAdministratorEditor()">
+      <section class="modal" role="dialog" aria-modal="true" aria-labelledby="edit-administrator-title" (click)="$event.stopPropagation()">
+        <h2 id="edit-administrator-title">Edit Language Administrator</h2>
+        <p class="hint">{{ administrator.email }}</p>
+        <div class="assignment-builder">
+          <label>Language module<select name="editingAdministratorModule" [(ngModel)]="editingSelectedModuleId"><option *ngFor="let module of modules" [value]="module.id">{{ module.name }}</option></select></label>
+          <button class="secondary" type="button" [disabled]="savingAdministrator" (click)="addAdministratorModule()">Add language</button>
+        </div>
+        <p class="assignment-instructions" *ngIf="editingModuleIds.length">Assigned languages — click the × beside a language to remove that permission, then save changes.</p>
+        <div class="assigned-modules" *ngIf="editingModuleIds.length; else noEditingAssignments"><button type="button" *ngFor="let moduleId of editingModuleIds" [disabled]="savingAdministrator" [attr.aria-label]="'Remove ' + moduleName(moduleId) + ' permission'" (click)="removeAdministratorModule(moduleId)">{{ moduleName(moduleId) }} <span aria-hidden="true">×</span></button></div>
+        <ng-template #noEditingAssignments><p class="hint assignment-empty">No languages assigned yet.</p></ng-template>
+        <div class="user-action-buttons">
+          <button class="danger" type="button" [disabled]="savingAdministrator" (click)="removeLanguageAdministrator()">Remove Language Administrator</button>
+          <span></span>
+          <button class="secondary" type="button" [disabled]="savingAdministrator" (click)="closeAdministratorEditor()">Cancel</button>
+          <button class="primary" type="button" [disabled]="savingAdministrator || editingModuleIds.length === 0" (click)="saveLanguageAdministrator()">{{ savingAdministrator ? 'Saving…' : 'Save changes' }}</button>
+        </div>
+      </section>
+    </div>
   </ng-template>
 </main>
 
