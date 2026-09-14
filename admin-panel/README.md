@@ -66,6 +66,17 @@ Open the local URL reported by Angular (normally `http://localhost:4200`). If
 the learner app is already using that port, Angular will offer another port;
 accept it.
 
+## Runtime configuration
+
+The portal reads its Supabase server address from
+`src/assets/config/app-config.json` before the application starts. To point a
+deployed build at another Supabase project, update the copied
+`assets/config/app-config.json` file on the web server; rebuilding the portal
+is not required. Use the same `serverUrl` as the learner application.
+
+The public publishable key remains part of the compiled environment files. A
+server URL and publishable key must belong to the same Supabase project.
+
 ## Security model
 
 The browser receives only the Supabase project URL and publishable key. It
