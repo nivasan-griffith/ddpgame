@@ -32,6 +32,7 @@
           <h2>Languages</h2>
           <p>Choose a language to configure its settings.</p>
         </div>
+        <button *ngIf="isSystemAdmin" class="primary" type="button" (click)="openLanguageCreator()">Add language</button>
       </div>
       <div class="module-grid" *ngIf="modules.length; else emptyModules">
         <article class="module-card" *ngFor="let module of modules">
@@ -61,6 +62,7 @@
       </div>
       <div class="config-actions">
         <button class="primary" type="button" [disabled]="publishingModuleId !== null" (click)="saveModule(module)">{{ publishingModuleId === module.id ? 'Saving…' : 'Save changes' }}</button>
+        <button *ngIf="isSystemAdmin" class="danger" type="button" [disabled]="deletingLanguage" (click)="deleteLanguage(module)">{{ deletingLanguage ? 'Deleting…' : 'Delete language' }}</button>
       </div>
 
       <section class="access-settings" *ngIf="module.access_type === 'private'">
@@ -86,13 +88,22 @@
       </section>
       </div>
 
-      <section class="content-outline" *ngIf="configureSection === 'content'">
-        <div class="section-heading"><div><h3>Modify language content</h3><p>Planned content-management area for a future release.</p></div><span class="outline-badge">Outline only</span></div>
-        <div class="future-grid">
-          <article><h3>Words and images</h3><p>Add, edit, or remove words and their associated images.</p></article>
-          <article><h3>Audio</h3><p>Upload or replace optional pronunciation audio for each word.</p></article>
-          <article><h3>Review and publish</h3><p>Validate changes, preview them, and publish a new module version for users to download.</p></article>
+      <section class="content-editor" *ngIf="configureSection === 'content'">
+        <div class="section-heading">
+          <div><h3>Words</h3><p>Add, edit, or remove language entries. Media paths refer to files already stored inside this language module.</p></div>
+          <div class="content-actions"><span class="version-badge">Version {{ contentVersion || module.published_version || 'unknown' }}</span><button class="primary" type="button" [disabled]="loadingContent || !contentVersion" (click)="openWordEditor()">Add word</button></div>
         </div>
+        <p class="empty" *ngIf="loadingContent">Loading language content…</p>
+        <div class="word-list" *ngIf="!loadingContent && words.length; else emptyWords">
+          <article class="word-row" *ngFor="let word of words">
+            <div class="word-identity"><strong>{{ word.word }}</strong><span>{{ word.english }}</span></div>
+            <div><span class="muted">ID</span><strong>{{ word.id }}</strong></div>
+            <div><span class="muted">Category</span><strong>{{ word.category || '—' }}</strong></div>
+            <div class="word-media"><span *ngIf="word.image">Image</span><span *ngIf="word.audio.language || word.audio.english">Audio</span><span *ngIf="!word.image && !word.audio.language && !word.audio.english">No media</span></div>
+            <div class="row-actions"><button class="secondary" type="button" [disabled]="savingWord" (click)="openWordEditor(word)">Edit</button><button class="danger" type="button" [disabled]="savingWord" (click)="deleteWord(word)">Delete</button></div>
+          </article>
+        </div>
+        <ng-template #emptyWords><p class="empty" *ngIf="!loadingContent">No words have been added to this language yet.</p></ng-template>
       </section>
     </section>
 
@@ -131,6 +142,37 @@
         </article>
       </div>
     </section>
+
+    <div class="modal-backdrop" *ngIf="languageCreatorOpen" (click)="closeLanguageCreator()">
+      <section class="modal" role="dialog" aria-modal="true" aria-labelledby="create-language-title" (click)="$event.stopPropagation()">
+        <h2 id="create-language-title">Add language</h2>
+        <p class="hint">New languages begin as private modules with an empty word list.</p>
+        <label>Language ID<input name="newLanguageId" [(ngModel)]="newLanguageId" maxlength="64" pattern="[a-z0-9]+(-[a-z0-9]+)*" placeholder="e.g. yugambeh"></label>
+        <p class="field-help">Use lowercase letters, numbers, and single hyphens. This permanent ID is also used for stored files.</p>
+        <label>Display name<input name="newLanguageName" [(ngModel)]="newLanguageName" maxlength="120" placeholder="e.g. Yugambeh"></label>
+        <div class="modal-actions simple"><button class="secondary" type="button" [disabled]="creatingLanguage" (click)="closeLanguageCreator()">Cancel</button><button class="primary" type="button" [disabled]="creatingLanguage || !newLanguageId.trim() || !newLanguageName.trim()" (click)="createLanguage()">{{ creatingLanguage ? 'Creating…' : 'Create language' }}</button></div>
+      </section>
+    </div>
+
+    <div class="modal-backdrop" *ngIf="editingWord as word" (click)="closeWordEditor()">
+      <section class="modal modal-wide" role="dialog" aria-modal="true" aria-labelledby="edit-word-title" (click)="$event.stopPropagation()">
+        <h2 id="edit-word-title">{{ editingWordOriginalId ? 'Edit word' : 'Add word' }}</h2>
+        <div class="form-grid word-form">
+          <label>Word ID<input name="wordId" [(ngModel)]="word.id" maxlength="64" placeholder="e.g. morning"></label>
+          <label>Category <span class="optional">(optional)</span><input name="wordCategory" [(ngModel)]="word.category" maxlength="160"></label>
+          <label>Language word<input name="languageWord" [(ngModel)]="word.word" maxlength="160"></label>
+          <label>English translation<input name="englishWord" [(ngModel)]="word.english" maxlength="160"></label>
+          <label>Entry source<select name="entrySource" [(ngModel)]="word.entrySource"><option value="original">Original</option><option value="dictionary">Dictionary</option></select></label>
+          <span></span>
+          <label>Image path <span class="optional">(optional)</span><input name="wordImage" [(ngModel)]="word.image" maxlength="500" placeholder="images/example.webp"></label>
+          <label>Language audio path <span class="optional">(optional)</span><input name="languageAudio" [(ngModel)]="word.audio.language" maxlength="500" placeholder="audio/example.mp3"></label>
+          <label>English audio path <span class="optional">(optional)</span><input name="englishAudio" [(ngModel)]="word.audio.english" maxlength="500" placeholder="audio/example-english.mp3"></label>
+        </div>
+        <div class="checkbox-row"><label><input name="availableInCurrentVersion" [(ngModel)]="word.availableInCurrentVersion" type="checkbox">Available in current version</label><label><input name="playable" [(ngModel)]="word.playable" type="checkbox">Playable in games</label></div>
+        <p class="field-help">Saving updates the module JSON immediately and publishes the next patch version. Existing media files are not deleted when an entry changes.</p>
+        <div class="modal-actions simple"><button class="secondary" type="button" [disabled]="savingWord" (click)="closeWordEditor()">Cancel</button><button class="primary" type="button" [disabled]="savingWord || !word.id.trim() || !word.word.trim() || !word.english.trim()" (click)="saveWord()">{{ savingWord ? 'Saving…' : 'Save word' }}</button></div>
+      </section>
+    </div>
 
     <div class="modal-backdrop" *ngIf="managingCode" (click)="closeCodeManager()">
       <section class="modal" role="dialog" aria-modal="true" aria-labelledby="manage-code-title" (click)="$event.stopPropagation()">

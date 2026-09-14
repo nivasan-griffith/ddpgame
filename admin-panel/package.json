@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "start": "ng serve",
-    "build": "ng build"
+    "build": "ng build",
+    "test:content-contract": "node scripts/language-content.test.mjs"
   },
   "dependencies": {
     "@angular/animations": "^18.0.0",

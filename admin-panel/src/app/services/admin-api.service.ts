@@ -14,6 +14,34 @@ export interface LanguageModule {
   created_at: string;
 }
 
+export interface LanguageWord {
+  id: string;
+  word: string;
+  english: string;
+  category?: string;
+  entrySource?: 'original' | 'dictionary';
+  availableInCurrentVersion?: boolean;
+  playable?: boolean;
+  image: string | null;
+  audio: { language: string | null; english: string | null };
+  [key: string]: unknown;
+}
+
+export interface LanguageManifest {
+  id: string;
+  name: string;
+  version: string;
+  data: string;
+  games: string[];
+  [key: string]: unknown;
+}
+
+export interface ModuleContent {
+  manifest: LanguageManifest;
+  words: LanguageWord[];
+  version: string;
+}
+
 export interface AccessCode {
   id: string;
   language_module_id: string;
@@ -65,6 +93,14 @@ export class AdminApiService {
     return this.request<AdminDashboard>({ action: 'list_modules' });
   }
 
+  getModuleContent(moduleId: string): Promise<ModuleContent> {
+    return this.request({ action: 'get_module_content', moduleId });
+  }
+
+  createModule(id: string, name: string): Promise<{ module: LanguageModule; manifest: LanguageManifest; words: LanguageWord[] }> {
+    return this.request({ action: 'create_module', id, name });
+  }
+
   async listCodes(moduleId?: string): Promise<AccessCode[]> {
     const result = await this.request<{ codes: AccessCode[] }>({ action: 'list_codes', moduleId });
     return result.codes;
@@ -98,13 +134,30 @@ export class AdminApiService {
     return this.request({ action: 'remove_language_administrator', userId });
   }
 
-  updateModule(module: LanguageModule): Promise<{ updated: boolean }> {
+  updateModule(module: LanguageModule): Promise<{ updated: boolean; version: string; name: string }> {
     return this.request({
       action: 'update_module',
       moduleId: module.id,
       name: module.name,
       accessType: module.access_type,
+      expectedVersion: module.published_version,
     });
+  }
+
+  deleteModule(moduleId: string, expectedVersion: string): Promise<{ deleted: boolean; cleanupPending: boolean }> {
+    return this.request({ action: 'delete_module', moduleId, expectedVersion });
+  }
+
+  createWord(moduleId: string, expectedVersion: string, word: LanguageWord): Promise<{ words: LanguageWord[]; version: string }> {
+    return this.request({ action: 'create_word', moduleId, expectedVersion, word });
+  }
+
+  updateWord(moduleId: string, wordId: string, expectedVersion: string, word: LanguageWord): Promise<{ words: LanguageWord[]; version: string }> {
+    return this.request({ action: 'update_word', moduleId, wordId, expectedVersion, word });
+  }
+
+  deleteWord(moduleId: string, wordId: string, expectedVersion: string): Promise<{ words: LanguageWord[]; version: string }> {
+    return this.request({ action: 'delete_word', moduleId, wordId, expectedVersion });
   }
 
   publishAccessType(moduleId: string, accessType: 'public' | 'private'): Promise<{

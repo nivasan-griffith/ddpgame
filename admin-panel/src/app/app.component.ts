@@ -1,11 +1,32 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { AdminApiService, AdminRole, AccessCode, AdministratorAccount, LanguageModule } from './services/admin-api.service';
+import {
+  AdminApiService,
+  AdminRole,
+  AccessCode,
+  AdministratorAccount,
+  LanguageModule,
+  LanguageWord,
+} from './services/admin-api.service';
 import { AdminAuthService } from './services/admin-auth.service';
 
 type PortalSection = 'languages' | 'administrators';
 type ConfigureSection = 'settings' | 'content';
+
+function emptyWord(): LanguageWord {
+  return {
+    id: '',
+    word: '',
+    english: '',
+    category: '',
+    entrySource: 'original',
+    availableInCurrentVersion: true,
+    playable: true,
+    image: null,
+    audio: { language: null, english: null },
+  };
+}
 
 @Component({
   selector: 'admin-root',
@@ -50,6 +71,17 @@ export class AppComponent implements OnInit {
   editExpiresInDays = 30;
   editMaxRedemptions = 1;
   savingCode = false;
+  words: LanguageWord[] = [];
+  contentVersion = '';
+  loadingContent = false;
+  editingWord: LanguageWord | null = null;
+  editingWordOriginalId: string | null = null;
+  savingWord = false;
+  creatingLanguage = false;
+  languageCreatorOpen = false;
+  newLanguageId = '';
+  newLanguageName = '';
+  deletingLanguage = false;
 
   get privateModules(): LanguageModule[] { return this.modules.filter(module => module.access_type === 'private'); }
   get activeCodes(): AccessCode[] { return this.codes.filter(code => code.is_active); }
@@ -97,6 +129,8 @@ export class AppComponent implements OnInit {
     this.configuredModule = null;
     this.configureSection = 'settings';
     this.actionError = '';
+    this.words = [];
+    this.contentVersion = '';
   }
 
   async openAdministrators(): Promise<void> {
@@ -198,6 +232,10 @@ export class AppComponent implements OnInit {
     this.activeSection = 'languages';
     this.configuredModule = module;
     this.configureSection = 'settings';
+    this.words = [];
+    this.contentVersion = '';
+    this.editingWord = null;
+    this.editingWordOriginalId = null;
     this.actionError = '';
     this.message = '';
     if (module.access_type === 'private') {
@@ -206,8 +244,132 @@ export class AppComponent implements OnInit {
     }
   }
 
-  selectConfigureSection(section: ConfigureSection): void {
+  async selectConfigureSection(section: ConfigureSection): Promise<void> {
     this.configureSection = section;
+    if (section === 'content' && this.configuredModule && !this.loadingContent) {
+      await this.loadModuleContent();
+    }
+  }
+
+  async loadModuleContent(): Promise<void> {
+    if (!this.configuredModule) return;
+    this.loadingContent = true;
+    this.actionError = '';
+    try {
+      const content = await this.api.getModuleContent(this.configuredModule.id);
+      this.words = content.words;
+      this.contentVersion = content.version;
+      this.configuredModule.published_version = content.version;
+    } catch (error) {
+      this.actionError = this.errorMessage(error);
+    } finally {
+      this.loadingContent = false;
+    }
+  }
+
+  openLanguageCreator(): void {
+    if (!this.isSystemAdmin) return;
+    this.newLanguageId = '';
+    this.newLanguageName = '';
+    this.languageCreatorOpen = true;
+    this.actionError = '';
+  }
+
+  closeLanguageCreator(): void {
+    if (!this.creatingLanguage) this.languageCreatorOpen = false;
+  }
+
+  async createLanguage(): Promise<void> {
+    if (!this.newLanguageId.trim() || !this.newLanguageName.trim() || this.creatingLanguage) return;
+    this.creatingLanguage = true;
+    this.actionError = '';
+    try {
+      const result = await this.api.createModule(this.newLanguageId, this.newLanguageName);
+      this.languageCreatorOpen = false;
+      this.message = `${result.module.name} was created as a private language.`;
+      await this.loadDashboard();
+      const created = this.modules.find(module => module.id === result.module.id);
+      if (created) await this.configureModule(created);
+    } catch (error) {
+      this.actionError = this.errorMessage(error);
+    } finally {
+      this.creatingLanguage = false;
+    }
+  }
+
+  openWordEditor(word?: LanguageWord): void {
+    this.editingWordOriginalId = word?.id ?? null;
+    this.editingWord = word
+      ? { ...word, audio: { ...word.audio } }
+      : emptyWord();
+    this.actionError = '';
+  }
+
+  closeWordEditor(): void {
+    if (!this.savingWord) {
+      this.editingWord = null;
+      this.editingWordOriginalId = null;
+    }
+  }
+
+  async saveWord(): Promise<void> {
+    if (!this.configuredModule || !this.editingWord || !this.contentVersion || this.savingWord) return;
+    this.savingWord = true;
+    this.actionError = '';
+    try {
+      const result = this.editingWordOriginalId
+        ? await this.api.updateWord(this.configuredModule.id, this.editingWordOriginalId, this.contentVersion, this.editingWord)
+        : await this.api.createWord(this.configuredModule.id, this.contentVersion, this.editingWord);
+      this.words = result.words;
+      this.contentVersion = result.version;
+      this.configuredModule.published_version = result.version;
+      this.message = this.editingWordOriginalId ? 'Word entry updated.' : 'Word entry added.';
+      this.editingWord = null;
+      this.editingWordOriginalId = null;
+    } catch (error) {
+      this.actionError = this.errorMessage(error);
+      if (this.actionError.includes('changed after you opened it')) await this.loadModuleContent();
+    } finally {
+      this.savingWord = false;
+    }
+  }
+
+  async deleteWord(word: LanguageWord): Promise<void> {
+    if (!this.configuredModule || !this.contentVersion || this.savingWord) return;
+    if (!confirm(`Delete “${word.word}” (${word.english})? The entry will be removed from the module.`)) return;
+    this.savingWord = true;
+    this.actionError = '';
+    try {
+      const result = await this.api.deleteWord(this.configuredModule.id, word.id, this.contentVersion);
+      this.words = result.words;
+      this.contentVersion = result.version;
+      this.configuredModule.published_version = result.version;
+      this.message = 'Word entry deleted. Referenced media files were retained in case another word uses them.';
+    } catch (error) {
+      this.actionError = this.errorMessage(error);
+      if (this.actionError.includes('changed after you opened it')) await this.loadModuleContent();
+    } finally {
+      this.savingWord = false;
+    }
+  }
+
+  async deleteLanguage(module: LanguageModule): Promise<void> {
+    if (!this.isSystemAdmin || !module.published_version || this.deletingLanguage) return;
+    if (!confirm(`Delete ${module.name}? Its language record and stored module files will be removed. This cannot be undone.`)) return;
+    this.deletingLanguage = true;
+    this.actionError = '';
+    try {
+      const result = await this.api.deleteModule(module.id, module.published_version);
+      this.openLanguages();
+      this.message = result.cleanupPending
+        ? `${module.name} was deleted. Some stored files still need administrator cleanup.`
+        : `${module.name} and its stored module files were deleted.`;
+      await this.loadDashboard();
+    } catch (error) {
+      this.actionError = this.errorMessage(error);
+    } finally {
+      this.deletingLanguage = false;
+    }
   }
 
   async loadCodes(): Promise<void> {
@@ -281,7 +443,10 @@ export class AppComponent implements OnInit {
     this.actionError = '';
     this.message = '';
     try {
-      await this.api.updateModule(module);
+      const updated = await this.api.updateModule(module);
+      module.name = updated.name;
+      module.published_version = updated.version;
+      this.contentVersion = updated.version;
       if (isAccessChange) {
         await this.publishAccessType(module, true);
       } else {
