@@ -53,8 +53,8 @@ Use this checklist for IND-53. Check an item only when the linked evidence exist
 
 | Field | Value |
 | --- | --- |
-| Release commit/tag | Pending |
-| Release PR | Pending |
+| Release commit/tag | Initial handover evidence commit `9b5fb33`; final merge SHA/tag pending |
+| Release PR | `https://github.com/nivasan-griffith/ddpgame/pull/30` (review/merge pending) |
 | Submission destination | Pending |
 | Submitted by/date | Pending |
 | Receipt/link | Pending |

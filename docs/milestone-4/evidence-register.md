@@ -63,7 +63,7 @@ Paste or link concise results here; do not add credentials or full noisy logs.
 | Language/content management | `https://github.com/nivasan-griffith/ddpgame/pull/28` | Open dependency; review and merge pending. |
 | Admin portal restructure | `https://github.com/nivasan-griffith/ddpgame/pull/27` | Open dependency; review and merge pending. |
 | Responsive Drag & Drop | `https://github.com/nivasan-griffith/ddpgame/pull/29` | Open dependency; review and merge pending. |
-| Milestone 4 implementation PR | Pending | Add after opening; record review and merge separately. |
+| Milestone 4 handover and acceptance pack | `https://github.com/nivasan-griffith/ddpgame/pull/30` | Open from `codex/m4-final-handover`; review and merge pending. Initial evidence commit: `9b5fb33`. |
 | Milestone 4 Linear project | `https://linear.app/indigenous-project/project/milestone-4-final-handover-9f70e82ef2f9` | Update issue states only when supported by this register. |
 
 ## Acceptance record
