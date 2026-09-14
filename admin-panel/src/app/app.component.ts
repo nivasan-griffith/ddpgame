@@ -281,6 +281,8 @@ export class AppComponent implements OnInit {
     this.actionError = '';
     this.message = '';
     try {
+      // Publishing access type is a separate server-side storage operation;
+      // save the editable module metadata before starting that operation.
       await this.api.updateModule(module);
       if (isAccessChange) {
         await this.publishAccessType(module, true);

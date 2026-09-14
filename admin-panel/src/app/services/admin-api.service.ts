@@ -33,14 +33,8 @@ export interface AdminDashboard {
 export interface AdministratorAccount {
   user_id: string;
   email: string;
-  display_name: string | null;
   role: AdminRole;
   module_ids: string[];
-}
-
-export interface AvailableUser {
-  id: string;
-  email: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -82,7 +76,7 @@ export class AdminApiService {
     return this.request({ action: 'update_code', codeId, label, expiresInDays, maxRedemptions });
   }
 
-  listAdministrators(): Promise<{ administrators: AdministratorAccount[]; availableUsers: AvailableUser[] }> {
+  listAdministrators(): Promise<{ administrators: AdministratorAccount[] }> {
     return this.request({ action: 'list_administrators' });
   }
 

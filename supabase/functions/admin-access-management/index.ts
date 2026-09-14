@@ -98,6 +98,8 @@ async function listModuleFiles(
 ): Promise<string[]> {
   const files: string[] = [];
 
+  // Storage represents folders as items without an id, so walk the full
+  // module prefix before publishing or deleting its files.
   const walk = async (folder: string): Promise<void> => {
     const { data, error } = await client.storage.from(bucket).list(folder, { limit: 1000 });
     if (error) throw error;
@@ -170,6 +172,8 @@ Deno.serve(async request => {
   }
   if (!authorization?.startsWith('Bearer ')) return response({ error: 'Administrator login is required.' }, 401);
 
+  // Validate the caller with their bearer token before creating a separate
+  // service-role client. The service-role key never leaves this function.
   const authClient = createClient(supabaseUrl, anonKey, {
     global: { headers: { Authorization: authorization } },
   });
@@ -200,6 +204,7 @@ Deno.serve(async request => {
     return response({ error: 'Could not verify language permissions.' }, 500);
   }
   const assignedModuleIds = new Set((assignments ?? []).map(assignment => assignment.language_module_id));
+  // UI visibility is not trusted: each action checks this server-side scope.
   const canManageModule = (moduleId: string): boolean => role === 'system' || assignedModuleIds.has(moduleId);
 
   let payload: AdminRequest;
@@ -344,11 +349,10 @@ Deno.serve(async request => {
           .maybeSingle();
         if (currentModuleError) throw currentModuleError;
         if (!currentModule) return response({ error: 'That language module does not exist.' }, 400);
-        // A public/private change also requires files to be published to the
-        // corresponding location. Do not let a label-only update accidentally
-        // expose or break a module before the publishing workflow exists.
+        // Access changes must use publish_access_type, which moves the module
+        // files before changing the database setting.
         if (payload.accessType !== undefined && payload.accessType !== currentModule.access_type) {
-          return response({ error: 'Access type changes require the module publishing workflow and are not available yet.' }, 400);
+          return response({ error: 'Access type changes must use the controlled publishing workflow.' }, 400);
         }
         const { error } = await adminClient
           .from('language_modules')
@@ -473,13 +477,14 @@ Deno.serve(async request => {
       case 'list_administrators': {
         if (role !== 'system') return response({ error: 'Only a System Administrator can manage administrator access.' }, 403);
         const [{ data: adminRecords, error: adminRecordsError }, { data: assignments, error: assignmentsError }, userList] = await Promise.all([
-          adminClient.from('admin_users').select('user_id, display_name, role').order('created_at'),
+          adminClient.from('admin_users').select('user_id, role').order('created_at'),
           adminClient.from('language_admin_modules').select('user_id, language_module_id'),
           adminClient.auth.admin.listUsers({ page: 1, perPage: 1000 }),
         ]);
         if (adminRecordsError || assignmentsError || userList.error) {
           throw adminRecordsError ?? assignmentsError ?? userList.error;
         }
+        // Auth owns email addresses; public.admin_users only stores the role.
         const usersById = new Map((userList.data.users ?? []).map(user => [user.id, user]));
         const assignmentsByUser = new Map<string, string[]>();
         for (const assignment of assignments ?? []) {
@@ -491,11 +496,9 @@ Deno.serve(async request => {
           administrators: (adminRecords ?? []).map(record => ({
             user_id: record.user_id,
             email: usersById.get(record.user_id)?.email ?? 'Unknown account',
-            display_name: record.display_name,
             role: adminRole(record.role),
             module_ids: assignmentsByUser.get(record.user_id) ?? [],
           })),
-          availableUsers: (userList.data.users ?? []).map(user => ({ id: user.id, email: user.email ?? user.id })),
         });
       }
 
@@ -513,6 +516,8 @@ Deno.serve(async request => {
           .from('admin_users')
           .upsert({ user_id: payload.userId, role: nextRole }, { onConflict: 'user_id' });
         if (upsertError) throw upsertError;
+        // Replace the assignment set instead of patching it, so removed
+        // language permissions cannot accidentally remain in the database.
         const { error: clearError } = await adminClient
           .from('language_admin_modules')
           .delete()
