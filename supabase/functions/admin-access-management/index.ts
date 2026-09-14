@@ -164,6 +164,9 @@ async function loadModuleContent(
   if (manifestError || !manifestBlob) throw manifestError ?? new Error('Could not read the module manifest.');
   const manifestText = await manifestBlob.text();
   const manifest = validated(() => parseManifestJson(manifestText));
+  if (manifest.id !== module.id) {
+    throw new HttpError(400, 'The module manifest ID does not match its catalogue record.');
+  }
   const { data: wordsBlob, error: wordsError } = await storage.download(`${module.content_prefix}/${manifest.data}`);
   if (wordsError || !wordsBlob) throw wordsError ?? new Error('Could not read the module words file.');
   const wordsText = await wordsBlob.text();
@@ -270,13 +273,19 @@ async function listAllModuleFiles(
 ): Promise<string[]> {
   const files: string[] = [];
   const walk = async (folder: string): Promise<void> => {
-    const { data, error } = await client.storage.from(bucket).list(folder, { limit: 1000 });
-    if (error) throw error;
-    for (const item of (data ?? []) as StorageListItem[]) {
-      const path = `${folder}/${item.name}`;
-      if (item.id === null) await walk(path);
-      else files.push(path);
-      if (files.length > 5000) throw new Error('A module cannot contain more than 5,000 files.');
+    let offset = 0;
+    while (true) {
+      const { data, error } = await client.storage.from(bucket).list(folder, { limit: 1000, offset });
+      if (error) throw error;
+      const items = (data ?? []) as StorageListItem[];
+      for (const item of items) {
+        const path = `${folder}/${item.name}`;
+        if (item.id === null) await walk(path);
+        else files.push(path);
+        if (files.length > 5000) throw new Error('A module cannot contain more than 5,000 files.');
+      }
+      if (items.length < 1000) break;
+      offset += items.length;
     }
   };
   await walk(prefix);
