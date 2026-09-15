@@ -66,4 +66,9 @@ body {
     overflow:hidden;
   }
 
-  
+  ion-popover.drag-drop-popover {
+    --width: min(17rem, calc(100vw - 2rem));
+    --min-width: 0;
+    --max-height: calc(100vh - 2rem);
+  }
+

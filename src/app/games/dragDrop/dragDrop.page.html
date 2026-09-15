@@ -1,6 +1,6 @@
 <ion-content [fullscreen]="true">
 
-  <ion-popover class="popover" slide="top" alignment="center" [isOpen]="isPopovertrueOpen" (didDismiss)="nextRound()">
+  <ion-popover class="popover" cssClass="drag-drop-popover" slide="top" alignment="center" [isOpen]="isPopovertrueOpen" (didDismiss)="nextRound()">
     <ng-template>
       <div class="notification">
         <img [src]="theme.asset('successIcon')" alt="" /> <p>Well Done</p>
@@ -10,7 +10,7 @@
     </ng-template>
 
   </ion-popover>
-  <ion-popover slide="top" alignment="center" size="cover" dismissOnSelect="true" [isOpen]="isPopoverfalseOpen" (didDismiss)="restartRound()">
+  <ion-popover cssClass="drag-drop-popover" slide="top" alignment="center" size="cover" dismissOnSelect="true" [isOpen]="isPopoverfalseOpen" (didDismiss)="restartRound()">
     <ng-template>
      
         <div class="notification">
@@ -30,9 +30,9 @@
     </div>
 
     <div class="gamespace">
-      <p class="instruction">Drag or tap to match each word to it's drawing.</p>
+      <p class="instruction">Drag or tap to match each word to its drawing.</p>
 
-      <section class="picture-grid" aria-label="Drawings">
+      <section class="picture-grid" aria-label="Drawings to match">
         <div *ngFor="let target of targets" class="drop-zone" [class.has-word]="target.droppedWord" [class.ready-to-place]="selectedWord"
           (dragover)="allowDrop($event)" (drop)="dropWord($event, target)" (click)="placeSelectedWord(target)">
           <img [src]="target.word.imageUrl" [alt]="target.word.english" />
@@ -51,10 +51,10 @@
         </button>
       </section>
 
-      <div class="controls gamebuttons">
+      <nav class="controls gamebuttons" aria-label="Round controls">
 
         <div class="restart">
-          <ion-button (click)="restartRound()"> <ion-icon size="large"  name="reload-outline"></ion-icon> </ion-button>
+          <ion-button aria-label="Restart this round" (click)="restartRound()"> <ion-icon size="large"  name="reload-outline"></ion-icon> </ion-button>
         </div>
 
         <div class="check-container">
@@ -62,9 +62,9 @@
         </div>
 
         <div class="next">
-          <ion-button (click)="nextRound()"> <ion-icon size="large"  name="arrow-forward"></ion-icon> </ion-button>
+          <ion-button aria-label="Start a new round" (click)="nextRound()"> <ion-icon size="large"  name="arrow-forward"></ion-icon> </ion-button>
         </div>
-      </div>
+      </nav>
      
       
     </div>
