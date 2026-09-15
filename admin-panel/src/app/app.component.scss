@@ -40,22 +40,15 @@ button:disabled { cursor: not-allowed; opacity: .6; }
 .module-card .secondary { width: 100%; }
 .config-heading { margin-bottom: 20px; }
 .back-link { min-height: auto; padding: 0; margin: 0 0 12px; border: 0; border-radius: 0; background: transparent; color: #176d3a; }
-.config-actions, .access-controls { display: flex; align-items: end; gap: 12px; flex-wrap: wrap; }
+.config-actions { display: flex; align-items: end; gap: 12px; flex-wrap: wrap; }
 .access-settings { margin-top: 28px; padding-top: 24px; border-top: 1px solid #dde5de; }
 .access-settings h3 { margin-bottom: 6px; }
 .access-settings p { color: #5a665d; }
-.access-controls label { min-width: 180px; }
-.content-picker { width: min(420px, 100%); margin: 20px 0; }
 .future-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
 .future-grid article { padding: 18px; border: 1px dashed #aebcaf; border-radius: 10px; background: #fafcfb; }
 .future-grid h3 { font-size: 1rem; }
 .future-grid p { margin: 0; color: #5a665d; }
 .content-outline { margin-top: 12px; }
-.permission-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 10px; margin: 20px 0; }
-.permission-item { display: flex; align-items: center; gap: 12px; padding: 14px; border: 1px solid #dde5de; border-radius: 10px; cursor: pointer; }
-.permission-item input { width: 20px; min-height: 20px; padding: 0; accent-color: #176d3a; }
-.permission-item strong, .permission-item small { display: block; }
-.permission-item small { margin-top: 3px; color: #5a665d; font-weight: 400; text-transform: capitalize; }
 .assignment-builder { display: flex; align-items: end; gap: 12px; margin: 20px 0 12px; }
 .assignment-builder label { flex: 1; }
 .assigned-modules { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
@@ -109,8 +102,8 @@ button:disabled { cursor: not-allowed; opacity: .6; }
   .code-row { gap: 10px; }
   .code-row > div { display: flex; justify-content: space-between; gap: 16px; }
   .code-row > div:first-child { display: block; }
-  .code-row button, .config-actions button, .access-controls button { width: 100%; }
-  .config-actions, .access-controls { align-items: stretch; flex-direction: column; }
+  .code-row button, .config-actions button { width: 100%; }
+  .config-actions { align-items: stretch; flex-direction: column; }
   .assignment-builder { align-items: stretch; flex-direction: column; }
   .assignment-builder button { width: 100%; }
   .user-action-buttons { flex-direction: column; }

@@ -19,4 +19,4 @@ alter table public.language_admin_modules enable row level security;
 -- update public.admin_users set role = 'language'
 -- where user_id = 'LANGUAGE_ADMIN_AUTH_UUID';
 -- insert into public.language_admin_modules (user_id, language_module_id)
--- values ('LANGUAGE_ADMIN_AUTH_UUID', 'bininj-kunwok');
+-- values ('LANGUAGE_ADMIN_AUTH_UUID', 'LANGUAGE_MODULE_ID_HERE');
