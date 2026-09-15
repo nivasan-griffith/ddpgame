@@ -344,13 +344,26 @@ ion-button {
 .notification{
       box-sizing: border-box;
       width: 100%;
+      max-height: calc(100vh - 2rem);
       margin: 0 auto;
       background-color:rgb(210,181,159);
       border:5px solid black;
       border-radius:12px;
-      padding:1.5em;
+      padding: 1rem;
       text-align: center;
-      font-size:2.2em;
+      font-size: clamp(1.1rem, 3.5vw, 1.5rem);
+    }
+
+.notification img {
+      display: block;
+      width: clamp(2.5rem, 10vw, 4rem);
+      max-height: 4rem;
+      margin: 0 auto 0.6rem;
+      object-fit: contain;
+    }
+
+.notification p {
+      margin: 0 0 0.8rem;
     }
 
 // A compact, side-by-side board fits short mobile landscape screens without
