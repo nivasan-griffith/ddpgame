@@ -95,6 +95,7 @@ export interface LanguageWord {
   availableInCurrentVersion?: boolean;
   playable?: boolean;
   image: string | null;
+  displayScale?: number;
   audio: {
     language: string | null;
     english: string | null;
