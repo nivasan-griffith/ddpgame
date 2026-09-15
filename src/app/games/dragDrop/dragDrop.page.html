@@ -1,6 +1,6 @@
 <ion-content [fullscreen]="true">
 
-  <ion-popover class="popover" slide="top" alignment="center" [isOpen]="isPopovertrueOpen" (didDismiss)="nextRound()">
+  <ion-popover class="popover" cssClass="drag-drop-popover" slide="top" alignment="center" [isOpen]="isPopovertrueOpen" (didDismiss)="nextRound()">
     <ng-template>
       <div class="notification">
         <img [src]="theme.asset('successIcon')" alt="" /> <p>Well Done</p>
@@ -10,7 +10,7 @@
     </ng-template>
 
   </ion-popover>
-  <ion-popover slide="top" alignment="center" size="cover" dismissOnSelect="true" [isOpen]="isPopoverfalseOpen" (didDismiss)="restartRound()">
+  <ion-popover cssClass="drag-drop-popover" slide="top" alignment="center" size="cover" dismissOnSelect="true" [isOpen]="isPopoverfalseOpen" (didDismiss)="restartRound()">
     <ng-template>
      
         <div class="notification">

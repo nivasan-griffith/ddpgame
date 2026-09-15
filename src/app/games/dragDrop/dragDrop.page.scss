@@ -42,6 +42,7 @@ ion-button {
   grid-area: pictures;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: repeat(2, minmax(0, 1fr));
   gap: clamp(0.35rem, 1vw, 0.75rem);
   width: min(100%, 31rem);
   margin: 0 auto;
@@ -54,13 +55,15 @@ ion-button {
   align-items: center;
   justify-content: center;
   min-width: 0;
+  min-height: 0;
+  overflow: hidden;
   padding: 0.25rem;
 }
 
 .drop-zone > img {
   display: block;
-  max-width: 92%;
-  max-height: 92%;
+  width: 92%;
+  height: 92%;
   object-fit: contain;
 }
 
@@ -339,7 +342,9 @@ ion-button {
   }
   
 .notification{
-      
+      box-sizing: border-box;
+      width: 100%;
+      margin: 0 auto;
       background-color:rgb(210,181,159);
       border:5px solid black;
       border-radius:12px;
@@ -383,13 +388,17 @@ ion-button {
     }
 
     .picture-grid {
-      width: min(100%, 30rem);
-      align-self: center;
+      width: auto;
+      height: 100%;
+      max-width: 100%;
+      aspect-ratio: 1;
+      place-self: center;
     }
 
     .word-bank {
       grid-template-columns: 1fr;
-      align-content: center;
+      grid-template-rows: repeat(4, minmax(0, 1fr));
+      align-self: stretch;
       width: 100%;
     }
 
