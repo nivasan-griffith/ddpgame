@@ -426,6 +426,23 @@ ion-button {
     }
 }
 
+// Keep short mobile-browser viewports readable.
+@media (max-width: 900px) and (orientation: landscape) and (max-height: 420px) {
+    #layout {
+      grid-template-rows: 2.5rem minmax(0, 1fr) 1.75rem;
+    }
+
+    .gamespace {
+      grid-template-rows: auto minmax(11rem, 1fr) auto;
+      align-content: start;
+      overflow: auto;
+    }
+
+    .word-card {
+      min-height: 2.25rem;
+    }
+}
+
 @media (max-width: 420px) and (orientation: portrait) {
     .word-bank {
       grid-template-columns: 1fr;
