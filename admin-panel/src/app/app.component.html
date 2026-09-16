@@ -72,7 +72,14 @@
           <label>Usage limit<input name="usage" [(ngModel)]="maxRedemptions" type="number" min="1" max="100000" required></label>
         </div>
         <button class="primary" type="button" [disabled]="!selectedModuleId || generating" (click)="generateCode()">{{ generating ? 'Generating…' : 'Generate code' }}</button>
-        <div class="generated-code" *ngIf="generatedCode"><span>New access code</span><strong>{{ generatedCode }}</strong><p>Copy it now before leaving this page.</p></div>
+        <div class="generated-code" *ngIf="generatedCode">
+          <span>New access code</span>
+          <div class="generated-code-value">
+            <strong>{{ generatedCode }}</strong>
+            <button class="secondary copy-code-button" type="button" (click)="copyGeneratedCode()"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="11" height="12" rx="1.5"/><path d="M16 8V5.5A1.5 1.5 0 0 0 14.5 4h-9A1.5 1.5 0 0 0 4 5.5v9A1.5 1.5 0 0 0 5.5 16H8"/></svg>{{ generatedCodeCopied ? 'Copied' : 'Copy code' }}</button>
+          </div>
+          <p>Copy it now before leaving this page.</p>
+        </div>
         <div class="code-list" *ngIf="activeCodes.length; else emptyCodes">
           <article class="code-row" *ngFor="let code of activeCodes">
             <div><strong>{{ code.label || 'Unlabelled code' }}</strong><span>Created {{ code.created_at | date:'mediumDate' }}</span></div>
@@ -100,24 +107,30 @@
       <div class="section-heading">
         <div>
           <h2>Users</h2>
-          <p>Create Language Administrator accounts and choose the language modules each person may manage.</p>
+          <p>Create administrator accounts and manage who can access the portal.</p>
         </div>
         <span class="role-badge">System Administrator only</span>
       </div>
       <section class="user-management-section" id="update-language-administrator">
-        <h3>Create Language Administrator</h3>
-        <p class="hint">Create a login, choose a temporary password, and assign one or more language modules.</p>
-        <div class="form-grid">
+        <h3>Create administrator</h3>
+        <p class="hint">Create a login, choose a role, and set a temporary password.</p>
+        <div class="form-grid administrator-details">
           <label>Email address<input name="newAdministratorEmail" [(ngModel)]="newAdministratorEmail" type="email" autocomplete="off" required></label>
-          <label>Temporary password<input name="newAdministratorPassword" [(ngModel)]="newAdministratorPassword" type="password" minlength="12" autocomplete="new-password" required></label>
+          <div class="password-fields">
+            <label>Temporary password<span class="password-input"><input name="newAdministratorPassword" [(ngModel)]="newAdministratorPassword" [type]="showNewAdministratorPassword ? 'text' : 'password'" minlength="12" autocomplete="new-password" required><button class="password-toggle" type="button" [attr.aria-label]="showNewAdministratorPassword ? 'Hide temporary password' : 'Show temporary password'" [attr.aria-pressed]="showNewAdministratorPassword" (click)="showNewAdministratorPassword = !showNewAdministratorPassword"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.4-6 9.5-6 9.5 6 9.5 6-3.4 6-9.5 6-9.5-6-9.5-6Z"/><circle cx="12" cy="12" r="2.8"/></svg></button></span></label>
+            <label>Confirm temporary password<span class="password-input"><input name="newAdministratorPasswordConfirmation" [(ngModel)]="newAdministratorPasswordConfirmation" [type]="showNewAdministratorPasswordConfirmation ? 'text' : 'password'" minlength="12" autocomplete="new-password" required><button class="password-toggle" type="button" [attr.aria-label]="showNewAdministratorPasswordConfirmation ? 'Hide confirmed temporary password' : 'Show confirmed temporary password'" [attr.aria-pressed]="showNewAdministratorPasswordConfirmation" (click)="showNewAdministratorPasswordConfirmation = !showNewAdministratorPasswordConfirmation"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.4-6 9.5-6 9.5 6 9.5 6-3.4 6-9.5 6-9.5-6-9.5-6Z"/><circle cx="12" cy="12" r="2.8"/></svg></button></span><span class="field-error" *ngIf="newAdministratorPasswordConfirmation && !newAdministratorPasswordsMatch">Passwords do not match.</span></label>
+          </div>
+          <label class="administrator-role">Administrator role<select name="newAdministratorRole" [(ngModel)]="newAdministratorRole"><option value="system">System Administrator</option><option value="language">Language Administrator</option></select></label>
         </div>
-        <div class="assignment-builder">
+        <p class="hint role-description" *ngIf="newAdministratorRole === 'system'">System Administrators can manage all languages, users, access codes, and public/private settings.</p>
+        <p class="hint role-description" *ngIf="creatingLanguageAdministrator">Language Administrators can manage only the language modules assigned below.</p>
+        <div class="assignment-builder" *ngIf="creatingLanguageAdministrator">
           <label>Language module<select name="newAdministratorModule" [(ngModel)]="newAdministratorSelectedModuleId"><option *ngFor="let module of modules" [value]="module.id">{{ module.name }}</option></select></label>
           <button class="secondary" type="button" (click)="addNewAdministratorModule()">Add language</button>
         </div>
-        <div class="assigned-modules" *ngIf="newAdministratorModuleIds.length; else noNewAssignments"><button type="button" *ngFor="let moduleId of newAdministratorModuleIds" (click)="removeNewAdministratorModule(moduleId)">{{ moduleName(moduleId) }} <span aria-hidden="true">×</span></button></div>
-        <ng-template #noNewAssignments><p class="hint assignment-empty">No languages assigned yet.</p></ng-template>
-        <button class="primary" type="button" [disabled]="!newAdministratorEmail || !newAdministratorPassword || newAdministratorModuleIds.length === 0 || creatingAdministrator" (click)="createLanguageAdministrator()">{{ creatingAdministrator ? 'Creating…' : 'Create Language Administrator' }}</button>
+        <div class="assigned-modules" *ngIf="creatingLanguageAdministrator && newAdministratorModuleIds.length; else noNewAssignments"><button type="button" *ngFor="let moduleId of newAdministratorModuleIds" (click)="removeNewAdministratorModule(moduleId)">{{ moduleName(moduleId) }} <span aria-hidden="true">×</span></button></div>
+        <ng-template #noNewAssignments><p class="hint assignment-empty" *ngIf="creatingLanguageAdministrator">No languages assigned yet.</p></ng-template>
+        <button class="primary" type="button" [disabled]="!newAdministratorEmail || !newAdministratorPasswordsMatch || (creatingLanguageAdministrator && newAdministratorModuleIds.length === 0) || creatingAdministrator" (click)="createAdministrator()">{{ creatingAdministrator ? 'Creating…' : 'Create ' + (creatingLanguageAdministrator ? 'Language' : 'System') + ' Administrator' }}</button>
       </section>
 
       <p class="hint">Assignments are enforced by the secure server endpoint, not only by this screen. Share temporary passwords securely and ask users to change them after their first sign-in.</p>
@@ -125,7 +138,7 @@
       <div class="administrator-list" *ngIf="administrators.length">
         <h3>Current administrators</h3>
         <article *ngFor="let administrator of administrators">
-          <div class="administrator-heading"><div class="administrator-identity"><strong>{{ administrator.email }}</strong><span class="role-badge">{{ administrator.role }} administrator</span></div><button *ngIf="administrator.role === 'language'" class="secondary edit-administrator" type="button" (click)="editAdministrator(administrator)">Edit</button></div>
+          <div class="administrator-heading"><div class="administrator-identity"><strong>{{ administrator.email }}</strong><span class="role-badge">{{ administrator.role }} administrator</span></div><button *ngIf="canEditAdministrator(administrator)" class="secondary edit-administrator" type="button" (click)="editAdministrator(administrator)">Edit</button></div>
           <p *ngIf="administrator.role === 'system'">Full access to all languages and administrator assignments.</p>
           <p *ngIf="administrator.role === 'language'">Assigned: <span *ngFor="let moduleId of administrator.module_ids; let last = last">{{ moduleName(moduleId) }}{{ last ? '' : ', ' }}</span></p>
         </article>
@@ -145,20 +158,21 @@
 
     <div class="modal-backdrop" *ngIf="editingAdministrator as administrator" (click)="closeAdministratorEditor()">
       <section class="modal" role="dialog" aria-modal="true" aria-labelledby="edit-administrator-title" (click)="$event.stopPropagation()">
-        <h2 id="edit-administrator-title">Edit Language Administrator</h2>
+        <h2 id="edit-administrator-title">Edit {{ administrator.role === 'system' ? 'System' : 'Language' }} Administrator</h2>
         <p class="hint">{{ administrator.email }}</p>
-        <div class="assignment-builder">
+        <p class="hint role-description" *ngIf="administrator.role === 'system'">This account has full access to all languages, users, access codes, and public/private settings.</p>
+        <div class="assignment-builder" *ngIf="administrator.role === 'language'">
           <label>Language module<select name="editingAdministratorModule" [(ngModel)]="editingSelectedModuleId"><option *ngFor="let module of modules" [value]="module.id">{{ module.name }}</option></select></label>
           <button class="secondary" type="button" [disabled]="savingAdministrator" (click)="addAdministratorModule()">Add language</button>
         </div>
-        <p class="assignment-instructions" *ngIf="editingModuleIds.length">Assigned languages — click the × beside a language to remove that permission, then save changes.</p>
-        <div class="assigned-modules" *ngIf="editingModuleIds.length; else noEditingAssignments"><button type="button" *ngFor="let moduleId of editingModuleIds" [disabled]="savingAdministrator" [attr.aria-label]="'Remove ' + moduleName(moduleId) + ' permission'" (click)="removeAdministratorModule(moduleId)">{{ moduleName(moduleId) }} <span aria-hidden="true">×</span></button></div>
-        <ng-template #noEditingAssignments><p class="hint assignment-empty">No languages assigned yet.</p></ng-template>
-        <div class="user-action-buttons">
-          <button class="danger" type="button" [disabled]="savingAdministrator" (click)="removeLanguageAdministrator()">Remove Language Administrator</button>
+        <p class="assignment-instructions" *ngIf="administrator.role === 'language' && editingModuleIds.length">Assigned languages — click the × beside a language to remove that permission, then save changes.</p>
+        <div class="assigned-modules" *ngIf="administrator.role === 'language' && editingModuleIds.length; else noEditingAssignments"><button type="button" *ngFor="let moduleId of editingModuleIds" [disabled]="savingAdministrator" [attr.aria-label]="'Remove ' + moduleName(moduleId) + ' permission'" (click)="removeAdministratorModule(moduleId)">{{ moduleName(moduleId) }} <span aria-hidden="true">×</span></button></div>
+        <ng-template #noEditingAssignments><p class="hint assignment-empty" *ngIf="administrator.role === 'language'">No languages assigned yet.</p></ng-template>
+        <div class="user-action-buttons" [class.system-admin-actions]="administrator.role === 'system'">
+          <button class="danger" type="button" [disabled]="savingAdministrator" (click)="removeAdministrator()">Remove {{ administrator.role === 'system' ? 'System' : 'Language' }} Administrator</button>
           <span></span>
           <button class="secondary" type="button" [disabled]="savingAdministrator" (click)="closeAdministratorEditor()">Cancel</button>
-          <button class="primary" type="button" [disabled]="savingAdministrator || editingModuleIds.length === 0" (click)="saveLanguageAdministrator()">{{ savingAdministrator ? 'Saving…' : 'Save changes' }}</button>
+          <button *ngIf="administrator.role === 'language'" class="primary" type="button" [disabled]="savingAdministrator || editingModuleIds.length === 0" (click)="saveLanguageAdministrator()">{{ savingAdministrator ? 'Saving…' : 'Save changes' }}</button>
         </div>
       </section>
     </div>

@@ -6,7 +6,7 @@ const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
 };
 
-type Action = 'list_modules' | 'list_codes' | 'generate_code' | 'disable_code' | 'update_code' | 'update_module' | 'publish_access_type' | 'list_administrators' | 'save_administrator_permissions' | 'create_language_administrator' | 'remove_language_administrator';
+type Action = 'list_modules' | 'list_codes' | 'generate_code' | 'disable_code' | 'update_code' | 'update_module' | 'publish_access_type' | 'list_administrators' | 'save_administrator_permissions' | 'create_administrator' | 'remove_administrator';
 
 type AccessType = 'public' | 'private';
 type AdminRole = 'system' | 'language';
@@ -512,6 +512,9 @@ Deno.serve(async request => {
         const { data: targetUser, error: targetUserError } = await adminClient.auth.admin.getUserById(payload.userId);
         if (targetUserError || !targetUser.user) return response({ error: 'That Supabase account does not exist.' }, 400);
         const assignedIds = nextRole === 'language' ? moduleIds(payload.moduleIds) : [];
+        if (nextRole === 'language' && assignedIds.length === 0) {
+          return response({ error: 'A Language Administrator must be assigned at least one language module.' }, 400);
+        }
         const { error: upsertError } = await adminClient
           .from('admin_users')
           .upsert({ user_id: payload.userId, role: nextRole }, { onConflict: 'user_id' });
@@ -532,11 +535,15 @@ Deno.serve(async request => {
         return response({ saved: true });
       }
 
-      case 'create_language_administrator': {
+      case 'create_administrator': {
         if (role !== 'system') return response({ error: 'Only a System Administrator can create administrator accounts.' }, 403);
         const email = emailAddress(payload.email);
         const password = temporaryPassword(payload.password);
-        const assignedIds = moduleIds(payload.moduleIds);
+        const newRole = adminRole(payload.role);
+        const assignedIds = newRole === 'language' ? moduleIds(payload.moduleIds) : [];
+        if (newRole === 'language' && assignedIds.length === 0) {
+          return response({ error: 'A Language Administrator must be assigned at least one language module.' }, 400);
+        }
         const { data: createResult, error: createError } = await adminClient.auth.admin.createUser({
           email,
           password,
@@ -546,30 +553,46 @@ Deno.serve(async request => {
         try {
           const { error: adminError } = await adminClient
             .from('admin_users')
-            .insert({ user_id: createResult.user.id, role: 'language' });
+            .insert({ user_id: createResult.user.id, role: newRole });
           if (adminError) throw adminError;
-          const { error: assignmentError } = await adminClient
-            .from('language_admin_modules')
-            .insert(assignedIds.map(language_module_id => ({ user_id: createResult.user.id, language_module_id })));
-          if (assignmentError) throw assignmentError;
+          if (assignedIds.length > 0) {
+            const { error: assignmentError } = await adminClient
+              .from('language_admin_modules')
+              .insert(assignedIds.map(language_module_id => ({ user_id: createResult.user.id, language_module_id })));
+            if (assignmentError) throw assignmentError;
+          }
         } catch (error) {
           await adminClient.auth.admin.deleteUser(createResult.user.id).catch(() => undefined);
           throw error;
         }
-        return response({ created: true });
+        return response({ created: true, role: newRole });
       }
 
-      case 'remove_language_administrator': {
+      case 'remove_administrator': {
         if (role !== 'system') return response({ error: 'Only a System Administrator can remove administrator access.' }, 403);
-        if (typeof payload.userId !== 'string' || payload.userId.length === 0) return response({ error: 'Choose a Language Administrator account.' }, 400);
+        if (typeof payload.userId !== 'string' || payload.userId.length === 0) return response({ error: 'Choose an administrator account.' }, 400);
+        if (payload.userId === userResult.user.id) {
+          return response({ error: 'You cannot remove your own System Administrator access.' }, 400);
+        }
         const { data: targetAdministrator, error: targetError } = await adminClient
           .from('admin_users')
           .select('role')
           .eq('user_id', payload.userId)
           .maybeSingle();
         if (targetError) throw targetError;
-        if (!targetAdministrator || adminRole(targetAdministrator.role) !== 'language') {
-          return response({ error: 'Only a Language Administrator can be removed here.' }, 400);
+        if (!targetAdministrator) {
+          return response({ error: 'That account is not an administrator.' }, 400);
+        }
+        const targetRole = adminRole(targetAdministrator.role);
+        if (targetRole === 'system') {
+          const { count, error: countError } = await adminClient
+            .from('admin_users')
+            .select('*', { count: 'exact', head: true })
+            .eq('role', 'system');
+          if (countError) throw countError;
+          if ((count ?? 0) <= 1) {
+            return response({ error: 'At least one System Administrator must remain.' }, 400);
+          }
         }
         const { error: assignmentError } = await adminClient
           .from('language_admin_modules')
@@ -583,7 +606,7 @@ Deno.serve(async request => {
         if (deleteError) throw deleteError;
         // Deliberately keep the underlying Supabase Auth account. A System
         // Administrator can reassign it later without creating a new login.
-        return response({ removed: true });
+        return response({ removed: true, role: targetRole });
       }
 
       default:
