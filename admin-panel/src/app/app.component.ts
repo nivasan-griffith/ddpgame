@@ -35,6 +35,10 @@ export class AppComponent implements OnInit {
   savingAdministrator = false;
   newAdministratorEmail = '';
   newAdministratorPassword = '';
+  newAdministratorPasswordConfirmation = '';
+  showNewAdministratorPassword = false;
+  showNewAdministratorPasswordConfirmation = false;
+  newAdministratorRole: AdminRole = 'language';
   newAdministratorModuleIds: string[] = [];
   newAdministratorSelectedModuleId = '';
   creatingAdministrator = false;
@@ -42,6 +46,7 @@ export class AppComponent implements OnInit {
   expiresInDays = 30;
   maxRedemptions = 1;
   generatedCode = '';
+  generatedCodeCopied = false;
   generating = false;
   publishingModuleId: string | null = null;
   accessTypeSelections: Record<string, 'public' | 'private'> = {};
@@ -54,6 +59,10 @@ export class AppComponent implements OnInit {
   get privateModules(): LanguageModule[] { return this.modules.filter(module => module.access_type === 'private'); }
   get activeCodes(): AccessCode[] { return this.codes.filter(code => code.is_active); }
   get isSystemAdmin(): boolean { return this.adminRole === 'system'; }
+  get creatingLanguageAdministrator(): boolean { return this.newAdministratorRole === 'language'; }
+  get newAdministratorPasswordsMatch(): boolean {
+    return this.newAdministratorPassword !== '' && this.newAdministratorPassword === this.newAdministratorPasswordConfirmation;
+  }
   constructor(readonly auth: AdminAuthService, private readonly api: AdminApiService) {}
 
   async ngOnInit(): Promise<void> {
@@ -126,6 +135,10 @@ export class AppComponent implements OnInit {
     this.editingModuleIds = [...administrator.module_ids];
   }
 
+  canEditAdministrator(administrator: AdministratorAccount): boolean {
+    return administrator.user_id !== this.auth.session?.user.id;
+  }
+
   closeAdministratorEditor(): void {
     if (!this.savingAdministrator) this.editingAdministrator = null;
   }
@@ -163,15 +176,16 @@ export class AppComponent implements OnInit {
     finally { this.savingAdministrator = false; }
   }
 
-  async removeLanguageAdministrator(): Promise<void> {
+  async removeAdministrator(): Promise<void> {
     const administrator = this.editingAdministrator;
     if (!administrator || this.savingAdministrator) return;
-    if (!confirm(`Remove ${administrator.email} as a Language Administrator? They will no longer be able to use the admin portal.`)) return;
+    const roleName = administrator.role === 'system' ? 'System Administrator' : 'Language Administrator';
+    if (!confirm(`Remove ${administrator.email} as a ${roleName}? They will no longer be able to use the admin portal.`)) return;
     this.savingAdministrator = true;
     this.actionError = '';
     try {
-      await this.api.removeLanguageAdministrator(administrator.user_id);
-      this.message = `${administrator.email} no longer has Language Administrator access.`;
+      await this.api.removeAdministrator(administrator.user_id);
+      this.message = `${administrator.email} no longer has ${roleName} access.`;
       this.editingModuleIds = [];
       this.editingAdministrator = null;
       await this.loadAdministrators();
@@ -179,15 +193,29 @@ export class AppComponent implements OnInit {
     finally { this.savingAdministrator = false; }
   }
 
-  async createLanguageAdministrator(): Promise<void> {
-    if (!this.newAdministratorEmail || !this.newAdministratorPassword || this.newAdministratorModuleIds.length === 0 || this.creatingAdministrator) return;
+  async createAdministrator(): Promise<void> {
+    if (!this.newAdministratorEmail || !this.newAdministratorPassword || (this.creatingLanguageAdministrator && this.newAdministratorModuleIds.length === 0) || this.creatingAdministrator) return;
+    if (!this.newAdministratorPasswordsMatch) {
+      this.actionError = 'The temporary passwords do not match.';
+      return;
+    }
     this.creatingAdministrator = true;
     this.actionError = '';
     try {
-      await this.api.createLanguageAdministrator(this.newAdministratorEmail, this.newAdministratorPassword, this.newAdministratorModuleIds);
-      this.message = `Language Administrator account created for ${this.newAdministratorEmail}. Share the temporary password securely.`;
+      await this.api.createAdministrator(
+        this.newAdministratorEmail,
+        this.newAdministratorPassword,
+        this.newAdministratorRole,
+        this.creatingLanguageAdministrator ? this.newAdministratorModuleIds : [],
+      );
+      const roleName = this.creatingLanguageAdministrator ? 'Language Administrator' : 'System Administrator';
+      this.message = `${roleName} account created for ${this.newAdministratorEmail}. Share the temporary password securely.`;
       this.newAdministratorEmail = '';
       this.newAdministratorPassword = '';
+      this.newAdministratorPasswordConfirmation = '';
+      this.showNewAdministratorPassword = false;
+      this.showNewAdministratorPasswordConfirmation = false;
+      this.newAdministratorRole = 'language';
       this.newAdministratorModuleIds = [];
       await this.loadAdministrators();
     } catch (error) { this.actionError = this.errorMessage(error); }
@@ -221,6 +249,7 @@ export class AppComponent implements OnInit {
     this.actionError = '';
     this.message = '';
     this.generatedCode = '';
+    this.generatedCodeCopied = false;
     this.generating = true;
     try {
       const result = await this.api.generateCode(this.selectedModuleId, this.codeLabel, Number(this.expiresInDays), Number(this.maxRedemptions));
@@ -230,6 +259,31 @@ export class AppComponent implements OnInit {
       await this.loadCodes();
     } catch (error) { this.actionError = this.errorMessage(error); }
     finally { this.generating = false; }
+  }
+
+  async copyGeneratedCode(): Promise<void> {
+    if (!this.generatedCode) return;
+    this.actionError = '';
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(this.generatedCode);
+      } else {
+        const input = document.createElement('textarea');
+        input.value = this.generatedCode;
+        input.setAttribute('readonly', '');
+        input.style.position = 'fixed';
+        input.style.opacity = '0';
+        document.body.append(input);
+        input.select();
+        const copied = document.execCommand('copy');
+        input.remove();
+        if (!copied) throw new Error('Copy is unavailable in this browser.');
+      }
+      this.generatedCodeCopied = true;
+      window.setTimeout(() => { this.generatedCodeCopied = false; }, 2000);
+    } catch (error) {
+      this.actionError = this.errorMessage(error);
+    }
   }
 
   openCodeManager(code: AccessCode): void {

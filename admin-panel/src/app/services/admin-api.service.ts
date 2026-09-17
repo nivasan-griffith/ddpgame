@@ -84,12 +84,12 @@ export class AdminApiService {
     return this.request({ action: 'save_administrator_permissions', userId, role, moduleIds });
   }
 
-  createLanguageAdministrator(email: string, password: string, moduleIds: string[]): Promise<{ created: boolean }> {
-    return this.request({ action: 'create_language_administrator', email, password, moduleIds });
+  createAdministrator(email: string, password: string, role: AdminRole, moduleIds: string[]): Promise<{ created: boolean; role: AdminRole }> {
+    return this.request({ action: 'create_administrator', email, password, role, moduleIds });
   }
 
-  removeLanguageAdministrator(userId: string): Promise<{ removed: boolean }> {
-    return this.request({ action: 'remove_language_administrator', userId });
+  removeAdministrator(userId: string): Promise<{ removed: boolean; role: AdminRole }> {
+    return this.request({ action: 'remove_administrator', userId });
   }
 
   updateModule(module: LanguageModule): Promise<{ updated: boolean }> {
