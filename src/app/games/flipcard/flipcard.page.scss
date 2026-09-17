@@ -205,9 +205,9 @@ ion-button{
  * the available viewport height, without changing the desktop or portrait
  * layout.
  */
-@media (max-width: 900px) and (orientation: landscape) {
+@media (orientation: landscape) and (max-height: 600px) {
   :host {
-    --landscape-card-size: min(52vh, 48vw, 250px);
+    --landscape-card-size: min(52dvh, 48vw, 250px);
   }
 
   #layout {

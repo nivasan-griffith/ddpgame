@@ -140,7 +140,7 @@ ion-content{
 }
 } 
 
-@media (max-width: 900px) and (orientation: landscape) {
+@media (orientation: landscape) and (max-height: 600px) {
   #layout {
     height: 100%;
     min-height: 100%;
@@ -173,7 +173,7 @@ ion-content{
   .homemenu img {
     width: 100%;
     max-width: 12rem;
-    max-height: 46vh;
+    max-height: 46dvh;
     object-fit: contain;
   }
 
