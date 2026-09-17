@@ -140,5 +140,52 @@ ion-content{
 }
 } 
 
+@media (orientation: landscape) and (max-height: 600px) {
+  #layout {
+    height: 100%;
+    min-height: 100%;
+    grid-template-rows: 3rem minmax(0, 1fr) 1.5rem;
+    overflow: auto;
+  }
+
+  .dots {
+    width: 2.5rem;
+    margin: 0.15rem 0.75rem 0 0;
+    font-size: 0.6rem;
+    line-height: 1;
+  }
+
+  .layouttop .corner img,
+  .layoutbottom.corner img {
+    width: min(8rem, 18vw);
+    max-height: 3rem;
+  }
+
+  .homemenu {
+    display: grid;
+    grid-template-columns: minmax(7rem, 28vw) auto;
+    gap: clamp(1rem, 4vw, 3rem);
+    align-items: center;
+    width: min(90%, 40rem);
+    min-height: 0;
+  }
+
+  .homemenu img {
+    width: 100%;
+    max-width: 12rem;
+    max-height: 46dvh;
+    object-fit: contain;
+  }
+
+  .homemenu ul {
+    margin: 0;
+    padding: 0;
+  }
+
+  .homemenu ul li {
+    padding-block: clamp(0.2rem, 1vh, 0.45rem);
+  }
+}
+
   
     

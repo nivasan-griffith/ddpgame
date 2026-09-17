@@ -3,6 +3,10 @@
     --box-height:320px;
     --header-height:80px;
   }
+
+  ion-content {
+    --background: var(--primary-bg);
+  }
  
    ion-item{
     --border-style: none;
@@ -311,4 +315,91 @@
    } 
   .tp-wrapper {
     gap: clamp(1rem, 2vh, 1.5rem);
+  }
+
+  @media (orientation: landscape) and (max-height: 600px) {
+    #layout {
+      box-sizing: border-box;
+      height: 100%;
+      min-height: 100%;
+      grid-template-rows: 3rem minmax(0, 1fr) 1.5rem;
+      overflow: hidden;
+    }
+
+    .dots {
+      width: 2.25rem;
+      margin: 0.15rem 0.75rem 0 0;
+      font-size: 0.6rem;
+      line-height: 1;
+    }
+
+    .layouttop .corner img,
+    .layoutbottom.corner img {
+      width: min(8rem, 18vw);
+      max-height: 3rem;
+    }
+
+    #gamespace {
+      display: grid;
+      grid-template-rows: minmax(0, 1fr) auto;
+      min-height: 0;
+      overflow: hidden;
+      background: var(--primary-bg);
+    }
+
+    #gamespace > div:first-child {
+      display: grid;
+      min-height: 0;
+      place-items: center;
+    }
+
+    .tp-wrapper {
+      top: 0;
+      min-height: 0;
+      margin-bottom: 0;
+    }
+
+    .tp-box {
+      width: min(42dvh, 28vw, 200px);
+      height: min(42dvh, 28vw, 200px);
+    }
+
+    ion-radio {
+      font-size: clamp(0.85rem, 1.8vw, 1rem);
+    }
+
+    .questions p {
+      margin-block: 0 0.35rem;
+    }
+
+    .controls ion-button {
+      min-height: 2.4rem;
+      margin-block: 0.15rem;
+    }
+
+    .notification {
+      box-sizing: border-box;
+      width: 100%;
+      max-height: calc(100dvh - 2rem);
+      margin: 0 auto;
+      padding: 1rem;
+      font-size: clamp(1.1rem, 3.5dvh, 1.5rem);
+    }
+
+    .notification img {
+      display: block;
+      width: clamp(2.5rem, 10dvh, 4rem);
+      max-height: 4rem;
+      margin: 0 auto 0.6rem;
+      object-fit: contain;
+    }
+
+    .notification p {
+      margin: 0 0 0.8rem;
+    }
+
+    .notification .close {
+      height: 2.4rem;
+      margin: 0;
+    }
   }
