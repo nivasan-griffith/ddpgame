@@ -21,8 +21,6 @@
                 <a
                   *ngIf="segment.url; else plainText"
                   [href]="segment.url"
-                  target="_blank"
-                  rel="noopener noreferrer"
                 >{{ segment.text }}</a>
                 <ng-template #plainText>{{ segment.text }}</ng-template>
               </ng-container>
