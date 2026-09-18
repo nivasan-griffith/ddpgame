@@ -12,11 +12,25 @@ learner app immediately.
 - secure private-language access-code generation, editing, and revocation
 - public/private module publishing through the correct Supabase Storage bucket
 - assigning one or more language modules to a Language Administrator
-- creating and removing Language Administrator portal access
-- an outline for future word, image, and audio management
+- creating and removing administrator portal access
+- creating and deleting language modules as a System Administrator
+- editing a language name and word entries as an assigned administrator
+- keeping the Storage manifest, word data, and catalogue version in sync
 
 The readable value of an access code is displayed once after generation. Only
 its hash is stored, so an old code cannot be viewed or altered later.
+
+Language content remains a manifest plus the JSON data file named by its
+`data` field (currently `words.json`). The portal validates edits, preserves
+unrecognised entry metadata, and increments the manifest patch version on each
+write. Optimistic version checks reject stale edits instead of overwriting a
+newer change. Image and audio fields are safe, module-relative paths; upload of
+new media files remains a separate Storage operation.
+
+Only System Administrators can create or delete a language. Assigned Language
+Administrators can read and edit the name and words for their assigned
+languages. Deleting a word deliberately retains media files because another
+entry may reference them.
 
 ## One-time Supabase setup
 
@@ -81,10 +95,19 @@ server URL and publishable key must belong to the same Supabase project.
 
 ## Security model
 
-The browser receives only the Supabase project URL and publishable key. Every
-portal request includes the signed-in user's session and is checked by the
-`admin-access-management` Edge Function. The function verifies the account's
-role and assigned modules server-side before it reads or changes any data.
+The browser receives only the Supabase project URL and publishable key. It
+never receives a service-role key. Every portal request includes the signed-in
+user session and is checked by the `admin-access-management` Edge Function. The
+function verifies the account's role and assigned modules server-side before it
+reads or changes module/code records or Storage content with its server-only
+credentials.
+
+Language mutations first reserve the next version in the catalogue, then write
+the word data and manifest. If either Storage write fails, the function restores
+the previous files and catalogue version. A language deletion removes its
+catalogue record (including cascading assignments and codes) before cleaning up
+the exact configured Storage prefix; the portal reports when that cleanup needs
+manual follow-up.
 
 Disabling an access code prevents further redemption and revokes its stored
 private-file grants. Previously downloaded offline module copies cannot be
