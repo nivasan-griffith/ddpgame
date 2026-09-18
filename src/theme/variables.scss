@@ -59,6 +59,11 @@
       color:var(--link-hover);
     }
   }
+  .dots img{
+    display:block;
+    width:100%;
+    height:auto;
+  }
 
 .layouttop{
     display:flex;
@@ -97,3 +102,18 @@
       
     }
 
+@media (max-width: 599px) and (orientation: portrait) {
+  .dots:has(img[src*='bininj-navigation.svg']) {
+    width: 72px;
+    margin-right: 1rem;
+    overflow-wrap: normal;
+    word-break: normal;
+  }
+
+  .dots img[src*='bininj-navigation.svg'] {
+    display: block;
+    width: 40px;
+    height: auto;
+    margin-inline: auto;
+  }
+}

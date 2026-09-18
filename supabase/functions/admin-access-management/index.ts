@@ -21,7 +21,7 @@ type Action = 'list_modules' | 'list_codes' | 'generate_code' | 'disable_code' |
   'get_module_content' | 'create_module' | 'update_module' | 'delete_module' |
   'create_word' | 'update_word' | 'delete_word' | 'publish_access_type' |
   'list_administrators' | 'save_administrator_permissions' |
-  'create_language_administrator' | 'remove_language_administrator';
+  'create_administrator' | 'remove_administrator';
 
 type AccessType = 'public' | 'private';
 type AdminRole = 'system' | 'language';
@@ -245,6 +245,8 @@ async function listModuleFiles(
 ): Promise<string[]> {
   const files: string[] = [];
 
+  // Storage represents folders as items without an id, so walk the full
+  // module prefix before publishing or deleting its files.
   const walk = async (folder: string): Promise<void> => {
     const { data, error } = await client.storage.from(bucket).list(folder, { limit: 1000 });
     if (error) throw error;
@@ -343,6 +345,8 @@ Deno.serve(async request => {
   }
   if (!authorization?.startsWith('Bearer ')) return response({ error: 'Administrator login is required.' }, 401);
 
+  // Validate the caller with their bearer token before creating a separate
+  // service-role client. The service-role key never leaves this function.
   const authClient = createClient(supabaseUrl, anonKey, {
     global: { headers: { Authorization: authorization } },
   });
@@ -373,6 +377,7 @@ Deno.serve(async request => {
     return response({ error: 'Could not verify language permissions.' }, 500);
   }
   const assignedModuleIds = new Set((assignments ?? []).map(assignment => assignment.language_module_id));
+  // UI visibility is not trusted: each action checks this server-side scope.
   const canManageModule = (moduleId: string): boolean => role === 'system' || assignedModuleIds.has(moduleId);
 
   let payload: AdminRequest;
@@ -582,11 +587,10 @@ Deno.serve(async request => {
           return response({ error: 'You do not have access to that language module.' }, 403);
         }
         const currentModule = await getModule(adminClient, moduleId);
-        // A public/private change also requires files to be published to the
-        // corresponding location. Do not let a label-only update accidentally
-        // expose or break a module before the publishing workflow exists.
+        // Access changes must use publish_access_type, which moves the module
+        // files before changing the database setting.
         if (payload.accessType !== undefined && payload.accessType !== currentModule.access_type) {
-          return response({ error: 'Access type changes require the module publishing workflow and are not available yet.' }, 400);
+          return response({ error: 'Access type changes must use the controlled publishing workflow.' }, 400);
         }
         const current = await loadModuleContent(adminClient, currentModule);
         const manifest = { ...current.manifest, name };
@@ -793,13 +797,14 @@ Deno.serve(async request => {
       case 'list_administrators': {
         if (role !== 'system') return response({ error: 'Only a System Administrator can manage administrator access.' }, 403);
         const [{ data: adminRecords, error: adminRecordsError }, { data: assignments, error: assignmentsError }, userList] = await Promise.all([
-          adminClient.from('admin_users').select('user_id, display_name, role').order('created_at'),
+          adminClient.from('admin_users').select('user_id, role').order('created_at'),
           adminClient.from('language_admin_modules').select('user_id, language_module_id'),
           adminClient.auth.admin.listUsers({ page: 1, perPage: 1000 }),
         ]);
         if (adminRecordsError || assignmentsError || userList.error) {
           throw adminRecordsError ?? assignmentsError ?? userList.error;
         }
+        // Auth owns email addresses; public.admin_users only stores the role.
         const usersById = new Map((userList.data.users ?? []).map(user => [user.id, user]));
         const assignmentsByUser = new Map<string, string[]>();
         for (const assignment of assignments ?? []) {
@@ -811,11 +816,9 @@ Deno.serve(async request => {
           administrators: (adminRecords ?? []).map(record => ({
             user_id: record.user_id,
             email: usersById.get(record.user_id)?.email ?? 'Unknown account',
-            display_name: record.display_name,
             role: adminRole(record.role),
             module_ids: assignmentsByUser.get(record.user_id) ?? [],
           })),
-          availableUsers: (userList.data.users ?? []).map(user => ({ id: user.id, email: user.email ?? user.id })),
         });
       }
 
@@ -829,10 +832,15 @@ Deno.serve(async request => {
         const { data: targetUser, error: targetUserError } = await adminClient.auth.admin.getUserById(payload.userId);
         if (targetUserError || !targetUser.user) return response({ error: 'That Supabase account does not exist.' }, 400);
         const assignedIds = nextRole === 'language' ? moduleIds(payload.moduleIds) : [];
+        if (nextRole === 'language' && assignedIds.length === 0) {
+          return response({ error: 'A Language Administrator must be assigned at least one language module.' }, 400);
+        }
         const { error: upsertError } = await adminClient
           .from('admin_users')
           .upsert({ user_id: payload.userId, role: nextRole }, { onConflict: 'user_id' });
         if (upsertError) throw upsertError;
+        // Replace the assignment set instead of patching it, so removed
+        // language permissions cannot accidentally remain in the database.
         const { error: clearError } = await adminClient
           .from('language_admin_modules')
           .delete()
@@ -847,11 +855,15 @@ Deno.serve(async request => {
         return response({ saved: true });
       }
 
-      case 'create_language_administrator': {
+      case 'create_administrator': {
         if (role !== 'system') return response({ error: 'Only a System Administrator can create administrator accounts.' }, 403);
         const email = emailAddress(payload.email);
         const password = temporaryPassword(payload.password);
-        const assignedIds = moduleIds(payload.moduleIds);
+        const newRole = adminRole(payload.role);
+        const assignedIds = newRole === 'language' ? moduleIds(payload.moduleIds) : [];
+        if (newRole === 'language' && assignedIds.length === 0) {
+          return response({ error: 'A Language Administrator must be assigned at least one language module.' }, 400);
+        }
         const { data: createResult, error: createError } = await adminClient.auth.admin.createUser({
           email,
           password,
@@ -861,30 +873,46 @@ Deno.serve(async request => {
         try {
           const { error: adminError } = await adminClient
             .from('admin_users')
-            .insert({ user_id: createResult.user.id, role: 'language' });
+            .insert({ user_id: createResult.user.id, role: newRole });
           if (adminError) throw adminError;
-          const { error: assignmentError } = await adminClient
-            .from('language_admin_modules')
-            .insert(assignedIds.map(language_module_id => ({ user_id: createResult.user.id, language_module_id })));
-          if (assignmentError) throw assignmentError;
+          if (assignedIds.length > 0) {
+            const { error: assignmentError } = await adminClient
+              .from('language_admin_modules')
+              .insert(assignedIds.map(language_module_id => ({ user_id: createResult.user.id, language_module_id })));
+            if (assignmentError) throw assignmentError;
+          }
         } catch (error) {
           await adminClient.auth.admin.deleteUser(createResult.user.id).catch(() => undefined);
           throw error;
         }
-        return response({ created: true });
+        return response({ created: true, role: newRole });
       }
 
-      case 'remove_language_administrator': {
+      case 'remove_administrator': {
         if (role !== 'system') return response({ error: 'Only a System Administrator can remove administrator access.' }, 403);
-        if (typeof payload.userId !== 'string' || payload.userId.length === 0) return response({ error: 'Choose a Language Administrator account.' }, 400);
+        if (typeof payload.userId !== 'string' || payload.userId.length === 0) return response({ error: 'Choose an administrator account.' }, 400);
+        if (payload.userId === userResult.user.id) {
+          return response({ error: 'You cannot remove your own System Administrator access.' }, 400);
+        }
         const { data: targetAdministrator, error: targetError } = await adminClient
           .from('admin_users')
           .select('role')
           .eq('user_id', payload.userId)
           .maybeSingle();
         if (targetError) throw targetError;
-        if (!targetAdministrator || adminRole(targetAdministrator.role) !== 'language') {
-          return response({ error: 'Only a Language Administrator can be removed here.' }, 400);
+        if (!targetAdministrator) {
+          return response({ error: 'That account is not an administrator.' }, 400);
+        }
+        const targetRole = adminRole(targetAdministrator.role);
+        if (targetRole === 'system') {
+          const { count, error: countError } = await adminClient
+            .from('admin_users')
+            .select('*', { count: 'exact', head: true })
+            .eq('role', 'system');
+          if (countError) throw countError;
+          if ((count ?? 0) <= 1) {
+            return response({ error: 'At least one System Administrator must remain.' }, 400);
+          }
         }
         const { error: assignmentError } = await adminClient
           .from('language_admin_modules')
@@ -898,7 +926,7 @@ Deno.serve(async request => {
         if (deleteError) throw deleteError;
         // Deliberately keep the underlying Supabase Auth account. A System
         // Administrator can reassign it later without creating a new login.
-        return response({ removed: true });
+        return response({ removed: true, role: targetRole });
       }
 
       default:
