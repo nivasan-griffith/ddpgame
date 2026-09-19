@@ -100,9 +100,16 @@ export interface LanguageWord {
     language: string | null;
     english: string | null;
   };
+  // check if the word has a region placement for single image rounds of drag & drop game
+  region?: {
+    shapeId: string;
+    x: number; y: number; width: number; height: number;
+  };
 }
 
 export interface ResolvedLanguageWord extends LanguageWord {
+  id: string; // for single image round of drag & drop game
+  word: string;
   imageUrl: string | null;
   languageAudioUrl: string | null;
   englishAudioUrl: string | null;
@@ -112,6 +119,26 @@ export interface LoadedLanguageModule {
   manifest: LanguageManifest;
   words: ResolvedLanguageWord[];
   playableWords: ResolvedLanguageWord[];
+}
+
+export function getRegionDragDropGroups(words: ResolvedLanguageWord[]): ResolvedLanguageWord[][] {
+  const groups = new Map<string, ResolvedLanguageWord[]>();
+
+  for (const word of words) {
+    const region = word.region;
+    if (!word.imageUrl || !region
+      || ![region.x, region.y, region.width, region.height].every(Number.isFinite)
+      || region.x < 0 || region.y < 0 || region.width <= 0 || region.height <= 0
+      || region.x + region.width > 100 || region.y + region.height > 100) {
+      continue;
+    }
+
+    const group = groups.get(word.imageUrl) ?? [];
+    group.push(word);
+    groups.set(word.imageUrl, group);
+  }
+
+  return [...groups.values()].filter(group => group.length >= 2);
 }
 
 export interface LanguageOption {
@@ -313,6 +340,40 @@ export class LanguageModuleService {
       installedAt: new Date().toISOString(),
     });
   }
+
+  /////////////////////////////////////////
+  // FOR TESTING WITH LOCAL FILES ONLY //
+  /////////////////////////////////////////
+//  private readonly useLocalTestData = true; 
+
+// loadSelectedModule(): Observable<LoadedLanguageModule> {
+//   if (this.useLocalTestData) {
+//     return this.loadLocalTestModule();
+//   }
+
+//   const selectedId = this.selectedLanguageId;
+//   if (selectedId) {
+//     return from(this.readInstalledModule(selectedId)).pipe(
+//       switchMap(stored => stored
+//         ? of(this.resolveStoredModule(stored))
+//         : this.loadRemoteModule(selectedId))
+//     );
+//   }
+//   return this.loadRemoteModule(null);
+// }
+
+// private loadLocalTestModule(): Observable<LoadedLanguageModule> {
+//   const basePath = 'languages/kuku-thaypan'; // adjust to your real folder name
+//   return this.http.get<LanguageWord[]>(`${basePath}/words2.json`).pipe(
+//     map(words => this.buildLoadedModule(
+//       { id: 'kuku-thaypan', name: 'Kuku Thaypan', version: 'local-test', data: 'words2.json', games: ['drag-drop'] },
+//       words.map(word => this.resolveRemoteWord(basePath, word))
+//     ))
+//   );
+// }
+/////////////////////////////////////////
+// FOR TESTING WITH LOCAL FILES ONLY //
+/////////////////////////////////////////
 
   loadSelectedModule(): Observable<LoadedLanguageModule> {
     const selectedId = this.selectedLanguageId;

@@ -58,7 +58,7 @@ export class FlipcardPage implements OnInit {
   private loadCards(): void {
     this.languageModules.loadSelectedModule().subscribe(module => {
       this.theme.applyManifestTheme(module.manifest);
-      const playableCards = module.playableWords.filter(word => word.image !== null);
+      const playableCards = module.playableWords.filter(word => word.image !== null && !word.region);
       this.cards = this.utils.shuffleArray([...playableCards]);
       this.cardcount = this.cards.length;
       this.currentcard = 0;

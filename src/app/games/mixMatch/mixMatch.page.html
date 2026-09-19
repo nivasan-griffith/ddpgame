@@ -30,49 +30,20 @@
     </div>
 
     <div class="gamespace">
-      <p class="instruction">
-        {{ singleImageMode ? 'Drag or tap to match each word to its section of the drawing.' : 'Drag or tap to match each word to its drawing.' }}
-      </p>
+      <p class="instruction">Drag or tap to match each word to its drawing.</p>
 
-      <section *ngIf="singleImageMode; else mixAndMatchBoard" class="picture-scene" aria-label="Scene">
-        <div class="scene-board">
-          <img #sceneImage [src]="targets[0].imageUrl" alt="" draggable="false"
-            (dragover)="allowDrop($event)"
-            (drop)="singleImageDrop($event, sceneImage)"
-            (click)="singleImageClick($event, sceneImage)"
-          />
-          <div
-            *ngFor="let target of targets"
-            class="drag-target"
-            [hidden]="target.droppedWord"
-            [style.left.%]="target.placement.x * 100"
-            [style.top.%]="target.placement.y * 100"
-            [style.width.%]="target.placement.width * 100"
-            [style.height.%]="target.placement.height * 100">
+      <section class="picture-grid" aria-label="Drawings to match">
+        <div *ngFor="let target of targets" class="drop-zone" [class.has-word]="target.droppedWord" [class.ready-to-place]="selectedWord"
+          (dragover)="allowDrop($event)" (drop)="dropWord($event, target)" (click)="placeSelectedWord(target)">
+          <img [src]="target.word.imageUrl" [alt]="target.word.english" />
+
+          <div *ngIf="target.droppedWord" class="dropped-word">
+            {{ target.droppedWord.word }}
           </div>
 
-          <div *ngFor="let target of targets" class="dropped-word scene-word"
-            [class.visible]="target.droppedWord"
-            [style.left.%]="(target.placement.x + target.placement.width / 2) * 100"
-            [style.top.%]="(target.placement.y + target.placement.height / 2) * 100">
-            {{ target.droppedWord?.word }}
-          </div>
         </div>
       </section>
-
-      <ng-template #mixAndMatchBoard>
-        <section class="picture-grid" aria-label="Drawings to match">
-          <div *ngFor="let target of targets" class="drop-zone" [class.has-word]="target.droppedWord" [class.ready-to-place]="selectedWord"
-            (dragover)="allowDrop($event)" (drop)="dropWord($event, target)" (click)="placeSelectedWord(target)">
-            <img [src]="target.word.imageUrl" [alt]="target.word.english" />
-
-            <div *ngIf="target.droppedWord" class="dropped-word">
-              {{ target.droppedWord.word }}
-            </div>
-          </div>
-        </section>
-      </ng-template>
-
+          
       <section class="word-bank" aria-label="Words to match">
         <button *ngFor="let word of wordBank" class="word-card" type="button" draggable="true"
           [class.selected]="selectedWord?.id === word.id" (dragstart)="dragStarted($event, word)" (click)="selectWord(word)">

@@ -9,11 +9,11 @@ import {
 } from 'src/app/services/language-module.service';
 import { LanguageThemeService } from 'src/app/services/language-theme.service';
 import { UtilsService } from 'src/app/services/utils.service';
-import { DragDropPage } from './dragDrop.page';
+import { MixMatchPage } from './mixMatch.page';
 
-describe('DragDropPage', () => {
-  let component: DragDropPage;
-  let fixture: ComponentFixture<DragDropPage>;
+describe('MixMatchPage', () => {
+  let component: MixMatchPage;
+  let fixture: ComponentFixture<MixMatchPage>;
   let shuffleArray: jasmine.Spy;
   let languageModules: jasmine.SpyObj<LanguageModuleService>;
 
@@ -49,7 +49,7 @@ describe('DragDropPage', () => {
     languageModules.loadSelectedModule.and.returnValue(of(module));
 
     TestBed.configureTestingModule({
-      imports: [DragDropPage],
+      imports: [MixMatchPage],
       providers: [
         provideNoopAnimations(),
         provideRouter([]),
@@ -68,13 +68,12 @@ describe('DragDropPage', () => {
       ],
     });
 
-    fixture = TestBed.createComponent(DragDropPage);
+    fixture = TestBed.createComponent(MixMatchPage);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
 
   it('shuffles the word cards independently from the image targets', () => {
-    expect(component.singleImageMode).toBeFalse();
     expect(component.targets.map(target => target.word.id)).toEqual([
       'one',
       'two',
@@ -87,33 +86,7 @@ describe('DragDropPage', () => {
       'two',
       'one',
     ]);
-    expect(fixture.nativeElement.querySelector('.picture-grid')).not.toBeNull();
-    expect(fixture.nativeElement.querySelector('.picture-scene')).toBeNull();
     expect(shuffleArray).toHaveBeenCalledTimes(2);
-  });
-
-  it('uses a shared-image region group when one is available', () => {
-    const sceneWords = [
-      makeRegionWord('eye', 10, 20),
-      makeRegionWord('nose', 40, 30),
-      makeRegionWord('mouth', 30, 60),
-      makeRegionWord('ear', 70, 25),
-    ];
-    languageModules.loadSelectedModule.and.returnValue(of({
-      ...module,
-      words: sceneWords,
-      playableWords: sceneWords,
-    }));
-
-    component.nextRound();
-    fixture.detectChanges();
-
-    expect(component.singleImageMode).toBeTrue();
-    expect(component.targets.length).toBe(4);
-    expect(component.targets.every(target => target.imageUrl === 'images/scene.png')).toBeTrue();
-    expect(component.targets.every(target => target.placement.width === 0.2)).toBeTrue();
-    expect(fixture.nativeElement.querySelector('.picture-scene')).not.toBeNull();
-    expect(fixture.nativeElement.querySelector('.picture-grid')).toBeNull();
   });
 
   it('keeps the same set and orders when restarting a round', () => {
@@ -213,12 +186,5 @@ function makeWord(
     imageUrl: image,
     languageAudioUrl: null,
     englishAudioUrl: null,
-  };
-}
-
-function makeRegionWord(id: string, x: number, y: number): ResolvedLanguageWord {
-  return {
-    ...makeWord(id, 'images/scene.png'),
-    region: { shapeId: 'scene', x, y, width: 20, height: 10 },
   };
 }

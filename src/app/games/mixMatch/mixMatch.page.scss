@@ -71,26 +71,6 @@ ion-button {
   cursor: pointer;
 }
 
-.picture-scene {
-  grid-area: pictures;
-  width: min(100%, 31rem);
-  margin: 0 auto;
-}
-
-.scene-board {
-  position: relative;
-}
-
-.scene-board > img {
-  width: 100%;
-}
-
-.drag-target {
-  position: absolute;
-  outline: 2px dashed rgba(80, 185, 255, 0.9);
-  pointer-events: none;
-}
-
 .word-bank {
   grid-area: words;
   display: grid;
@@ -131,15 +111,6 @@ ion-button {
   text-align: center;
 }
 
-.scene-word {
-  display: none;
-  pointer-events: none;
-}
-
-.scene-word.visible {
-  display: block;
-}
-
 .layouttop .corner img,
 .layoutbottom.corner img {
   display: block;
@@ -178,6 +149,69 @@ ion-button {
   justify-content: center;
 }
 
+// .tp-wrapper {
+//   flex:1;
+//   position:relative;
+//   top:0rem;
+//     -webkit-perspective: 1000px;
+//             perspective: 1000px;
+//      margin-bottom:3.5em;   
+//      display:grid;
+//      justify-content: center;
+//      align-items: center;   
+     
+//   }
+  
+//   .tp-box {
+   
+//     width: var(--box-width);
+//     height: var(--box-height);
+//     -webkit-transform-style: preserve-3d;
+//             transform-style: preserve-3d;
+//     -webkit-transform         : transform 1s;
+//         -ms-transform         : transform 1s;
+//             transform         : transform 1s;
+//   }
+
+//   .tp-box__side {
+//      position: absolute;
+//      -webkit-backface-visibility: hidden;
+//      backface-visibility: hidden;
+//     color:black;
+//     text-align: center;
+//     line-height: 1.1;
+//     /*font-size: 2.5em;*/
+//     font-weight: 700;
+//     cursor: pointer;
+//     -webkit-user-select: none;
+//        -moz-user-select: none;
+//         -ms-user-select: none;
+//             user-select: none;
+//   }
+
+ 
+//   .tp-box__front {
+//   //  background: rgba(100,100,100,0.8);
+//     border-radius: 12px;
+//     -webkit-transform : rotateY(0deg);
+//     -ms-transform     : rotateY(0deg);
+//     transform         : rotateY(0deg);
+//   }
+
+//   .tp-box__back {
+//    // background:rgba(100,100,100,0.7);
+//     border-radius: 12px;
+//     -webkit-transform : rotateY(-180deg);
+//     -ms-transform     : rotateY(-180deg);
+//     transform         : rotateY(-180deg);
+//   }
+
+//   .tp-box__side img{
+//     width:100%;
+//     aspect-ratio:1/1;
+//   }
+
+   
   @keyframes firework {
     0% { transform: translate(var(--x), var(--initialY)); width: var(--initialSize); opacity: 10; }
     50% { width: 0.5vmin; opacity: 10; }
@@ -280,6 +314,33 @@ ion-button {
   /*   animation: fireworkPseudo 2s infinite; */
   }
   
+  .firework:nth-child(2) {
+    --x: 30vmin;
+  }
+  
+  .firework:nth-child(2),
+  .firework:nth-child(2)::before,
+  .firework:nth-child(2)::after {
+    --color1: pink;
+    --color2: violet;
+    --color3: red;
+    --color4: orchid;
+    --color5: plum;
+    --color6: lavender;  
+    --finalSize: 40vmin;
+    left: 30%;
+    top: 60%;
+    animation-delay: -0.25s;
+  }
+  .firework:nth-child(3),
+  .firework:nth-child(3)::before,
+  .firework:nth-child(3)::after {
+   
+    left: 70%;
+    top: 40%;
+    animation-delay: -0.75s;
+  }
+  
 .notification{
       box-sizing: border-box;
       width: 100%;
@@ -306,14 +367,11 @@ ion-button {
     }
 
 @media (orientation: landscape) {
-    .picture-scene,
     .picture-grid {
       width: min(100%, 45dvh, 31rem);
-      place-self: center;
-    }
-
-    .picture-grid {
+      height: auto;
       aspect-ratio: 1;
+      place-self: center;
     }
 }
 
@@ -357,20 +415,19 @@ ion-button {
       font-size: clamp(0.75rem, 1.7vw, 0.95rem);
     }
 
-    .picture-scene,
     .picture-grid {
-      width: min(49dvh, 15rem);
-    }
-
-    .picture-scene .scene-word {
-      padding: 0.15rem 0.3rem;
-      font-size: 0.8rem;
+      width: min(100%, 49dvh, 15rem);
+      height: auto;
+      max-width: 100%;
+      aspect-ratio: 1;
+      place-self: center;
     }
 
     .word-bank {
       grid-template-columns: 1fr;
       grid-template-rows: repeat(4, minmax(0, 1fr));
       align-self: stretch;
+      width: 100%;
     }
 
     .word-card {
@@ -381,13 +438,6 @@ ion-button {
 
     .gamebuttons ion-button {
       height: 2.4rem;
-    }
-}
-
-@media (orientation: portrait) and (max-width: 600px) {
-    .picture-scene {
-      width: min(86vw, 42dvh, 22rem);
-      margin-bottom: 0.5rem;
     }
 }
 

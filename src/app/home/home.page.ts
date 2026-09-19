@@ -3,7 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { IonContent, IonButton, IonIcon } from '@ionic/angular/standalone';
-import { LanguageModuleService } from 'src/app/services/language-module.service';
+import { take } from 'rxjs';
+import { getRegionDragDropGroups, LanguageModuleService } from 'src/app/services/language-module.service';
 import { LanguageThemeService } from 'src/app/services/language-theme.service';
 
 
@@ -16,15 +17,37 @@ import { LanguageThemeService } from 'src/app/services/language-theme.service';
 })
 export class HomePage implements OnInit {
   languageName = '';
+  supportsDragDrop = false;
+  private firstEntry = true;
   constructor(
     private languageModules: LanguageModuleService,
     public readonly theme: LanguageThemeService
   ) { }
 
   ngOnInit() {
-    this.languageModules.loadSelectedModule().subscribe(module => {
-      this.languageName = module.manifest.name;
-      this.theme.applyManifestTheme(module.manifest);
+    this.loadHome();
+  }
+
+  ionViewWillEnter(): void {
+    if (this.firstEntry) {
+      this.firstEntry = false;
+      return;
+    }
+
+    this.loadHome();
+  }
+
+  private loadHome(): void {
+    this.supportsDragDrop = false;
+    this.languageModules.loadSelectedModule().pipe(take(1)).subscribe({
+      next: module => {
+        this.languageName = module.manifest.name;
+        this.supportsDragDrop = getRegionDragDropGroups(module.playableWords).length > 0;
+        this.theme.applyManifestTheme(module.manifest);
+      },
+      error: () => {
+        this.supportsDragDrop = false;
+      }
     });
   }
 
