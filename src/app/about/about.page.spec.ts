@@ -79,7 +79,8 @@ describe('AboutPage', () => {
     expect(paragraphs).toContain('Second About paragraph.');
     expect(aboutLink.textContent?.trim()).toBe('About');
     expect(aboutLink.href).toBe('https://example.com/about');
-    expect(aboutLink.target).toBe('');
+    expect(aboutLink.target).toBe('_blank');
+    expect(aboutLink.rel).toBe('noopener noreferrer');
     expect(fixture.nativeElement.querySelectorAll('.about-copy a').length).toBe(1);
     expect(fixture.nativeElement.textContent).toContain('With thanks.');
     expect(acknowledgementRoles).toEqual(['First role', 'Second role']);
