@@ -687,153 +687,197 @@
     "word": "arrpil",
     "english": "hair",
     "category": "Face/Head (from Email)",
-    "image": null,
+    "image": "images/multiLabelImages/face-head.png",
     "audio": {
       "language": null,
       "english": null
     },
     "note": "Only the overall face/head image was provided (no individual images for each facial feature).",
-    "availableInCurrentVersion": false,
-    "playable": true
+    "availableInCurrentVersion": true,
+    "playable": true,
+    "region": {
+      "id": "face-parts",
+      "x": 44, "y": 15, "width": 12, "height": 6
+    }
   },
   {
     "id": "amil-arrpil",
     "word": "amil arrpil",
     "english": "eyebrow",
     "category": "Face/Head (from Email)",
-    "image": null,
+    "image": "images/multiLabelImages/face-head.png",
     "audio": {
       "language": null,
       "english": null
     },
     "note": "Only the overall face/head image was provided (no individual images for each facial feature).",
-    "availableInCurrentVersion": false,
-    "playable": true
+    "availableInCurrentVersion": true,
+    "playable": true,
+    "region": {
+      "id": "face-parts",
+      "x": 28, "y": 39, "width": 12, "height": 6
+    }
   },
   {
     "id": "amil-akwil",
     "word": "amil akwil",
     "english": "browridge",
     "category": "Face/Head (from Email)",
-    "image": null,
+    "image": "images/multiLabelImages/face-head.png",
     "audio": {
       "language": null,
       "english": null
     },
     "note": "Only the overall face/head image was provided (no individual images for each facial feature).",
-    "availableInCurrentVersion": false,
-    "playable": true
+    "availableInCurrentVersion": true,
+    "playable": true,
+    "region": {
+      "id": "face-parts",
+      "x": 56, "y": 33, "width": 12, "height": 6
+    }
   },
   {
     "id": "agu-or-awu",
     "word": "agu (or awu)",
     "english": "throat",
     "category": "Face/Head (from Email)",
-    "image": null,
+    "image": "images/multiLabelImages/face-head.png",
     "audio": {
       "language": null,
       "english": null
     },
     "note": "Only the overall face/head image was provided (no individual images for each facial feature).",
-    "availableInCurrentVersion": false,
-    "playable": true
+    "availableInCurrentVersion": true,
+    "playable": true,
+    "region": {
+      "id": "face-parts",
+      "x": 43, "y": 85, "width": 12, "height": 6
+    }
   },
   {
     "id": "pandal",
     "word": "pandal",
     "english": "chin",
     "category": "Face/Head (from Email)",
-    "image": null,
+    "image": "images/multiLabelImages/face-head.png",
     "audio": {
       "language": null,
       "english": null
     },
     "note": "Only the overall face/head image was provided (no individual images for each facial feature).",
-    "availableInCurrentVersion": false,
-    "playable": true
+    "availableInCurrentVersion": true,
+    "playable": true,
+    "region": {
+      "id": "face-parts",
+      "x": 43, "y": 75, "width": 12, "height": 6
+    }
   },
   {
     "id": "alkul",
     "word": "alkul",
     "english": "head",
     "category": "Face/Head (from Email)",
-    "image": null,
+    "image": "images/multiLabelImages/face-head.png",
     "audio": {
       "language": null,
       "english": null
     },
     "note": "Only the overall face/head image was provided (no individual images for each facial feature).",
-    "availableInCurrentVersion": false,
-    "playable": true
+    "availableInCurrentVersion": true,
+    "playable": true,
+    "region": {
+      "id": "face-parts",
+      "x": 44, "y": 6, "width": 12, "height": 6
+    }
   },
   {
     "id": "ambir",
     "word": "ambir",
     "english": "forehead",
     "category": "Face/Head (from Email)",
-    "image": null,
+    "image": "images/multiLabelImages/face-head.png",
     "audio": {
       "language": null,
       "english": null
     },
     "note": "Only the overall face/head image was provided (no individual images for each facial feature).",
-    "availableInCurrentVersion": false,
-    "playable": true
+    "availableInCurrentVersion": true,
+    "playable": true,
+    "region": {
+      "id": "face-parts",
+      "x": 46, "y": 34, "width": 12, "height": 6
+    }
   },
   {
     "id": "amil",
     "word": "amil",
     "english": "eye",
     "category": "Face/Head (from Email)",
-    "image": null,
+    "image": "images/multiLabelImages/face-head.png",
     "audio": {
       "language": null,
       "english": null
     },
     "note": "Only the overall face/head image was provided (no individual images for each facial feature).",
-    "availableInCurrentVersion": false,
-    "playable": true
+    "availableInCurrentVersion": true,
+    "playable": true,
+    "region": {
+      "id": "face-parts",
+      "x": 56, "y": 45, "width": 12, "height": 6
+    }
   },
   {
     "id": "akaw-ata",
     "word": "akaw ata",
     "english": "nose",
     "category": "Face/Head (from Email)",
-    "image": null,
+    "image": "images/multiLabelImages/face-head.png",
     "audio": {
       "language": null,
       "english": null
     },
     "note": "Only the overall face/head image was provided (no individual images for each facial feature).",
-    "availableInCurrentVersion": false,
-    "playable": true
+    "availableInCurrentVersion": true,
+    "playable": true,
+    "region": {
+      "id": "face-parts",
+      "x": 42, "y": 55, "width": 12, "height": 6
+    }
   },
   {
     "id": "ana-ambor",
     "word": "ana ambor",
     "english": "ear",
     "category": "Face/Head (from Email)",
-    "image": null,
+    "image": "images/multiLabelImages/face-head.png",
     "audio": {
       "language": null,
       "english": null
     },
     "note": "Only the overall face/head image was provided (no individual images for each facial feature).",
-    "availableInCurrentVersion": false,
-    "playable": true
+    "availableInCurrentVersion": true,
+    "playable": true,
+    "region": {
+      "id": "face-parts",
+      "x": 12, "y": 54, "width": 12, "height": 6
+    }
   },
   {
     "id": "angu",
     "word": "angu",
     "english": "neck",
     "category": "Face/Head (from Email)",
-    "image": null,
+    "image": "images/multiLabelImages/face-head.png",
     "audio": {
       "language": null,
       "english": null
     },
     "note": "Only the overall face/head image was provided (no individual images for each facial feature).",
-    "availableInCurrentVersion": false,
-    "playable": true
+    "availableInCurrentVersion": true,
+    "playable": true,
+    "region": {
+      "id": "face-parts",
+      "x": 60, "y": 85, "width": 12, "height": 6
+    }
   }
 ]

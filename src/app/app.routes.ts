@@ -38,9 +38,14 @@ export const routes: Routes = [
     loadComponent: () => import('./access-code/access-code.page').then(m => m.AccessCodePage)
   },
 
-    {
+  {
     path: 'games/dragDrop',
     loadComponent: () => import('./games/dragDrop/dragDrop.page').then( m => m.DragDropPage)
+  },
+
+   {
+    path: 'games/mixMatch',
+    loadComponent: () => import('./games/mixMatch/mixMatch.page').then( m => m.MixMatchPage)
   },
  
 ];

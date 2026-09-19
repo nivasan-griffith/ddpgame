@@ -52,7 +52,7 @@ export class QuizPage implements OnInit {
   private loadQuestions(): void {
     this.languageModules.loadSelectedModule().subscribe(module => {
       this.theme.applyManifestTheme(module.manifest);
-      const playableCards = module.playableWords.filter(word => word.image !== null);
+      const playableCards = module.playableWords.filter(word => word.image !== null && !word.region); 
       this.cards = playableCards;
       this.quiz = this.utils.shuffleArray([...playableCards]);
       this.currentquestion = 0;

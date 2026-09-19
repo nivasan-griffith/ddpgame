@@ -38,46 +38,45 @@ ion-button {
   text-align: center;
 }
 
-.picture-scene {
+.picture-grid {
   grid-area: pictures;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+  gap: clamp(0.35rem, 1vw, 0.75rem);
   width: min(100%, 31rem);
-  min-height: 0;
   margin: 0 auto;
 }
 
-.scene-board {
+.drop-zone {
   position: relative;
-  display: inline-block;
-  width: 100%;
+  display: flex;
+  aspect-ratio: 1;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  padding: 0.25rem;
 }
 
-.scene-board > img{
+.drop-zone > img {
   display: block;
-  width: 90%;
-  height: auto;
+  width: 92%;
+  height: 92%;
+  object-fit: contain;
 }
 
-.drag-target {
-  position: absolute;
-  border: 2px dashed rgba(80, 185, 255, 0.9);
-  background: rgba(80, 235, 255, 0.15);
-  border-radius: 4px;
-  box-sizing: border-box;
-  pointer-events: none;
-  z-index: 10;
-  transition: background 0.15s ease;
+.drop-zone.ready-to-place {
+  cursor: pointer;
 }
 
 .word-bank {
   grid-area: words;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.5rem;
-  width: min(100%, 30rem);
+  width: min(100%, 38rem);
   margin: 0 auto;
 }
 
@@ -94,11 +93,6 @@ ion-button {
   min-height: 2.75rem;
   padding: 0.55rem 0.75rem;
   font-size: clamp(1rem, 2.5vw, 1.25rem);
-  inline-size: fit-content;
-  min-inline-size: min(100%, 9rem);
-  max-inline-size: 100%;
-  position: relative;
-  z-index: 5;
 }
 
 .word-card.selected {
@@ -115,17 +109,6 @@ ion-button {
   transform: translate(-50%, -50%);
   font-size: clamp(0.9rem, 2.5vw, 1.2rem);
   text-align: center;
-}
-
-.scene-word {
-  display: none;
-  z-index: 1;
-  max-width: 45%;
-  pointer-events: none;
-}
-
-.scene-word.visible {
-  display: block;
 }
 
 .layouttop .corner img,
@@ -166,6 +149,69 @@ ion-button {
   justify-content: center;
 }
 
+// .tp-wrapper {
+//   flex:1;
+//   position:relative;
+//   top:0rem;
+//     -webkit-perspective: 1000px;
+//             perspective: 1000px;
+//      margin-bottom:3.5em;   
+//      display:grid;
+//      justify-content: center;
+//      align-items: center;   
+     
+//   }
+  
+//   .tp-box {
+   
+//     width: var(--box-width);
+//     height: var(--box-height);
+//     -webkit-transform-style: preserve-3d;
+//             transform-style: preserve-3d;
+//     -webkit-transform         : transform 1s;
+//         -ms-transform         : transform 1s;
+//             transform         : transform 1s;
+//   }
+
+//   .tp-box__side {
+//      position: absolute;
+//      -webkit-backface-visibility: hidden;
+//      backface-visibility: hidden;
+//     color:black;
+//     text-align: center;
+//     line-height: 1.1;
+//     /*font-size: 2.5em;*/
+//     font-weight: 700;
+//     cursor: pointer;
+//     -webkit-user-select: none;
+//        -moz-user-select: none;
+//         -ms-user-select: none;
+//             user-select: none;
+//   }
+
+ 
+//   .tp-box__front {
+//   //  background: rgba(100,100,100,0.8);
+//     border-radius: 12px;
+//     -webkit-transform : rotateY(0deg);
+//     -ms-transform     : rotateY(0deg);
+//     transform         : rotateY(0deg);
+//   }
+
+//   .tp-box__back {
+//    // background:rgba(100,100,100,0.7);
+//     border-radius: 12px;
+//     -webkit-transform : rotateY(-180deg);
+//     -ms-transform     : rotateY(-180deg);
+//     transform         : rotateY(-180deg);
+//   }
+
+//   .tp-box__side img{
+//     width:100%;
+//     aspect-ratio:1/1;
+//   }
+
+   
   @keyframes firework {
     0% { transform: translate(var(--x), var(--initialY)); width: var(--initialSize); opacity: 10; }
     50% { width: 0.5vmin; opacity: 10; }
@@ -321,9 +367,10 @@ ion-button {
     }
 
 @media (orientation: landscape) {
-    .picture-scene {
+    .picture-grid {
       width: min(100%, 45dvh, 31rem);
       height: auto;
+      aspect-ratio: 1;
       place-self: center;
     }
 }
@@ -368,15 +415,15 @@ ion-button {
       font-size: clamp(0.75rem, 1.7vw, 0.95rem);
     }
 
-    .picture-scene {
+    .picture-grid {
       width: min(100%, 49dvh, 15rem);
       height: auto;
       max-width: 100%;
+      aspect-ratio: 1;
       place-self: center;
     }
 
     .word-bank {
-      display: grid;
       grid-template-columns: 1fr;
       grid-template-rows: repeat(4, minmax(0, 1fr));
       align-self: stretch;
@@ -387,8 +434,6 @@ ion-button {
       min-height: 0;
       padding: 0.35rem 0.5rem;
       font-size: clamp(0.8rem, 1.8vw, 1rem);
-      inline-size: 100%;
-      min-inline-size: 0;
     }
 
     .gamebuttons ion-button {
@@ -398,7 +443,6 @@ ion-button {
 
 @media (max-width: 420px) and (orientation: portrait) {
     .word-bank {
-      display: grid;
       grid-template-columns: 1fr;
     }
 
