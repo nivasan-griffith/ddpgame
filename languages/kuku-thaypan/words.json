@@ -649,6 +649,7 @@
     "english": "Hook",
     "category": "Material Culture 12",
     "image": "images/Atayl - fishing hook.png",
+    "displayScale": 0.75,
     "audio": {
       "language": null,
       "english": "audio/hook.mp3"

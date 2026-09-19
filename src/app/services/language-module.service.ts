@@ -95,6 +95,7 @@ export interface LanguageWord {
   availableInCurrentVersion?: boolean;
   playable?: boolean;
   image: string | null;
+  displayScale?: number;
   audio: {
     language: string | null;
     english: string | null;
@@ -118,6 +119,26 @@ export interface LoadedLanguageModule {
   manifest: LanguageManifest;
   words: ResolvedLanguageWord[];
   playableWords: ResolvedLanguageWord[];
+}
+
+export function getRegionDragDropGroups(words: ResolvedLanguageWord[]): ResolvedLanguageWord[][] {
+  const groups = new Map<string, ResolvedLanguageWord[]>();
+
+  for (const word of words) {
+    const region = word.region;
+    if (!word.imageUrl || !region
+      || ![region.x, region.y, region.width, region.height].every(Number.isFinite)
+      || region.x < 0 || region.y < 0 || region.width <= 0 || region.height <= 0
+      || region.x + region.width > 100 || region.y + region.height > 100) {
+      continue;
+    }
+
+    const group = groups.get(word.imageUrl) ?? [];
+    group.push(word);
+    groups.set(word.imageUrl, group);
+  }
+
+  return [...groups.values()].filter(group => group.length >= 2);
 }
 
 export interface LanguageOption {

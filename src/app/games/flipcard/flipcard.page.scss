@@ -198,3 +198,65 @@ ion-button{
     font-size: 2.3em;
   }
  }
+
+/*
+ * Short phone landscape screens do not have enough vertical space for the
+ * original fixed 400px card. Keep the game readable by sizing the card from
+ * the available viewport height, without changing the desktop or portrait
+ * layout.
+ */
+@media (orientation: landscape) and (max-height: 600px) {
+  :host {
+    --landscape-card-size: min(52dvh, 48vw, 250px);
+  }
+
+  #layout {
+    height: 100%;
+    min-height: 100%;
+    grid-template-rows: 3rem minmax(0, 1fr) auto 1.5rem;
+    overflow: hidden;
+  }
+
+  .dots {
+    width: 2.25rem;
+    margin: 0.15rem 0.75rem 0 0;
+    font-size: 0.6rem;
+    line-height: 1;
+  }
+
+  .layouttop .corner img,
+  .layoutbottom.corner img {
+    width: min(8rem, 18vw);
+    max-height: 2.25rem;
+  }
+
+  .tp-wrapper {
+    min-height: 0;
+    margin-bottom: 0.25rem;
+  }
+
+  .tp-box {
+    width: var(--landscape-card-size);
+    height: var(--landscape-card-size);
+  }
+
+  .tp-box__side img {
+    height: calc(var(--landscape-card-size) - 2rem);
+    aspect-ratio: auto;
+    object-fit: contain;
+  }
+
+  .word {
+    font-size: clamp(0.9rem, 2vw, 1.1rem);
+    min-height: 2rem;
+  }
+
+  .gamebuttons {
+    min-height: 2.75rem;
+  }
+
+  .gamebuttons ion-button {
+    min-height: 2.4rem;
+    margin: 0.15rem;
+  }
+}

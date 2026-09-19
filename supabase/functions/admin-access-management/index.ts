@@ -1,4 +1,15 @@
 import { createClient } from 'npm:@supabase/supabase-js@2';
+import {
+  defaultManifest,
+  nextPatchVersion,
+  parseManifestJson,
+  parseWordsJson,
+  requiredText,
+  safeIdentifier,
+  validateWord,
+  type LanguageManifestContent,
+  type LanguageWordInput,
+} from '../_shared/language-content.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -6,7 +17,11 @@ const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
 };
 
-type Action = 'list_modules' | 'list_codes' | 'generate_code' | 'disable_code' | 'update_code' | 'update_module' | 'publish_access_type' | 'list_administrators' | 'save_administrator_permissions' | 'create_language_administrator' | 'remove_language_administrator';
+type Action = 'list_modules' | 'list_codes' | 'generate_code' | 'disable_code' | 'update_code' |
+  'get_module_content' | 'create_module' | 'update_module' | 'delete_module' |
+  'create_word' | 'update_word' | 'delete_word' | 'publish_access_type' |
+  'list_administrators' | 'save_administrator_permissions' |
+  'create_administrator' | 'remove_administrator';
 
 type AccessType = 'public' | 'private';
 type AdminRole = 'system' | 'language';
@@ -30,6 +45,26 @@ interface AdminRequest {
   moduleIds?: unknown;
   email?: unknown;
   password?: unknown;
+  id?: unknown;
+  wordId?: unknown;
+  expectedVersion?: unknown;
+  word?: unknown;
+}
+
+interface LanguageModuleRecord {
+  id: string;
+  name: string;
+  access_type: AccessType;
+  content_bucket: string | null;
+  content_prefix: string | null;
+  published_version: string | null;
+  published_at: string | null;
+}
+
+class HttpError extends Error {
+  constructor(readonly status: number, message: string) {
+    super(message);
+  }
 }
 
 function response(body: Record<string, unknown>, status = 200): Response {
@@ -91,6 +126,118 @@ function temporaryPassword(value: unknown): string {
   return value;
 }
 
+function validated<T>(operation: () => T): T {
+  try {
+    return operation();
+  } catch (error) {
+    throw new HttpError(400, error instanceof Error ? error.message : 'Invalid request.');
+  }
+}
+
+function expectedVersion(value: unknown): string {
+  return validated(() => requiredText(value, 'Expected version', 40));
+}
+
+async function getModule(
+  client: ReturnType<typeof createClient>,
+  moduleId: string,
+): Promise<LanguageModuleRecord> {
+  const { data, error } = await client
+    .from('language_modules')
+    .select('id, name, access_type, content_bucket, content_prefix, published_version, published_at')
+    .eq('id', moduleId)
+    .maybeSingle();
+  if (error) throw error;
+  if (!data) throw new HttpError(404, 'That language module does not exist.');
+  return data as LanguageModuleRecord;
+}
+
+async function loadModuleContent(
+  client: ReturnType<typeof createClient>,
+  module: LanguageModuleRecord,
+): Promise<{ manifest: LanguageManifestContent; words: LanguageWordInput[]; manifestBlob: Blob; wordsBlob: Blob }> {
+  if (!module.content_bucket || !module.content_prefix) {
+    throw new HttpError(400, 'This module has no published Storage location.');
+  }
+  const storage = client.storage.from(module.content_bucket);
+  const { data: manifestBlob, error: manifestError } = await storage.download(`${module.content_prefix}/manifest.json`);
+  if (manifestError || !manifestBlob) throw manifestError ?? new Error('Could not read the module manifest.');
+  const manifestText = await manifestBlob.text();
+  const manifest = validated(() => parseManifestJson(manifestText));
+  if (manifest.id !== module.id) {
+    throw new HttpError(400, 'The module manifest ID does not match its catalogue record.');
+  }
+  const { data: wordsBlob, error: wordsError } = await storage.download(`${module.content_prefix}/${manifest.data}`);
+  if (wordsError || !wordsBlob) throw wordsError ?? new Error('Could not read the module words file.');
+  const wordsText = await wordsBlob.text();
+  const words = validated(() => parseWordsJson(wordsText));
+  return { manifest, words, manifestBlob, wordsBlob };
+}
+
+async function writeModuleContent(
+  client: ReturnType<typeof createClient>,
+  module: LanguageModuleRecord,
+  current: Awaited<ReturnType<typeof loadModuleContent>>,
+  manifest: LanguageManifestContent,
+  words: LanguageWordInput[],
+  requestedVersion: string,
+): Promise<string> {
+  if (current.manifest.version !== requestedVersion || module.published_version !== requestedVersion) {
+    throw new HttpError(409, 'This language changed after you opened it. Refresh and try again.');
+  }
+  if (!module.content_bucket || !module.content_prefix) {
+    throw new HttpError(400, 'This module has no published Storage location.');
+  }
+  const nextVersion = validated(() => nextPatchVersion(requestedVersion));
+  const nextManifest = { ...manifest, version: nextVersion };
+  const now = new Date().toISOString();
+  const { data: reservation, error: reservationError } = await client
+    .from('language_modules')
+    .update({
+      name: nextManifest.name,
+      published_version: nextVersion,
+      published_at: now,
+    })
+    .eq('id', module.id)
+    .eq('published_version', requestedVersion)
+    .select('id')
+    .maybeSingle();
+  if (reservationError) throw reservationError;
+  if (!reservation) throw new HttpError(409, 'This language changed after you opened it. Refresh and try again.');
+
+  const storage = client.storage.from(module.content_bucket);
+  const wordsPath = `${module.content_prefix}/${nextManifest.data}`;
+  const manifestPath = `${module.content_prefix}/manifest.json`;
+  let wordsWritten = false;
+  let manifestWritten = false;
+  try {
+    const { error: wordsError } = await storage.upload(
+      wordsPath,
+      new Blob([`${JSON.stringify(words, null, 2)}\n`], { type: 'application/json' }),
+      { upsert: true, contentType: 'application/json' },
+    );
+    if (wordsError) throw wordsError;
+    wordsWritten = true;
+    const { error: manifestError } = await storage.upload(
+      manifestPath,
+      new Blob([`${JSON.stringify(nextManifest, null, 2)}\n`], { type: 'application/json' }),
+      { upsert: true, contentType: 'application/json' },
+    );
+    if (manifestError) throw manifestError;
+    manifestWritten = true;
+    return nextVersion;
+  } catch (error) {
+    if (wordsWritten) await storage.upload(wordsPath, current.wordsBlob, { upsert: true, contentType: 'application/json' }).catch(() => undefined);
+    if (manifestWritten) await storage.upload(manifestPath, current.manifestBlob, { upsert: true, contentType: 'application/json' }).catch(() => undefined);
+    await client
+      .from('language_modules')
+      .update({ name: module.name, published_version: requestedVersion, published_at: module.published_at })
+      .eq('id', module.id)
+      .eq('published_version', nextVersion);
+    throw error;
+  }
+}
+
 async function listModuleFiles(
   client: ReturnType<typeof createClient>,
   bucket: string,
@@ -98,6 +245,8 @@ async function listModuleFiles(
 ): Promise<string[]> {
   const files: string[] = [];
 
+  // Storage represents folders as items without an id, so walk the full
+  // module prefix before publishing or deleting its files.
   const walk = async (folder: string): Promise<void> => {
     const { data, error } = await client.storage.from(bucket).list(folder, { limit: 1000 });
     if (error) throw error;
@@ -116,6 +265,32 @@ async function listModuleFiles(
   if (!files.includes(`${prefix}/manifest.json`) || !files.includes(`${prefix}/words.json`)) {
     throw new Error('The module must contain manifest.json and words.json before it can be published.');
   }
+  return files;
+}
+
+async function listAllModuleFiles(
+  client: ReturnType<typeof createClient>,
+  bucket: string,
+  prefix: string,
+): Promise<string[]> {
+  const files: string[] = [];
+  const walk = async (folder: string): Promise<void> => {
+    let offset = 0;
+    while (true) {
+      const { data, error } = await client.storage.from(bucket).list(folder, { limit: 1000, offset });
+      if (error) throw error;
+      const items = (data ?? []) as StorageListItem[];
+      for (const item of items) {
+        const path = `${folder}/${item.name}`;
+        if (item.id === null) await walk(path);
+        else files.push(path);
+        if (files.length > 5000) throw new Error('A module cannot contain more than 5,000 files.');
+      }
+      if (items.length < 1000) break;
+      offset += items.length;
+    }
+  };
+  await walk(prefix);
   return files;
 }
 
@@ -170,6 +345,8 @@ Deno.serve(async request => {
   }
   if (!authorization?.startsWith('Bearer ')) return response({ error: 'Administrator login is required.' }, 401);
 
+  // Validate the caller with their bearer token before creating a separate
+  // service-role client. The service-role key never leaves this function.
   const authClient = createClient(supabaseUrl, anonKey, {
     global: { headers: { Authorization: authorization } },
   });
@@ -200,6 +377,7 @@ Deno.serve(async request => {
     return response({ error: 'Could not verify language permissions.' }, 500);
   }
   const assignedModuleIds = new Set((assignments ?? []).map(assignment => assignment.language_module_id));
+  // UI visibility is not trusted: each action checks this server-side scope.
   const canManageModule = (moduleId: string): boolean => role === 'system' || assignedModuleIds.has(moduleId);
 
   let payload: AdminRequest;
@@ -220,6 +398,77 @@ Deno.serve(async request => {
         const { data, error } = await query;
         if (error) throw error;
         return response({ modules: data, role });
+      }
+
+      case 'get_module_content': {
+        const moduleId = validated(() => safeIdentifier(payload.moduleId, 'Language ID'));
+        if (!canManageModule(moduleId)) {
+          return response({ error: 'You do not have access to that language module.' }, 403);
+        }
+        const module = await getModule(adminClient, moduleId);
+        const { manifest, words } = await loadModuleContent(adminClient, module);
+        return response({ manifest, words, version: manifest.version });
+      }
+
+      case 'create_module': {
+        if (role !== 'system') {
+          return response({ error: 'Only a System Administrator can create a language.' }, 403);
+        }
+        const id = validated(() => safeIdentifier(payload.id, 'Language ID'));
+        const name = validated(() => requiredText(payload.name, 'Language name', 120));
+        const bucket = 'private-language-modules';
+        const prefix = id;
+        const manifest = defaultManifest(id, name);
+        const publishedAt = new Date().toISOString();
+        const { error: insertError } = await adminClient.from('language_modules').insert({
+          id,
+          name,
+          access_type: 'private',
+          content_bucket: bucket,
+          content_prefix: prefix,
+          published_version: manifest.version,
+          published_at: publishedAt,
+        });
+        if (insertError?.code === '23505') throw new HttpError(409, 'A language with that ID already exists.');
+        if (insertError) throw insertError;
+
+        const storage = adminClient.storage.from(bucket);
+        const written: string[] = [];
+        try {
+          const wordsPath = `${prefix}/${manifest.data}`;
+          const { error: wordsError } = await storage.upload(
+            wordsPath,
+            new Blob(['[]\n'], { type: 'application/json' }),
+            { upsert: false, contentType: 'application/json' },
+          );
+          if (wordsError) throw wordsError;
+          written.push(wordsPath);
+          const manifestPath = `${prefix}/manifest.json`;
+          const { error: manifestError } = await storage.upload(
+            manifestPath,
+            new Blob([`${JSON.stringify(manifest, null, 2)}\n`], { type: 'application/json' }),
+            { upsert: false, contentType: 'application/json' },
+          );
+          if (manifestError) throw manifestError;
+          written.push(manifestPath);
+        } catch (error) {
+          if (written.length > 0) await storage.remove(written).catch(() => undefined);
+          await adminClient.from('language_modules').delete().eq('id', id);
+          throw error;
+        }
+        return response({
+          module: {
+            id,
+            name,
+            access_type: 'private',
+            content_bucket: bucket,
+            content_prefix: prefix,
+            published_version: manifest.version,
+            published_at: publishedAt,
+          },
+          manifest,
+          words: [],
+        }, 201);
       }
 
       case 'list_codes': {
@@ -331,31 +580,106 @@ Deno.serve(async request => {
       }
 
       case 'update_module': {
-        if (typeof payload.moduleId !== 'string' || typeof payload.name !== 'string') {
-          return response({ error: 'A module and display name are required.' }, 400);
-        }
-        if (!canManageModule(payload.moduleId)) {
+        const moduleId = validated(() => safeIdentifier(payload.moduleId, 'Language ID'));
+        const name = validated(() => requiredText(payload.name, 'Language name', 120));
+        const version = expectedVersion(payload.expectedVersion);
+        if (!canManageModule(moduleId)) {
           return response({ error: 'You do not have access to that language module.' }, 403);
         }
-        const { data: currentModule, error: currentModuleError } = await adminClient
-          .from('language_modules')
-          .select('access_type')
-          .eq('id', payload.moduleId)
-          .maybeSingle();
-        if (currentModuleError) throw currentModuleError;
-        if (!currentModule) return response({ error: 'That language module does not exist.' }, 400);
-        // A public/private change also requires files to be published to the
-        // corresponding location. Do not let a label-only update accidentally
-        // expose or break a module before the publishing workflow exists.
+        const currentModule = await getModule(adminClient, moduleId);
+        // Access changes must use publish_access_type, which moves the module
+        // files before changing the database setting.
         if (payload.accessType !== undefined && payload.accessType !== currentModule.access_type) {
-          return response({ error: 'Access type changes require the module publishing workflow and are not available yet.' }, 400);
+          return response({ error: 'Access type changes must use the controlled publishing workflow.' }, 400);
         }
-        const { error } = await adminClient
+        const current = await loadModuleContent(adminClient, currentModule);
+        const manifest = { ...current.manifest, name };
+        const nextVersion = await writeModuleContent(
+          adminClient,
+          currentModule,
+          current,
+          manifest,
+          current.words,
+          version,
+        );
+        return response({ updated: true, version: nextVersion, name });
+      }
+
+      case 'delete_module': {
+        if (role !== 'system') {
+          return response({ error: 'Only a System Administrator can delete a language.' }, 403);
+        }
+        const moduleId = validated(() => safeIdentifier(payload.moduleId, 'Language ID'));
+        const module = await getModule(adminClient, moduleId);
+        const version = expectedVersion(payload.expectedVersion);
+        if (module.published_version !== version) {
+          throw new HttpError(409, 'This language changed after you opened it. Refresh and try again.');
+        }
+        const { data: deleted, error: deleteError } = await adminClient
           .from('language_modules')
-          .update({ name: payload.name.trim().slice(0, 120) })
-          .eq('id', payload.moduleId);
-        if (error) throw error;
-        return response({ updated: true });
+          .delete()
+          .eq('id', moduleId)
+          .eq('published_version', version)
+          .select('id')
+          .maybeSingle();
+        if (deleteError) throw deleteError;
+        if (!deleted) throw new HttpError(409, 'This language changed after you opened it. Refresh and try again.');
+
+        let cleanupPending = false;
+        if (module.content_bucket && module.content_prefix) {
+          try {
+            const files = await listAllModuleFiles(adminClient, module.content_bucket, module.content_prefix);
+            if (files.length > 0) await removeModuleFiles(adminClient, module.content_bucket, files);
+          } catch (error) {
+            cleanupPending = true;
+            console.error('Deleted language record but Storage cleanup is still required.', error);
+          }
+        }
+        return response({ deleted: true, cleanupPending });
+      }
+
+      case 'create_word':
+      case 'update_word':
+      case 'delete_word': {
+        const moduleId = validated(() => safeIdentifier(payload.moduleId, 'Language ID'));
+        if (!canManageModule(moduleId)) {
+          return response({ error: 'You do not have access to that language module.' }, 403);
+        }
+        const version = expectedVersion(payload.expectedVersion);
+        const module = await getModule(adminClient, moduleId);
+        const current = await loadModuleContent(adminClient, module);
+        let words = [...current.words];
+
+        if (payload.action === 'create_word') {
+          const word = validated(() => validateWord(payload.word));
+          if (words.some(existing => existing.id === word.id)) {
+            throw new HttpError(409, `A word with ID “${word.id}” already exists.`);
+          }
+          words.push(word);
+        } else {
+          const wordId = validated(() => safeIdentifier(payload.wordId, 'Word ID'));
+          const index = words.findIndex(word => word.id === wordId);
+          if (index < 0) throw new HttpError(404, 'That word entry does not exist.');
+          if (payload.action === 'delete_word') {
+            words.splice(index, 1);
+          } else {
+            const word = validated(() => validateWord(payload.word));
+            if (word.id !== wordId && words.some(existing => existing.id === word.id)) {
+              throw new HttpError(409, `A word with ID “${word.id}” already exists.`);
+            }
+            words[index] = word;
+          }
+        }
+
+        const nextVersion = await writeModuleContent(
+          adminClient,
+          module,
+          current,
+          current.manifest,
+          words,
+          version,
+        );
+        return response({ updated: true, words, version: nextVersion });
       }
 
       case 'publish_access_type': {
@@ -473,13 +797,14 @@ Deno.serve(async request => {
       case 'list_administrators': {
         if (role !== 'system') return response({ error: 'Only a System Administrator can manage administrator access.' }, 403);
         const [{ data: adminRecords, error: adminRecordsError }, { data: assignments, error: assignmentsError }, userList] = await Promise.all([
-          adminClient.from('admin_users').select('user_id, display_name, role').order('created_at'),
+          adminClient.from('admin_users').select('user_id, role').order('created_at'),
           adminClient.from('language_admin_modules').select('user_id, language_module_id'),
           adminClient.auth.admin.listUsers({ page: 1, perPage: 1000 }),
         ]);
         if (adminRecordsError || assignmentsError || userList.error) {
           throw adminRecordsError ?? assignmentsError ?? userList.error;
         }
+        // Auth owns email addresses; public.admin_users only stores the role.
         const usersById = new Map((userList.data.users ?? []).map(user => [user.id, user]));
         const assignmentsByUser = new Map<string, string[]>();
         for (const assignment of assignments ?? []) {
@@ -491,11 +816,9 @@ Deno.serve(async request => {
           administrators: (adminRecords ?? []).map(record => ({
             user_id: record.user_id,
             email: usersById.get(record.user_id)?.email ?? 'Unknown account',
-            display_name: record.display_name,
             role: adminRole(record.role),
             module_ids: assignmentsByUser.get(record.user_id) ?? [],
           })),
-          availableUsers: (userList.data.users ?? []).map(user => ({ id: user.id, email: user.email ?? user.id })),
         });
       }
 
@@ -509,10 +832,15 @@ Deno.serve(async request => {
         const { data: targetUser, error: targetUserError } = await adminClient.auth.admin.getUserById(payload.userId);
         if (targetUserError || !targetUser.user) return response({ error: 'That Supabase account does not exist.' }, 400);
         const assignedIds = nextRole === 'language' ? moduleIds(payload.moduleIds) : [];
+        if (nextRole === 'language' && assignedIds.length === 0) {
+          return response({ error: 'A Language Administrator must be assigned at least one language module.' }, 400);
+        }
         const { error: upsertError } = await adminClient
           .from('admin_users')
           .upsert({ user_id: payload.userId, role: nextRole }, { onConflict: 'user_id' });
         if (upsertError) throw upsertError;
+        // Replace the assignment set instead of patching it, so removed
+        // language permissions cannot accidentally remain in the database.
         const { error: clearError } = await adminClient
           .from('language_admin_modules')
           .delete()
@@ -527,11 +855,15 @@ Deno.serve(async request => {
         return response({ saved: true });
       }
 
-      case 'create_language_administrator': {
+      case 'create_administrator': {
         if (role !== 'system') return response({ error: 'Only a System Administrator can create administrator accounts.' }, 403);
         const email = emailAddress(payload.email);
         const password = temporaryPassword(payload.password);
-        const assignedIds = moduleIds(payload.moduleIds);
+        const newRole = adminRole(payload.role);
+        const assignedIds = newRole === 'language' ? moduleIds(payload.moduleIds) : [];
+        if (newRole === 'language' && assignedIds.length === 0) {
+          return response({ error: 'A Language Administrator must be assigned at least one language module.' }, 400);
+        }
         const { data: createResult, error: createError } = await adminClient.auth.admin.createUser({
           email,
           password,
@@ -541,30 +873,46 @@ Deno.serve(async request => {
         try {
           const { error: adminError } = await adminClient
             .from('admin_users')
-            .insert({ user_id: createResult.user.id, role: 'language' });
+            .insert({ user_id: createResult.user.id, role: newRole });
           if (adminError) throw adminError;
-          const { error: assignmentError } = await adminClient
-            .from('language_admin_modules')
-            .insert(assignedIds.map(language_module_id => ({ user_id: createResult.user.id, language_module_id })));
-          if (assignmentError) throw assignmentError;
+          if (assignedIds.length > 0) {
+            const { error: assignmentError } = await adminClient
+              .from('language_admin_modules')
+              .insert(assignedIds.map(language_module_id => ({ user_id: createResult.user.id, language_module_id })));
+            if (assignmentError) throw assignmentError;
+          }
         } catch (error) {
           await adminClient.auth.admin.deleteUser(createResult.user.id).catch(() => undefined);
           throw error;
         }
-        return response({ created: true });
+        return response({ created: true, role: newRole });
       }
 
-      case 'remove_language_administrator': {
+      case 'remove_administrator': {
         if (role !== 'system') return response({ error: 'Only a System Administrator can remove administrator access.' }, 403);
-        if (typeof payload.userId !== 'string' || payload.userId.length === 0) return response({ error: 'Choose a Language Administrator account.' }, 400);
+        if (typeof payload.userId !== 'string' || payload.userId.length === 0) return response({ error: 'Choose an administrator account.' }, 400);
+        if (payload.userId === userResult.user.id) {
+          return response({ error: 'You cannot remove your own System Administrator access.' }, 400);
+        }
         const { data: targetAdministrator, error: targetError } = await adminClient
           .from('admin_users')
           .select('role')
           .eq('user_id', payload.userId)
           .maybeSingle();
         if (targetError) throw targetError;
-        if (!targetAdministrator || adminRole(targetAdministrator.role) !== 'language') {
-          return response({ error: 'Only a Language Administrator can be removed here.' }, 400);
+        if (!targetAdministrator) {
+          return response({ error: 'That account is not an administrator.' }, 400);
+        }
+        const targetRole = adminRole(targetAdministrator.role);
+        if (targetRole === 'system') {
+          const { count, error: countError } = await adminClient
+            .from('admin_users')
+            .select('*', { count: 'exact', head: true })
+            .eq('role', 'system');
+          if (countError) throw countError;
+          if ((count ?? 0) <= 1) {
+            return response({ error: 'At least one System Administrator must remain.' }, 400);
+          }
         }
         const { error: assignmentError } = await adminClient
           .from('language_admin_modules')
@@ -578,7 +926,7 @@ Deno.serve(async request => {
         if (deleteError) throw deleteError;
         // Deliberately keep the underlying Supabase Auth account. A System
         // Administrator can reassign it later without creating a new login.
-        return response({ removed: true });
+        return response({ removed: true, role: targetRole });
       }
 
       default:
@@ -586,6 +934,9 @@ Deno.serve(async request => {
     }
   } catch (error) {
     console.error('Administrator request failed.', error);
-    return response({ error: error instanceof Error ? error.message : 'Administrator request failed.' }, 500);
+    return response(
+      { error: error instanceof Error ? error.message : 'Administrator request failed.' },
+      error instanceof HttpError ? error.status : 500,
+    );
   }
 });

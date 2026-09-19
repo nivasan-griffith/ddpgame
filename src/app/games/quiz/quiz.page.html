@@ -33,7 +33,8 @@
         <div class="tp-wrapper">
       
           <div class="tp-box" >
-            <img *ngIf="question?.imageUrl" [src]="question?.imageUrl" (error)="hideImage()" [alt]="question?.word || ''"/>
+            <img *ngIf="question?.imageUrl" [src]="question?.imageUrl" (error)="hideImage()" [alt]="question?.word || ''"
+              [style.transform]="question?.displayScale ? 'scale(' + question?.displayScale + ')' : null"/>
           </div> 
           <div class="questions">
             <p>What is the language name for <strong>{{question?.english}}</strong>?</p>

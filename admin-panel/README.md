@@ -1,57 +1,73 @@
 # Indigenous Languages administrator portal
 
 This is a separate responsive Angular web application for administrators. It
-does not add administrator pages to the learner application. Both applications
-use the same Supabase project, so a code generated here is immediately usable
-in the learner app.
+does not add administrator pages to the learner app. Both applications use the
+same Supabase project, so language and access-code changes take effect in the
+learner app immediately.
 
-## Current scope
+## What it supports
 
-- Supabase email/password administrator login
-- list registered language modules and their public/private setting
-- generate an access code with a label, 30-day default expiry, and usage limit
-- list code status and redemption count without exposing the original code
-- disable a code and revoke future private-file requests created with it
+- System Administrator and Language Administrator roles
+- system-wide or module-scoped language visibility
+- secure private-language access-code generation, editing, and revocation
+- public/private module publishing through the correct Supabase Storage bucket
+- assigning one or more language modules to a Language Administrator
+- creating and removing administrator portal access
+- creating and deleting language modules as a System Administrator
+- editing a language name and word entries as an assigned administrator
+- keeping the Storage manifest, word data, and catalogue version in sync
 
-The actual readable code is displayed once after it is generated. Only a hash
-is stored in Supabase, so the portal cannot reveal an old code later.
+The readable value of an access code is displayed once after generation. Only
+its hash is stored, so an old code cannot be viewed or altered later.
 
-The public/private setting is intentionally read-only in this first version.
-Changing a module from public to private does not transfer its files. Before a
-module is marked private, its words, images, and audio must already be in the
-private Storage bucket and excluded from the learner-app bundle. Full
-word/media upload and publishing is the next phase of IND-88; that workflow
-will change the content location and access setting together.
+Language content remains a manifest plus the JSON data file named by its
+`data` field (currently `words.json`). The portal validates edits, preserves
+unrecognised entry metadata, and increments the manifest patch version on each
+write. Optimistic version checks reject stale edits instead of overwriting a
+newer change. Image and audio fields are safe, module-relative paths; upload of
+new media files remains a separate Storage operation.
+
+Only System Administrators can create or delete a language. Assigned Language
+Administrators can read and edit the name and words for their assigned
+languages. Deleting a word deliberately retains media files because another
+entry may reference them.
 
 ## One-time Supabase setup
 
-1. Run `supabase/migrations/20260903090000_admin_portal.sql` in the Supabase
-   SQL Editor (or apply it through the Supabase CLI in a managed environment).
-2. In Supabase Dashboard, open **Authentication → Users** and create the first
-   administrator email/password account. The password and chosen email can be
-   decided with the client later.
-3. In the SQL Editor, find that account's UUID:
+Run the administrator migrations in the Supabase SQL Editor, in filename order:
 
-   ```sql
-   select id, email from auth.users order by created_at desc;
-   ```
+1. `supabase/migrations/20260903090000_admin_portal.sql`
+2. `supabase/migrations/20260910090000_language_admin_roles.sql`
 
-4. Register that Auth account as an administrator, replacing the values:
+Create the first administrator in **Authentication → Users**, then register
+that Auth account as a System Administrator. Replace the placeholder UUID:
 
-   ```sql
-   insert into public.admin_users (user_id, display_name)
-   values ('AUTH_USER_UUID_HERE', 'Administrator');
-   ```
+```sql
+insert into public.admin_users (user_id, display_name)
+values ('AUTH_USER_UUID_HERE', 'System Administrator');
+```
 
-5. Deploy the protected endpoint:
+`role` defaults to `system` for this initial account.
 
-   ```powershell
-   npx supabase functions deploy admin-access-management --project-ref YOUR_PROJECT_REF
-   ```
+Deploy the protected backend endpoint from the repository root:
 
-The SQL Editor is only needed for this initial setup and future database
-migrations. Day-to-day code generation and disabling is performed in the
-portal.
+```powershell
+npx supabase functions deploy admin-access-management --project-ref YOUR_PROJECT_REF
+```
+
+The project ref is visible in the Supabase project URL and settings. Do not
+place the service-role key in either browser application.
+
+## Day-to-day administration
+
+- A System Administrator sees all language modules and the **Users** page.
+- A Language Administrator sees only modules assigned to their account.
+- A System Administrator can change a module between public and private. This
+  copies files to the required Storage bucket before the setting changes.
+- Access codes are managed from a private language's **Configure → Settings**
+  page.
+- Removing a Language Administrator revokes their portal permissions but keeps
+  their Supabase Auth login, allowing reassignment later.
 
 ## Run locally
 
@@ -62,19 +78,37 @@ npm install
 npm start
 ```
 
-Open the local URL reported by Angular (normally `http://localhost:4200`). If
-the learner app is already using that port, Angular will offer another port;
-accept it.
+Open the local URL reported by Angular, normally `http://localhost:4200`.
+Use an Incognito/InPrivate window when testing a second administrator account,
+because normal browser tabs share the same Supabase login session.
+
+## Runtime configuration
+
+The portal reads its Supabase server address from
+`src/assets/config/app-config.json` before the application starts. To point a
+deployed build at another Supabase project, update the copied
+`assets/config/app-config.json` file on the web server; rebuilding the portal
+is not required. Use the same `serverUrl` as the learner application.
+
+The public publishable key remains part of the compiled environment files. A
+server URL and publishable key must belong to the same Supabase project.
 
 ## Security model
 
 The browser receives only the Supabase project URL and publishable key. It
-never receives a service-role key. Every portal request carries the signed-in
-user session to the `admin-access-management` Edge Function. The function
-checks that the user appears in `public.admin_users` before it reads or changes
-module/code records with its server-only credentials.
+never receives a service-role key. Every portal request includes the signed-in
+user session and is checked by the `admin-access-management` Edge Function. The
+function verifies the account's role and assigned modules server-side before it
+reads or changes module/code records or Storage content with its server-only
+credentials.
 
-Disabling a code prevents it from being redeemed again and revokes its stored
-access grants for future private-file downloads. A module that was already
-downloaded for offline use remains on that user's device; offline copies cannot
-be remotely deleted by a web application.
+Language mutations first reserve the next version in the catalogue, then write
+the word data and manifest. If either Storage write fails, the function restores
+the previous files and catalogue version. A language deletion removes its
+catalogue record (including cascading assignments and codes) before cleaning up
+the exact configured Storage prefix; the portal reports when that cleanup needs
+manual follow-up.
+
+Disabling an access code prevents further redemption and revokes its stored
+private-file grants. Previously downloaded offline module copies cannot be
+removed remotely from a learner's device.

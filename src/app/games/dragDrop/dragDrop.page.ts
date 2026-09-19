@@ -4,7 +4,7 @@ import { RouterLink } from '@angular/router';
 import { addIcons } from 'ionicons';
 import { IonButton, IonContent, IonPopover, IonIcon} from '@ionic/angular/standalone';
 import { reloadOutline, arrowForward } from 'ionicons/icons';
-import { LanguageModuleService, ResolvedLanguageWord } from 'src/app/services/language-module.service';
+import { getRegionDragDropGroups, LanguageModuleService, ResolvedLanguageWord } from 'src/app/services/language-module.service';
 import { LanguageThemeService } from 'src/app/services/language-theme.service';
 import { UtilsService } from 'src/app/services/utils.service';
 
@@ -12,7 +12,6 @@ interface DropTarget {
   word: ResolvedLanguageWord;
   droppedWord: ResolvedLanguageWord | null;
   imageUrl: string;
-  // region: Region;
   placement: RegionPlacement;
 }
 
@@ -49,6 +48,7 @@ interface RegionPlacement {
 
 export class DragDropPage implements OnInit {
   targets: DropTarget[] = [];
+  singleImageMode = false;
   isPopovertrueOpen = false;
   isPopoverfalseOpen = false;
   private roundWords: ResolvedLanguageWord[] = [];
@@ -195,51 +195,51 @@ export class DragDropPage implements OnInit {
     this.roundWords = [];
     this.wordBankWords = [];
     this.targets = [];
+    this.singleImageMode = false;
 
     this.languageModules.loadSelectedModule().subscribe(module => {
       this.theme.applyManifestTheme(module.manifest);
-      const usableWords = module.playableWords.filter(word => word.imageUrl !== null && word.region);
-      
-      // group words by shared image
-      const byImage = new Map<string, ResolvedLanguageWord[]>();
-      for (const word of usableWords) {
-        const group = byImage.get(word.imageUrl!) ?? [];
-        group.push(word);
-        byImage.set(word.imageUrl!, group);
+      const sceneGroups = getRegionDragDropGroups(module.playableWords);
+      if (sceneGroups.length > 0) {
+        const scene = this.utils.shuffleArray([...sceneGroups])[0];
+        const roundSize = Math.min(4, scene.length);
+        const selectedWords = this.utils.shuffleArray([...scene]).slice(0, roundSize);
+        this.singleImageMode = true;
+        this.loadSingleImageRound(selectedWords);
+        return;
       }
 
-      const sceneGroups = [...byImage.values()].filter(group => group.length > 1);
-      if (sceneGroups.length === 0) {
-        return;
-      } 
-
-      const scene = this.utils.shuffleArray([...sceneGroups])[0];
-
-      //pick 4 random words from a scene 
-      const roundSize = Math.min(4, scene.length);
-      const selectedWords = this.utils.shuffleArray([...scene]).slice(0, roundSize);
-      this.loadSingleImageRound(selectedWords);
-
-      // load scene with all words 
-      // this.loadSingleImageRound(scene);
+      this.loadMixAndMatchRound(module.playableWords);
     });
+  }
+
+  private loadMixAndMatchRound(words: ResolvedLanguageWord[]): void {
+    const usableWords = words.filter(word => word.imageUrl !== null);
+    this.roundWords = this.utils.shuffleArray([...usableWords]).slice(0, 4);
+    this.targets = this.roundWords.map(word => ({
+      word,
+      droppedWord: null,
+      imageUrl: word.imageUrl!,
+      placement: { x: 0, y: 0, width: 1, height: 1 },
+    }));
+    this.wordBankWords = this.utils.shuffleArray([...this.roundWords]);
   }
 
 
   private loadSingleImageRound(words: ResolvedLanguageWord[]): void {
-  this.targets = words.map(word => {
-    const placement = this.toNormalizedPlacement(word.region!);
+    this.targets = words.map(word => {
+      const placement = this.toNormalizedPlacement(word.region!);
 
-    return {
-      word,
-      droppedWord: null,
-      imageUrl: word.imageUrl!,
-      placement,
-    };
-  });
-  this.roundWords = this.targets.map(t => t.word);
-  this.wordBankWords = this.utils.shuffleArray([...this.roundWords]);
-}
+      return {
+        word,
+        droppedWord: null,
+        imageUrl: word.imageUrl!,
+        placement,
+      };
+    });
+    this.roundWords = this.targets.map(target => target.word);
+    this.wordBankWords = this.utils.shuffleArray([...this.roundWords]);
+  }
 
 private toNormalizedPlacement(region: {
   x: number;
