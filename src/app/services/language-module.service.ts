@@ -341,40 +341,6 @@ export class LanguageModuleService {
     });
   }
 
-  /////////////////////////////////////////
-  // FOR TESTING WITH LOCAL FILES ONLY //
-  /////////////////////////////////////////
-//  private readonly useLocalTestData = true; 
-
-// loadSelectedModule(): Observable<LoadedLanguageModule> {
-//   if (this.useLocalTestData) {
-//     return this.loadLocalTestModule();
-//   }
-
-//   const selectedId = this.selectedLanguageId;
-//   if (selectedId) {
-//     return from(this.readInstalledModule(selectedId)).pipe(
-//       switchMap(stored => stored
-//         ? of(this.resolveStoredModule(stored))
-//         : this.loadRemoteModule(selectedId))
-//     );
-//   }
-//   return this.loadRemoteModule(null);
-// }
-
-// private loadLocalTestModule(): Observable<LoadedLanguageModule> {
-//   const basePath = 'languages/kuku-thaypan'; // adjust to your real folder name
-//   return this.http.get<LanguageWord[]>(`${basePath}/words2.json`).pipe(
-//     map(words => this.buildLoadedModule(
-//       { id: 'kuku-thaypan', name: 'Kuku Thaypan', version: 'local-test', data: 'words2.json', games: ['drag-drop'] },
-//       words.map(word => this.resolveRemoteWord(basePath, word))
-//     ))
-//   );
-// }
-/////////////////////////////////////////
-// FOR TESTING WITH LOCAL FILES ONLY //
-/////////////////////////////////////////
-
   loadSelectedModule(): Observable<LoadedLanguageModule> {
     const selectedId = this.selectedLanguageId;
     if (selectedId) {

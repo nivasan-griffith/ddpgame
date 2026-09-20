@@ -187,6 +187,26 @@ export class DragDropPage implements OnInit {
     this.draggedWord = null;
   }
 
+  // check targets so labels don't overlap
+  targetsTooClose(
+    a: RegionPlacement,
+    b: RegionPlacement
+  ):  boolean {
+    const ax = (a.x + a.width / 2) / 100;
+    const ay = (a.y + a.height / 2) / 100;
+
+    const bx = (b.x + b.width / 2) / 100;
+    const by = (b.y + b.height / 2) / 100;
+
+    const distance = Math.sqrt(
+      Math.pow(ax - bx, 2) +
+      Math.pow(ay - by, 2)
+      );
+
+    return distance < 0.20;
+  }
+    
+  
   private loadRound(): void {
     this.isPopovertrueOpen = false;
     this.isPopoverfalseOpen = false;
@@ -201,9 +221,32 @@ export class DragDropPage implements OnInit {
       this.theme.applyManifestTheme(module.manifest);
       const sceneGroups = getRegionDragDropGroups(module.playableWords);
       if (sceneGroups.length > 0) {
-        const scene = this.utils.shuffleArray([...sceneGroups])[0];
-        const roundSize = Math.min(4, scene.length);
-        const selectedWords = this.utils.shuffleArray([...scene]).slice(0, roundSize);
+        const scene = this.utils.shuffleArray([...sceneGroups])[0]; // to use all words instead of 4 at a time
+        // const roundSize = Math.min(4, scene.length);
+
+        const shuffledWords = this.utils.shuffleArray([...scene])
+        const selectedWords: ResolvedLanguageWord[] = [];
+
+        for (const word of shuffledWords) {
+          if (!word.region) {
+            continue;
+          }
+
+          const tooClose = selectedWords.some(selectedWord =>
+          selectedWord.region && 
+          this.targetsTooClose(word.region, selectedWord.region)
+          );
+
+          if(!tooClose) {
+            selectedWords.push(word);
+          } 
+
+          if(selectedWords.length === 4) {
+                  break;
+          }
+
+        }
+        // const selectedWords = this.utils.shuffleArray([...scene]).slice(0, roundSize);
         this.singleImageMode = true;
         this.loadSingleImageRound(selectedWords);
         return;
