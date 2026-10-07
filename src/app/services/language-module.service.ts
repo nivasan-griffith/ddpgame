@@ -102,7 +102,7 @@ export interface LanguageWord {
   };
   // check if the word has a region placement for single image rounds of drag & drop game
   region?: {
-    shapeId: string;
+    id: string;
     x: number; y: number; width: number; height: number;
   };
 }

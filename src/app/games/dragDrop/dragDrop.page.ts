@@ -20,23 +20,12 @@ interface Point {
   y: number;
 }
 
-// interface ShapeTemplate {
-//   id: string;
-//   name: string;
-//   points: Point[];
-// }
-
 interface RegionPlacement {
   x: number;
   y: number;
   width: number;
   height: number;
 }
-
-// interface Region {
-//   points: Point[];
-// }
-
 
 @Component({
   selector: 'app-drag-drop',
@@ -220,10 +209,10 @@ export class DragDropPage implements OnInit {
     this.languageModules.loadSelectedModule().subscribe(module => {
       this.theme.applyManifestTheme(module.manifest);
       const sceneGroups = getRegionDragDropGroups(module.playableWords);
+      
       if (sceneGroups.length > 0) {
         const scene = this.utils.shuffleArray([...sceneGroups])[0]; // to use all words instead of 4 at a time
-        // const roundSize = Math.min(4, scene.length);
-
+        
         const shuffledWords = this.utils.shuffleArray([...scene])
         const selectedWords: ResolvedLanguageWord[] = [];
 
@@ -246,28 +235,13 @@ export class DragDropPage implements OnInit {
           }
 
         }
-        // const selectedWords = this.utils.shuffleArray([...scene]).slice(0, roundSize);
+    
         this.singleImageMode = true;
         this.loadSingleImageRound(selectedWords);
         return;
       }
-
-      this.loadMixAndMatchRound(module.playableWords);
     });
   }
-
-  private loadMixAndMatchRound(words: ResolvedLanguageWord[]): void {
-    const usableWords = words.filter(word => word.imageUrl !== null);
-    this.roundWords = this.utils.shuffleArray([...usableWords]).slice(0, 4);
-    this.targets = this.roundWords.map(word => ({
-      word,
-      droppedWord: null,
-      imageUrl: word.imageUrl!,
-      placement: { x: 0, y: 0, width: 1, height: 1 },
-    }));
-    this.wordBankWords = this.utils.shuffleArray([...this.roundWords]);
-  }
-
 
   private loadSingleImageRound(words: ResolvedLanguageWord[]): void {
     this.targets = words.map(word => {
