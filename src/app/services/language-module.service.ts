@@ -102,7 +102,7 @@ export interface LanguageWord {
   };
   // check if the word has a region placement for single image rounds of drag & drop game
   region?: {
-    shapeId: string;
+    id: string;
     x: number; y: number; width: number; height: number;
   };
 }
@@ -340,19 +340,52 @@ export class LanguageModuleService {
       installedAt: new Date().toISOString(),
     });
   }
+// /////////////////////////////////////
+  ///FOR TESTING LOCAL PURPOSES ONLY//
+  /////////////////////////////////////
+  private readonly useLocalTestData = true; 
 
-  loadSelectedModule(): Observable<LoadedLanguageModule> {
-    const selectedId = this.selectedLanguageId;
-    if (selectedId) {
-      return from(this.readInstalledModule(selectedId)).pipe(
-        switchMap(stored => stored
-          ? of(this.resolveStoredModule(stored))
-          : this.loadRemoteModule(selectedId))
-      );
-    }
-
-    return this.loadRemoteModule(null);
+loadSelectedModule(): Observable<LoadedLanguageModule> {
+  if (this.useLocalTestData) {
+    return this.loadLocalTestModule();
   }
+
+  const selectedId = this.selectedLanguageId;
+  if (selectedId) {
+    return from(this.readInstalledModule(selectedId)).pipe(
+      switchMap(stored => stored
+        ? of(this.resolveStoredModule(stored))
+        : this.loadRemoteModule(selectedId))
+    );
+  }
+  return this.loadRemoteModule(null);
+}
+
+private loadLocalTestModule(): Observable<LoadedLanguageModule> {
+  const basePath = 'languages/kuku-thaypan'; // adjust to the real folder name you're testing
+  return this.http.get<LanguageWord[]>(`${basePath}/words2.json`).pipe(
+    map(words => this.buildLoadedModule(
+      { id: 'kuku-thaypan', name: 'Kuku Thaypan', version: 'local-test', data: 'words2.json', games: ['drag-drop'] },
+      words.map(word => this.resolveRemoteWord(basePath, word))
+    ))
+  );
+}
+// /////////////////////////////////////
+  ///FOR TESTING LOCAL PURPOSES ONLY//
+  /////////////////////////////////////
+  
+  // loadSelectedModule(): Observable<LoadedLanguageModule> {
+  //   const selectedId = this.selectedLanguageId;
+  //   if (selectedId) {
+  //     return from(this.readInstalledModule(selectedId)).pipe(
+  //       switchMap(stored => stored
+  //         ? of(this.resolveStoredModule(stored))
+  //         : this.loadRemoteModule(selectedId))
+  //     );
+  //   }
+
+  //   return this.loadRemoteModule(null);
+  // }
 
   private loadRemoteLanguageOptions(): Observable<LanguageOption[]> {
     return from(this.getRemoteModuleEntries()).pipe(
